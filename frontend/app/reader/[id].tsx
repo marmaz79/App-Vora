@@ -68,6 +68,7 @@ export default function ReaderScreen() {
       language: "it-IT",
       rate: settings.rate,
       pitch: settings.pitch,
+      voice: settings.voice || undefined,
       onDone: () => {
         speakingRef.current = false;
         setSpeaking(false);
