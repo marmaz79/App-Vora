@@ -20,11 +20,23 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
   styleEl.setAttribute("data-leggimi-no-hover", "1");
   styleEl.textContent = `
     * { outline: none !important; -webkit-tap-highlight-color: transparent !important; }
-    *:focus, *:focus-visible { outline: none !important; box-shadow: none !important; }
+    *:focus, *:focus-visible, *:focus-within { outline: none !important; box-shadow: none !important; }
+    [role="button"], [role="tab"], [role="link"], button, a {
+      cursor: pointer !important;
+      transition: none !important;
+    }
     [role="button"]:hover, [role="tab"]:hover, [role="link"]:hover,
-    [aria-selected="true"]:hover, [data-selected="true"]:hover,
-    button:hover, a:hover { background-color: transparent !important; opacity: 1 !important; }
-    [aria-selected="true"], [data-selected="true"] { opacity: 1 !important; }
+    button:hover, a:hover,
+    [role="button"]:focus, [role="tab"]:focus, [role="link"]:focus,
+    button:focus, a:focus {
+      opacity: 1 !important;
+      filter: none !important;
+      transform: none !important;
+      text-decoration: inherit !important;
+    }
+    [aria-selected="true"]:hover, [data-selected="true"]:hover {
+      opacity: 1 !important;
+    }
   `;
   if (!document.querySelector('style[data-leggimi-no-hover="1"]')) {
     document.head.appendChild(styleEl);
