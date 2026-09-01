@@ -1,0 +1,171 @@
+{
+  "app_name": "Leggimi",
+  "personality": "7 Dark-First Utility (Customized for Accessibility/Visually Impaired)",
+  "personality_one_liner": "Maximum contrast, massive touch targets, and unambiguous auditory-visual hierarchy for an inclusive reading experience.",
+  "color": {
+    "surface": "#000000",
+    "onSurface": "#FFFFFF",
+    "surfaceSecondary": "#1A1A1A",
+    "onSurfaceSecondary": "#FFFFFF",
+    "surfaceTertiary": "#333333",
+    "onSurfaceTertiary": "#FFFFFF",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#000000",
+    "brand": "#FFD600",
+    "brandPrimary": "#FFD600",
+    "onBrandPrimary": "#000000",
+    "brandSecondary": "#FFEA00",
+    "onBrandSecondary": "#000000",
+    "brandTertiary": "#332B00",
+    "onBrandTertiary": "#FFD600",
+    "success": "#00FF00",
+    "onSuccess": "#000000",
+    "warning": "#FFD600",
+    "onWarning": "#000000",
+    "error": "#FF0000",
+    "onError": "#FFFFFF",
+    "info": "#FFFFFF",
+    "onInfo": "#000000",
+    "border": "#333333",
+    "borderStrong": "#FFFFFF",
+    "divider": "#333333"
+  },
+  "typography": {
+    "displayFontFamily": "Atkinson Hyperlegible, sans-serif",
+    "textFontFamily": "Atkinson Hyperlegible, sans-serif",
+    "scale": {
+      "sm": 18,
+      "base": 24,
+      "lg": 28,
+      "xl": 32,
+      "2xl": 40
+    }
+  },
+  "spacing": {
+    "rule": "Massive touch targets and padding. No element smaller than 72pt height. Generous whitespace to avoid mis-taps.",
+    "xs": 8,
+    "sm": 16,
+    "md": 24,
+    "lg": 32,
+    "xl": 48,
+    "2xl": 64,
+    "3xl": 80
+  },
+  "radius_tokens": {
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Ionicons",
+  "glassmorphism": {
+    "enabled": "false",
+    "do's": [],
+    "dont's": [
+      "Never use glassmorphism. It reduces contrast. Solid colors only."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "solid surfaceSecondary",
+      "android": "solid surfaceSecondary",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "none",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Splash",
+      "purpose": "High contrast welcome screen with app name read out by screen reader.",
+      "states": {
+        "loading": "Solid black background, huge yellow app title, screen reader focus on title.",
+        "empty": "N/A",
+        "error": "N/A"
+      },
+      "layout": "Centered logo and massive text 'Leggimi'. Pure black background."
+    },
+    {
+      "name": "Auth",
+      "purpose": "Simple, large-button login via Email or Google.",
+      "states": {
+        "loading": "Spinner centered",
+        "empty": "N/A",
+        "error": "High contrast error banner at top."
+      },
+      "layout": "Vertical stack. Huge input fields with persistent white borders. Massive 72pt high buttons. Top to bottom: Title, Email Input, Password Input, Login Button, Google Login Button."
+    },
+    {
+      "name": "Home",
+      "purpose": "Main hub. Big 'Upload Book' action and list of recent books.",
+      "states": {
+        "loading": "High contrast skeleton loader.",
+        "empty": "Text 'Nessun libro caricato' and a huge upload button.",
+        "error": "Text 'Errore caricamento' and a huge retry button."
+      },
+      "layout": "Header with 'Menu' (offcanvas), Logo, 'Cerca' (Search). Below header: Massive fixed 'Carica Libri' CTA. Below CTA: Vertical list of uploaded books (each item minimum 72pt height, high contrast text). Bottom tabs (72pt+ height)."
+    },
+    {
+      "name": "Libreria",
+      "purpose": "Browse all uploaded PDF/EPUB books.",
+      "states": {
+        "loading": "High contrast skeleton loader.",
+        "empty": "Text 'La libreria è vuota'.",
+        "error": "Retry button."
+      },
+      "layout": "Header with title. Vertical list of books. Huge typography for titles. Explicit screen reader labels per row (e.g., 'Libro: [Titolo]'). Bottom tabs."
+    },
+    {
+      "name": "Profilo",
+      "purpose": "User account info and stats.",
+      "states": {
+        "loading": "Spinner.",
+        "empty": "N/A",
+        "error": "Retry button."
+      },
+      "layout": "Header. Large avatar/initials. User info text. Big 'Esci' (Logout) button at the bottom."
+    },
+    {
+      "name": "Impostazioni",
+      "purpose": "Configure TTS voice, speed, pitch.",
+      "states": {
+        "loading": "Spinner.",
+        "empty": "N/A",
+        "error": "Retry button."
+      },
+      "layout": "Header. Stacked settings rows. Massive tap targets for sliders/steppers (TTS Speed, Pitch) with textual value readout. Voice selection dropdown."
+    },
+    {
+      "name": "BookReader",
+      "purpose": "Read book content with prominent TTS controls.",
+      "states": {
+        "loading": "Spinner with text 'Caricamento libro...'",
+        "empty": "N/A",
+        "error": "Error reading file, retry."
+      },
+      "layout": "Header with back button. Main area: Scrollable large text of the book. Sticky bottom section: Massive Play/Pause button, Next/Prev buttons, and TTS speed toggle. Controls must dominate the screen."
+    }
+  ],
+  "images": {
+    "splash_logo": {
+      "url": "https://images.unsplash.com/photo-1642057714794-22dc5f0f6323?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxvcGVuJTIwYm9vayUyMHllbGxvdyUyMGJsYWNrJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzg4Mjc5ODAxfDA&ixlib=rb-4.1.0&q=85",
+      "dark": "https://images.unsplash.com/photo-1642057714794-22dc5f0f6323?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxvcGVuJTIwYm9vayUyMHllbGxvdyUyMGJsYWNrJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzg4Mjc5ODAxfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Libro aperto ad alto contrasto"
+    }
+  },
+  "instructions_to_main_agent": [
+    "CRITICAL ACCESSIBILITY: Every touch target MUST be at least 72pt in height/width. Do NOT use default component sizes.",
+    "CRITICAL ACCESSIBILITY: Implement pure black (#000000) background with bright yellow (#FFD600) or pure white (#FFFFFF) text. Never use low contrast grays.",
+    "CRITICAL ACCESSIBILITY: Add `accessibilityLabel`, `accessibilityRole`, and `accessible={true}` to EVERY interactive element in Italian.",
+    "TYPOGRAPHY: Minimum body size is 18pt, headings 24pt, buttons 32pt. Do not deviate. Ensure fonts scale correctly with system settings.",
+    "BOTTOM TABS: The bottom tab bar must be tall (at least 80pt) with large icons (32pt+) and bold labels.",
+    "TTS CONTROLS: In the BookReader, the Play/Pause button should dominate the screen's bottom half for easy reach by visually impaired users.",
+    "HAPTICS: Use explicit haptic feedback (`impactAsync('heavy')`) on ALL button presses to provide tactile confirmation.",
+    "NO GLASSMORPHISM: Do not use blur or glass effects. Solid high-contrast colors only."
+  ]
+}
