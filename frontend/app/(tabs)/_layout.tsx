@@ -7,8 +7,8 @@ import { colors, font, spacing } from "@/src/theme";
 function TabIcon({ name, focused, label }: { name: keyof typeof Ionicons.glyphMap; focused: boolean; label: string }) {
   return (
     <View style={styles.tabItem} accessible accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: focused }}>
-      <Ionicons name={name} size={30} color={focused ? colors.onBrand : colors.onSurface} />
-      <Text style={[styles.tabLabel, { color: focused ? colors.onBrand : colors.onSurface }]} numberOfLines={1}>
+      <Ionicons name={name} size={30} color={focused ? colors.brand : colors.onSurface} />
+      <Text style={[styles.tabLabel, { color: focused ? colors.brand : colors.onSurface }]} numberOfLines={1}>
         {label}
       </Text>
       {focused ? <View style={styles.dot} /> : null}
@@ -29,8 +29,7 @@ export default function TabsLayout() {
           ...(Platform.OS === "web" ? { height: 96 } : {}),
         },
         tabBarItemStyle: { alignSelf: "center" },
-        tabBarActiveBackgroundColor: colors.brand,
-        tabBarActiveTintColor: colors.onBrand,
+        tabBarActiveTintColor: colors.brand,
         tabBarInactiveTintColor: colors.onSurface,
         sceneStyle: { backgroundColor: colors.surface },
       }}
@@ -79,6 +78,6 @@ const styles = StyleSheet.create({
     minWidth: 80,
     paddingVertical: spacing.xs,
   },
-  tabLabel: { fontSize: 13, fontWeight: "800" },
+  tabLabel: { fontSize: font.sm, fontWeight: "800" },
   dot: { width: 6, height: 6, borderRadius: 999, backgroundColor: colors.onBrand, marginTop: 2 },
 });

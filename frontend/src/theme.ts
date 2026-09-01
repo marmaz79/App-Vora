@@ -38,11 +38,11 @@ export const radius = {
 };
 
 export const font = {
-  sm: 18,
-  base: 22,
-  lg: 26,
-  xl: 32,
-  xxl: 40,
+  sm: 11,
+  base: 11,
+  lg: 11,
+  xl: 11,
+  xxl: 11,
 };
 
 export const touchTarget = { min: 72 };

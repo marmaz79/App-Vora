@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { LogBox, View, ActivityIndicator, StyleSheet } from "react-native";
+import { LogBox, View, ActivityIndicator, StyleSheet, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +14,23 @@ import { colors } from "@/src/theme";
 LogBox.ignoreAllLogs(true);
 SplashScreen.preventAutoHideAsync();
 
+// Remove all web hover / focus outlines on interactive elements
+if (Platform.OS === "web" && typeof document !== "undefined") {
+  const styleEl = document.createElement("style");
+  styleEl.setAttribute("data-leggimi-no-hover", "1");
+  styleEl.textContent = `
+    * { outline: none !important; -webkit-tap-highlight-color: transparent !important; }
+    *:focus, *:focus-visible { outline: none !important; box-shadow: none !important; }
+    [role="button"]:hover, [role="tab"]:hover, [role="link"]:hover,
+    [aria-selected="true"]:hover, [data-selected="true"]:hover,
+    button:hover, a:hover { background-color: transparent !important; opacity: 1 !important; }
+    [aria-selected="true"], [data-selected="true"] { opacity: 1 !important; }
+  `;
+  if (!document.querySelector('style[data-leggimi-no-hover="1"]')) {
+    document.head.appendChild(styleEl);
+  }
+}
+
 function AuthGate() {
   const { user, loading } = useAuth();
   const segments = useSegments();
@@ -24,9 +41,11 @@ function AuthGate() {
     const first = segments[0];
     const inAuth = first === "auth";
     const isSplash = !first || first === "index";
-    if (!user && !inAuth && !isSplash) {
+    // Splash is a standalone screen - user must tap to leave it.
+    if (isSplash) return;
+    if (!user && !inAuth) {
       router.replace("/auth/login");
-    } else if (user && (inAuth || isSplash)) {
+    } else if (user && inAuth) {
       router.replace("/(tabs)/home");
     }
   }, [user, loading, segments]);
