@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
@@ -27,6 +29,7 @@ export default function HomeScreen() {
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [scanSheetOpen, setScanSheetOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -78,6 +81,52 @@ export default function HomeScreen() {
     }
   };
 
+  const scanPages = async (source: "camera" | "library") => {
+    buzz();
+    setErr(null);
+    try {
+      let pages: { uri: string; name: string }[] = [];
+      if (source === "camera") {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) { setErr("Permesso fotocamera negato"); return; }
+        // capture pages one by one
+        while (true) {
+          const shot = await ImagePicker.launchCameraAsync({
+            quality: 0.85,
+            allowsEditing: false,
+            mediaTypes: ["images"] as any,
+          });
+          if (shot.canceled || !shot.assets?.length) break;
+          const a = shot.assets[0];
+          pages.push({ uri: a.uri, name: `page_${pages.length + 1}.jpg` });
+          // ask if continue via simple: only 1 page at a time — user reopens for more
+          break;
+        }
+        if (pages.length === 0) return;
+      } else {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) { setErr("Permesso galleria negato"); return; }
+        const res = await ImagePicker.launchImageLibraryAsync({
+          allowsMultipleSelection: true,
+          selectionLimit: 50,
+          quality: 0.85,
+          mediaTypes: ["images"] as any,
+        });
+        if (res.canceled || !res.assets?.length) return;
+        pages = res.assets.map((a, i) => ({ uri: a.uri, name: a.fileName || `page_${i + 1}.jpg` }));
+      }
+      const title = `Scansione ${new Date().toLocaleDateString("it-IT")}`;
+      setUploading(true);
+      await api.scanBook(pages, title);
+      await load();
+    } catch (e: any) {
+      setErr(e?.detail || "Errore durante la scansione");
+    } finally {
+      setUploading(false);
+      setScanSheetOpen(false);
+    }
+  };
+
   const filtered = useMemo(() => {
     if (!query.trim()) return books;
     const q = query.toLowerCase();
@@ -99,30 +148,38 @@ export default function HomeScreen() {
         contentContainerStyle={{ padding: spacing.md, paddingBottom: insets.bottom + spacing.xxl, gap: spacing.sm }}
         ListHeaderComponent={
           <View style={{ gap: spacing.md }}>
-            <Pressable
-              testID="home-upload-button"
-              style={({ pressed }) => [styles.uploadBtn, pressed && styles.pressed]}
-              onPress={pickAndUpload}
-              disabled={uploading}
-              accessibilityRole="button"
-              accessibilityLabel="Carica un nuovo libro PDF o EPUB"
-            >
-              {uploading ? (
-                <>
-                  <ActivityIndicator color={colors.onBrand} size="large" />
-                  <Text style={styles.uploadText}>Caricamento…</Text>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="cloud-upload" size={44} color={colors.onBrand} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.uploadText}>Carica Libri</Text>
-                    <Text style={styles.uploadSub}>PDF o EPUB dal dispositivo</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={36} color={colors.onBrand} />
-                </>
-              )}
-            </Pressable>
+            <View style={styles.ctaRow}>
+              <Pressable
+                testID="home-upload-button"
+                style={({ pressed }) => [styles.ctaBtn, pressed && styles.pressed]}
+                onPress={pickAndUpload}
+                disabled={uploading}
+                accessibilityRole="button"
+                accessibilityLabel="Carica un libro PDF o EPUB"
+              >
+                {uploading ? (
+                  <ActivityIndicator color={colors.onSurface} />
+                ) : (
+                  <>
+                    <Ionicons name="cloud-upload" size={36} color={colors.onSurface} />
+                    <Text style={styles.ctaText}>Carica File</Text>
+                    <Text style={styles.ctaSub}>PDF · EPUB</Text>
+                  </>
+                )}
+              </Pressable>
+              <Pressable
+                testID="home-scan-button"
+                style={({ pressed }) => [styles.ctaBtn, pressed && styles.pressed]}
+                onPress={() => { buzz(); setScanSheetOpen(true); }}
+                disabled={uploading}
+                accessibilityRole="button"
+                accessibilityLabel="Scansiona le pagine di un libro"
+              >
+                <Ionicons name="scan" size={36} color={colors.onSurface} />
+                <Text style={styles.ctaText}>Scansiona</Text>
+                <Text style={styles.ctaSub}>Foto pagine</Text>
+              </Pressable>
+            </View>
 
             {err ? (
               <View style={styles.errorBox} accessibilityLiveRegion="polite" testID="home-error">
@@ -152,6 +209,45 @@ export default function HomeScreen() {
         renderItem={({ item }) => <BookRow book={item} onPress={() => openBook(item)} onDeleted={load} />}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} colors={[colors.brand]} />}
       />
+
+      {/* Scan source picker */}
+      <Modal visible={scanSheetOpen} animationType="slide" transparent onRequestClose={() => setScanSheetOpen(false)}>
+        <Pressable style={styles.sheetOverlay} onPress={() => setScanSheetOpen(false)}>
+          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]} onPress={(e) => e.stopPropagation()} testID="scan-sheet">
+            <View style={styles.sheetGrabber} />
+            <Text style={styles.sheetTitle}>Scansiona pagine</Text>
+            <Text style={styles.sheetSub}>Le pagine saranno lette con OCR italiano</Text>
+            <Pressable
+              testID="scan-camera-option"
+              style={({ pressed }) => [styles.sheetItem, pressed && styles.pressed]}
+              onPress={() => scanPages("camera")}
+              accessibilityRole="button"
+              accessibilityLabel="Scatta foto della pagina con la fotocamera"
+            >
+              <Ionicons name="camera" size={32} color={colors.onSurface} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetItemText}>Da fotocamera</Text>
+                <Text style={styles.sheetItemSub}>Scatta una pagina</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={26} color={colors.onSurface} />
+            </Pressable>
+            <Pressable
+              testID="scan-library-option"
+              style={({ pressed }) => [styles.sheetItem, pressed && styles.pressed]}
+              onPress={() => scanPages("library")}
+              accessibilityRole="button"
+              accessibilityLabel="Scegli più foto dalla galleria"
+            >
+              <Ionicons name="images" size={32} color={colors.onSurface} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetItemText}>Dalla galleria</Text>
+                <Text style={styles.sheetItemSub}>Seleziona più pagine</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={26} color={colors.onSurface} />
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -232,15 +328,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.brand,
+    backgroundColor: "transparent",
     minHeight: 96,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: colors.onSurface,
   },
-  uploadText: { color: colors.onBrand, fontSize: font.lg, fontWeight: "900" },
-  uploadSub: { color: colors.onBrand, fontSize: font.sm, fontWeight: "600", opacity: 0.9 },
+  uploadText: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },
+  uploadSub: { color: colors.muted, fontSize: font.sm, fontWeight: "600" },
+  ctaRow: { flexDirection: "row", gap: spacing.sm },
+  ctaBtn: {
+    flex: 1,
+    minHeight: 120,
+    borderRadius: radius.md,
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: colors.onSurface,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    padding: spacing.sm,
+  },
+  ctaText: { color: colors.onSurface, fontSize: font.base, fontWeight: "900" },
+  ctaSub: { color: colors.muted, fontSize: font.sm, fontWeight: "600" },
   pressed: { opacity: 0.7 },
   sectionTitle: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },
   centerBox: { alignItems: "center", justifyContent: "center", gap: spacing.sm, padding: spacing.lg },
@@ -279,4 +390,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.error, padding: spacing.sm, borderRadius: radius.md,
   },
   errorText: { color: colors.onError, fontSize: font.sm, fontWeight: "700", flex: 1 },
+  sheetOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "flex-end" },
+  sheet: {
+    backgroundColor: colors.surfaceSecondary,
+    borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg,
+    padding: spacing.md, gap: spacing.sm,
+    borderTopWidth: 2, borderColor: colors.onSurface,
+  },
+  sheetGrabber: { width: 48, height: 5, borderRadius: 999, backgroundColor: colors.surfaceTertiary, alignSelf: "center" },
+  sheetTitle: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },
+  sheetSub: { color: colors.muted, fontSize: font.sm },
+  sheetItem: {
+    flexDirection: "row", alignItems: "center", gap: spacing.sm,
+    minHeight: touchTarget.min, paddingHorizontal: spacing.sm,
+    backgroundColor: "transparent",
+    borderWidth: 2, borderColor: colors.onSurface, borderRadius: radius.md,
+  },
+  sheetItemText: { color: colors.onSurface, fontSize: font.base, fontWeight: "800" },
+  sheetItemSub: { color: colors.muted, fontSize: font.sm, marginTop: 2 },
 });

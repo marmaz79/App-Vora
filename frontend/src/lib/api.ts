@@ -99,4 +99,29 @@ export const api = {
     }
     return (await res.json()) as Book;
   },
+  scanBook: async (pages: { uri: string; name: string }[], title: string): Promise<Book> => {
+    const token = await getToken();
+    const form = new FormData();
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i];
+      if (Platform.OS === "web") {
+        const blob = await (await fetch(p.uri)).blob();
+        form.append("files", blob, p.name || `page_${i + 1}.jpg`);
+      } else {
+        form.append("files", { uri: p.uri, name: p.name || `page_${i + 1}.jpg`, type: "image/jpeg" } as any);
+      }
+    }
+    const q = encodeURIComponent(title || "Libro scansionato");
+    const res = await fetch(`${BASE}/api/books/scan?title=${q}`, {
+      method: "POST",
+      headers: { Authorization: token ? `Bearer ${token}` : "" },
+      body: form as any,
+    });
+    if (!res.ok) {
+      let detail = `Errore ${res.status}`;
+      try { const j = await res.json(); detail = j?.detail || detail; } catch {}
+      throw { detail, status: res.status } as ApiError;
+    }
+    return (await res.json()) as Book;
+  },
 };

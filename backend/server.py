@@ -20,6 +20,8 @@ from pypdf import PdfReader
 from ebooklib import epub
 import ebooklib
 from bs4 import BeautifulSoup
+import pytesseract
+from PIL import Image
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -38,7 +40,7 @@ db = client[DB_NAME]
 # Storage config
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-APP_NAME = "leggimi-books"
+APP_NAME = "voicebook"
 storage_key: Optional[str] = None
 
 app = FastAPI()
@@ -388,6 +390,74 @@ async def search_books(q: str = "", user: User = Depends(get_current_user)):
         query["title"] = {"$regex": q, "$options": "i"}
     docs = await db.books.find(query, {"_id": 0, "deleted": 0}).sort("created_at", -1).to_list(500)
     return [Book(**d) for d in docs]
+
+
+def ocr_image(data: bytes) -> str:
+    img = Image.open(io.BytesIO(data))
+    try:
+        text = pytesseract.image_to_string(img, lang="ita")
+    except Exception:
+        text = pytesseract.image_to_string(img)
+    return (text or "").strip()
+
+
+@api_router.post("/books/scan", response_model=Book)
+async def scan_book(
+    title: str = "Libro scansionato",
+    files: List[UploadFile] = File(...),
+    user: User = Depends(get_current_user),
+):
+    if not files:
+        raise HTTPException(status_code=400, detail="Nessuna pagina caricata")
+    if len(files) > 100:
+        raise HTTPException(status_code=400, detail="Massimo 100 pagine per libro")
+
+    pages: List[str] = []
+    total_size = 0
+    for f in files:
+        data = await f.read()
+        if not data:
+            continue
+        total_size += len(data)
+        try:
+            text = await run_in_threadpool(ocr_image, data)
+        except Exception as e:
+            logger.warning(f"OCR failed on a page: {e}")
+            text = ""
+        pages.append(text)
+    if not pages or all(not p.strip() for p in pages):
+        raise HTTPException(status_code=400, detail="Impossibile estrarre testo dalle scansioni")
+
+    book_id = uuid.uuid4().hex
+    # Store a JSON of pages as pseudo storage artifact for reference
+    storage_path = f"{APP_NAME}/scans/{user.user_id}/{book_id}.json"
+    try:
+        payload = ("\n\f\n".join(pages)).encode("utf-8")
+        await run_in_threadpool(put_object_sync, storage_path, payload, "text/plain; charset=utf-8")
+    except Exception as e:
+        logger.warning(f"scan storage failed: {e}")
+
+    book = {
+        "book_id": book_id,
+        "owner_id": user.user_id,
+        "title": (title or "Libro scansionato").strip() or "Libro scansionato",
+        "file_type": "pdf",  # treat scans as pdf-like
+        "storage_path": storage_path,
+        "size": total_size,
+        "pages": len(pages),
+        "created_at": datetime.now(timezone.utc),
+        "deleted": False,
+        "source": "scan",
+    }
+    await db.books.insert_one(book)
+    await db.book_pages.insert_one({
+        "book_id": book_id,
+        "owner_id": user.user_id,
+        "pages": pages,
+    })
+    book.pop("deleted", None)
+    book.pop("source", None)
+    return Book(**book)
 
 
 # ---------- Health ----------

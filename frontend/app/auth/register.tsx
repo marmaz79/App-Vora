@@ -60,9 +60,9 @@ export default function RegisterScreen() {
       >
         <View style={styles.logoWrap}>
           <View style={styles.logo}>
-            <Ionicons name="book" size={44} color={colors.onBrand} />
+            <Ionicons name="book" size={44} color={colors.onSurface} />
           </View>
-          <Text style={styles.brandName}>Leggimi</Text>
+          <Text style={styles.brandName}>Voicebook</Text>
         </View>
 
         <Text style={styles.title} accessibilityRole="header">Crea account</Text>
@@ -126,7 +126,7 @@ export default function RegisterScreen() {
           accessibilityRole="button"
           accessibilityLabel="Registrati"
         >
-          {loading ? <ActivityIndicator color={colors.onBrand} /> : <Text style={styles.primaryBtnText}>Registrati</Text>}
+          {loading ? <ActivityIndicator color={colors.onSurface} /> : <Text style={styles.primaryBtnText}>Registrati</Text>}
         </Pressable>
 
         <View style={styles.footer}>
@@ -152,10 +152,10 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: spacing.md, gap: spacing.sm },
   logoWrap: { alignItems: "center", gap: spacing.xs, marginBottom: spacing.md },
   logo: {
-    width: 80, height: 80, borderRadius: 999, backgroundColor: colors.brand,
-    alignItems: "center", justifyContent: "center", borderWidth: 3, borderColor: colors.onSurface,
+    width: 80, height: 80, borderRadius: radius.md, backgroundColor: "transparent",
+    alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.onSurface,
   },
-  brandName: { color: colors.brand, fontSize: font.xl, fontWeight: "900", letterSpacing: 1 },
+  brandName: { color: colors.onSurface, fontSize: font.xl, fontWeight: "900", letterSpacing: 1 },
   title: { color: colors.onSurface, fontSize: font.xxl, fontWeight: "900", marginTop: spacing.sm },
   subtitle: { color: colors.muted, fontSize: font.sm, marginBottom: spacing.sm },
   field: { gap: spacing.xs },
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   primaryBtn: {
-    backgroundColor: colors.brand,
+    backgroundColor: "transparent",
     minHeight: touchTarget.min,
     borderRadius: radius.md,
     alignItems: "center",
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.onSurface,
   },
-  primaryBtnText: { color: colors.onBrand, fontSize: font.lg, fontWeight: "900" },
+  primaryBtnText: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },
   pressed: { opacity: 0.7 },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs, marginTop: spacing.md },
   footerText: { color: colors.muted, fontSize: font.sm },

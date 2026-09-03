@@ -53,12 +53,12 @@ export default function AppHeader({ onSearch, showSearch = true, title }: Props)
           <Ionicons name="menu" size={36} color={colors.onSurface} />
         </Pressable>
 
-        <View style={styles.centerBlock} accessible accessibilityRole="header" accessibilityLabel={title || "Leggimi"}>
+        <View style={styles.centerBlock} accessible accessibilityRole="header" accessibilityLabel={title || "Voicebook"}>
           <View style={styles.brandRow}>
             <View style={styles.logoSmall}>
-              <Ionicons name="book" size={20} color={colors.onBrand} />
+              <Ionicons name="book" size={20} color={colors.onSurface} />
             </View>
-            <Text style={styles.brand}>{title || "Leggimi"}</Text>
+            <Text style={styles.brand}>{title || "Voicebook"}</Text>
           </View>
         </View>
 
@@ -181,10 +181,10 @@ const styles = StyleSheet.create({
   centerBlock: { flex: 1, alignItems: "flex-start", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   logoSmall: {
-    width: 40, height: 40, borderRadius: 999, backgroundColor: colors.brand,
-    alignItems: "center", justifyContent: "center",
+    width: 40, height: 40, borderRadius: radius.sm, backgroundColor: "transparent",
+    alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.onSurface,
   },
-  brand: { color: colors.brand, fontSize: font.lg, fontWeight: "900" },
+  brand: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)" },
   drawer: {
     width: "82%", maxWidth: 360, height: "100%",

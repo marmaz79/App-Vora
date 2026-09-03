@@ -70,11 +70,11 @@ export default function LoginScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoWrap} accessible accessibilityLabel="Logo Leggimi">
+        <View style={styles.logoWrap} accessible accessibilityLabel="Logo Voicebook">
           <View style={styles.logo}>
-            <Ionicons name="book" size={44} color={colors.onBrand} />
+            <Ionicons name="book" size={44} color={colors.onSurface} />
           </View>
-          <Text style={styles.brandName} accessibilityRole="header">Leggimi</Text>
+          <Text style={styles.brandName} accessibilityRole="header">Voicebook</Text>
         </View>
 
         <Text style={styles.title} accessibilityRole="header">Accedi</Text>
@@ -126,7 +126,7 @@ export default function LoginScreen() {
           accessibilityLabel="Accedi"
         >
           {loading ? (
-            <ActivityIndicator color={colors.onBrand} />
+            <ActivityIndicator color={colors.onSurface} />
           ) : (
             <Text style={styles.primaryBtnText}>Accedi</Text>
           )}
@@ -179,10 +179,10 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: spacing.md, gap: spacing.sm },
   logoWrap: { alignItems: "center", gap: spacing.xs, marginBottom: spacing.md },
   logo: {
-    width: 96, height: 96, borderRadius: 999, backgroundColor: colors.brand,
-    alignItems: "center", justifyContent: "center", borderWidth: 3, borderColor: colors.onSurface,
+    width: 96, height: 96, borderRadius: radius.md, backgroundColor: "transparent",
+    alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.onSurface,
   },
-  brandName: { color: colors.brand, fontSize: font.xl, fontWeight: "900", letterSpacing: 1 },
+  brandName: { color: colors.onSurface, fontSize: font.xl, fontWeight: "900", letterSpacing: 1 },
   title: { color: colors.onSurface, fontSize: font.xxl, fontWeight: "900", marginTop: spacing.sm },
   subtitle: { color: colors.muted, fontSize: font.sm, marginBottom: spacing.sm },
   field: { gap: spacing.xs },
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   primaryBtn: {
-    backgroundColor: colors.brand,
+    backgroundColor: "transparent",
     minHeight: touchTarget.min,
     borderRadius: radius.md,
     alignItems: "center",
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.onSurface,
   },
-  primaryBtnText: { color: colors.onBrand, fontSize: font.lg, fontWeight: "900" },
+  primaryBtnText: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },
   pressed: { opacity: 0.7 },
   divider: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginVertical: spacing.sm },
   dividerLine: { flex: 1, height: 2, backgroundColor: colors.border },

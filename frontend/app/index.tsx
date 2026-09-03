@@ -91,7 +91,7 @@ export default function Splash() {
       useNativeDriver: false,
     }).start();
 
-    AccessibilityInfo.announceForAccessibility?.("Leggimi, la tua libreria accessibile");
+    AccessibilityInfo.announceForAccessibility?.("Voicebook, la tua libreria accessibile");
 
     const t = setTimeout(goNext, SPLASH_DURATION_MS);
     return () => {
@@ -125,17 +125,13 @@ export default function Splash() {
           ]}
           accessible
           accessibilityRole="image"
-          accessibilityLabel="Logo Leggimi"
+          accessibilityLabel="Logo Voicebook"
         >
-          <Ionicons name="book" size={80} color={colors.onBrand} />
+          <Ionicons name="book" size={80} color={colors.onSurface} />
         </Animated.View>
-        <Animated.Text
-          style={[styles.title, { transform: [{ scale }] }]}
-          accessibilityRole="header"
-          testID="splash-title"
-        >
-          Leggimi
-        </Animated.Text>
+        <Text style={styles.title} accessibilityRole="header" testID="splash-title">
+          Voicebook
+        </Text>
         <Animated.Text style={[styles.subtitle, { opacity: subtitleFade }]}>
           La tua libreria accessibile
         </Animated.Text>
@@ -169,19 +165,14 @@ const styles = StyleSheet.create({
   logoRing: {
     width: 176,
     height: 176,
-    borderRadius: 999,
-    backgroundColor: colors.brand,
+    borderRadius: radius.lg,
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: colors.onSurface,
-    shadowColor: colors.brand,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 24,
-    elevation: 10,
   },
-  title: { color: colors.brand, fontSize: 44, fontWeight: "900", letterSpacing: 2, marginTop: spacing.sm },
+  title: { color: colors.onSurface, fontSize: 44, fontWeight: "900", letterSpacing: 2, marginTop: spacing.sm },
   subtitle: {
     color: colors.onSurface,
     fontSize: font.base,
@@ -203,6 +194,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  progressFill: { height: "100%", backgroundColor: colors.brand, borderRadius: radius.pill },
+  progressFill: { height: "100%", backgroundColor: colors.onSurface, borderRadius: radius.pill },
   hint: { color: colors.muted, fontSize: font.sm, fontWeight: "600" },
 });

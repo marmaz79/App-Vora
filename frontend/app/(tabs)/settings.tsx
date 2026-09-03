@@ -9,7 +9,7 @@ import AppHeader from "@/src/components/AppHeader";
 import { useTts } from "@/src/lib/tts";
 import { colors, font, radius, spacing, touchTarget } from "@/src/theme";
 
-const SAMPLE = "Benvenuto in Leggimi. Questa è una prova della voce di lettura.";
+const SAMPLE = "Benvenuto in Voicebook. Questa è una prova della voce di lettura.";
 
 type VoiceRow = { identifier: string; name: string; language: string; quality?: string };
 
