@@ -53,12 +53,12 @@ export default function AppHeader({ onSearch, showSearch = true, title }: Props)
           <Ionicons name="menu" size={36} color={colors.onSurface} />
         </Pressable>
 
-        <View style={styles.centerBlock} accessible accessibilityRole="header" accessibilityLabel={title || "Voicebook"}>
+        <View style={styles.centerBlock} accessible accessibilityRole="header" accessibilityLabel={title || "Vora"}>
           <View style={styles.brandRow}>
             <View style={styles.logoSmall}>
               <Ionicons name="book" size={20} color={colors.onSurface} />
             </View>
-            <Text style={styles.brand}>{title || "Voicebook"}</Text>
+            <Text style={styles.brand}>{title || "Vora"}</Text>
           </View>
         </View>
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   centerBlock: { flex: 1, alignItems: "flex-start", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   logoSmall: {
-    width: 40, height: 40, borderRadius: radius.sm, backgroundColor: "transparent",
+    width: 40, height: 40, borderRadius: 20, backgroundColor: "transparent",
     alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.onSurface,
   },
   brand: { color: colors.onSurface, fontSize: font.lg, fontWeight: "900" },

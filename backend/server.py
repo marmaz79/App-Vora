@@ -40,7 +40,7 @@ db = client[DB_NAME]
 # Storage config
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-APP_NAME = "voicebook"
+APP_NAME = "vora"
 storage_key: Optional[str] = None
 
 app = FastAPI()

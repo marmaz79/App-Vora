@@ -91,7 +91,7 @@ export default function Splash() {
       useNativeDriver: false,
     }).start();
 
-    AccessibilityInfo.announceForAccessibility?.("Voicebook, la tua libreria accessibile");
+    AccessibilityInfo.announceForAccessibility?.("Vora, la tua libreria accessibile");
 
     const t = setTimeout(goNext, SPLASH_DURATION_MS);
     return () => {
@@ -125,12 +125,12 @@ export default function Splash() {
           ]}
           accessible
           accessibilityRole="image"
-          accessibilityLabel="Logo Voicebook"
+          accessibilityLabel="Logo Vora"
         >
           <Ionicons name="book" size={80} color={colors.onSurface} />
         </Animated.View>
         <Text style={styles.title} accessibilityRole="header" testID="splash-title">
-          Voicebook
+          Vora
         </Text>
         <Animated.Text style={[styles.subtitle, { opacity: subtitleFade }]}>
           La tua libreria accessibile
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   logoRing: {
     width: 176,
     height: 176,
-    borderRadius: radius.lg,
+    borderRadius: 88,
     backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",

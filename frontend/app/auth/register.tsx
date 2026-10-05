@@ -62,7 +62,7 @@ export default function RegisterScreen() {
           <View style={styles.logo}>
             <Ionicons name="book" size={44} color={colors.onSurface} />
           </View>
-          <Text style={styles.brandName}>Voicebook</Text>
+          <Text style={styles.brandName}>Vora</Text>
         </View>
 
         <Text style={styles.title} accessibilityRole="header">Crea account</Text>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: spacing.md, gap: spacing.sm },
   logoWrap: { alignItems: "center", gap: spacing.xs, marginBottom: spacing.md },
   logo: {
-    width: 80, height: 80, borderRadius: radius.md, backgroundColor: "transparent",
+    width: 80, height: 80, borderRadius: 40, backgroundColor: "transparent",
     alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.onSurface,
   },
   brandName: { color: colors.onSurface, fontSize: font.xl, fontWeight: "900", letterSpacing: 1 },

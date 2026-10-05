@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Voicebook",
+    "name": "Vora",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "voicebook",
+    "scheme": "vora",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -45,8 +45,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Voicebook accede alla galleria per scansionare i libri",
-          "cameraPermission": "Voicebook usa la fotocamera per scansionare le pagine"
+          "photosPermission": "Vora accede alla galleria per scansionare i libri",
+          "cameraPermission": "Vora usa la fotocamera per scansionare le pagine"
         }
       ]
     ],

@@ -70,11 +70,11 @@ export default function LoginScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoWrap} accessible accessibilityLabel="Logo Voicebook">
+        <View style={styles.logoWrap} accessible accessibilityLabel="Logo Vora">
           <View style={styles.logo}>
             <Ionicons name="book" size={44} color={colors.onSurface} />
           </View>
-          <Text style={styles.brandName} accessibilityRole="header">Voicebook</Text>
+          <Text style={styles.brandName} accessibilityRole="header">Vora</Text>
         </View>
 
         <Text style={styles.title} accessibilityRole="header">Accedi</Text>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: spacing.md, gap: spacing.sm },
   logoWrap: { alignItems: "center", gap: spacing.xs, marginBottom: spacing.md },
   logo: {
-    width: 96, height: 96, borderRadius: radius.md, backgroundColor: "transparent",
+    width: 96, height: 96, borderRadius: 48, backgroundColor: "transparent",
     alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.onSurface,
   },
   brandName: { color: colors.onSurface, fontSize: font.xl, fontWeight: "900", letterSpacing: 1 },
