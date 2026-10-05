@@ -24,7 +24,10 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.emergent.blindbooksapp.ma9yub",
-      "permissions": ["android.permission.CAMERA", "android.permission.READ_EXTERNAL_STORAGE"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -48,7 +51,8 @@
           "photosPermission": "Vora accede alla galleria per scansionare i libri",
           "cameraPermission": "Vora usa la fotocamera per scansionare le pagine"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

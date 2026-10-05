@@ -36,6 +36,12 @@ async function request<T>(
   return (await parseBody()) as T;
 }
 
+function withTimeout<T>(fn: (signal: AbortSignal) => Promise<T>, ms: number): Promise<T> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fn(ctrl.signal).finally(() => clearTimeout(t));
+}
+
 export type User = {
   user_id: string;
   email: string;
@@ -78,6 +84,20 @@ export const api = {
   listBooks: () => request<Book[]>("/books"),
   getContent: (book_id: string) => request<BookContent>(`/books/${book_id}/content`),
   deleteBook: (book_id: string) => request<{ ok: boolean }>(`/books/${book_id}`, { method: "DELETE" }),
+  ttsPage: (book_id: string, page_index: number, voice: string) =>
+    withTimeout((signal) =>
+      request<{ url: string }>("/tts/page", {
+        method: "POST",
+        body: JSON.stringify({ book_id, page_index, voice }),
+        signal,
+      }), 120000),
+  ttsPreview: (voice: string) =>
+    withTimeout((signal) =>
+      request<{ url: string }>("/tts/preview", {
+        method: "POST",
+        body: JSON.stringify({ voice }),
+        signal,
+      }), 120000),
   uploadBook: async (uri: string, name: string, mimeType?: string): Promise<Book> => {
     const token = await getToken();
     const form = new FormData();

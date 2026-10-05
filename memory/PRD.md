@@ -45,3 +45,16 @@ Leggimi is an Italian mobile app (React Native / Expo) for reading digital books
 - Reading progress tracking + resume from last page
 - Bookmarks with voice notes for accessibility
 - Free tier limits + optional premium (unlimited storage, cloud sync of highlights)
+
+## Update — Natural voice (OpenAI TTS)
+- App renamed **Vora**; circular outlined logos; transparent outlined buttons; font tokens 14px; 3s animated splash.
+- Page scanning with Italian OCR (`POST /api/books/scan`, pytesseract).
+- Device voice (expo-speech) REMOVED: platform blocks it alongside expo-audio; user agreed.
+- Natural voice: OpenAI `gpt-4o-mini-tts` (Emergent LLM key) with Italian audiobook-narrator instructions, 11 voices (default Coral), fallback to `tts-1`.
+- Audio cached per page in Object Storage + `tts_cache` collection; next page prefetched; playback via shared expo-audio player, speed via playback rate.
+- Endpoints: `POST /api/tts/page`, `POST /api/tts/preview`, `GET /api/tts/audio/{key}.mp3`.
+
+## Backlog
+- P1: ElevenLabs native Italian voices (needs user's API key)
+- P1: Resume from last listened page; continuous multi-page camera scan
+- P2: Background/lock-screen playback (needs native build); voice bookmarks; premium tier

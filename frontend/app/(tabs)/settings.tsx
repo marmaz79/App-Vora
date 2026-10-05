@@ -1,83 +1,60 @@
 import Slider from "@react-native-community/slider";
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
-import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import AppHeader from "@/src/components/AppHeader";
+import { api } from "@/src/lib/api";
 import { useTts } from "@/src/lib/tts";
+import { ensureAudioMode, getPlayer, NATURAL_VOICES, playNaturalUrl, stopNatural } from "@/src/lib/naturalVoice";
 import { colors, font, radius, spacing, touchTarget } from "@/src/theme";
-
-const SAMPLE = "Benvenuto in Vora. Questa è una prova della voce di lettura.";
-
-type VoiceRow = { identifier: string; name: string; language: string; quality?: string };
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { settings, update } = useTts();
   const [testing, setTesting] = useState(false);
-  const [voices, setVoices] = useState<VoiceRow[]>([]);
-  const [voicesLoading, setVoicesLoading] = useState(true);
-  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
+  const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
+  const [previewErr, setPreviewErr] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const list = await Speech.getAvailableVoicesAsync();
-        // Prefer italian voices, then rest
-        const mapped: VoiceRow[] = (list || []).map((v: any) => ({
-          identifier: v.identifier,
-          name: v.name || v.identifier,
-          language: v.language || "",
-          quality: v.quality,
-        }));
-        const italian = mapped.filter((v) => v.language?.toLowerCase().startsWith("it"));
-        const others = mapped.filter((v) => !v.language?.toLowerCase().startsWith("it"));
-        setVoices([...italian, ...others]);
-      } catch (e) {
-        setVoices([]);
-      } finally {
-        setVoicesLoading(false);
-      }
-    })();
+    const sub = getPlayer().addListener("playbackStatusUpdate", (s) => {
+      if (s.didJustFinish) setTesting(false);
+    });
+    return () => sub.remove();
   }, []);
 
-  const currentVoice = useMemo(
-    () => voices.find((v) => v.identifier === settings.voice) || null,
-    [voices, settings.voice]
+  // stop any preview when leaving this tab
+  useFocusEffect(
+    useCallback(() => () => { stopNatural(); setTesting(false); }, [])
   );
 
-  const speak = (voiceId?: string | null) => {
+  const preview = async (voice: string) => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    Speech.stop();
-    setTesting(true);
-    Speech.speak(SAMPLE, {
-      language: "it-IT",
-      rate: settings.rate,
-      pitch: settings.pitch,
-      voice: voiceId || settings.voice || undefined,
-      onDone: () => setTesting(false),
-      onStopped: () => setTesting(false),
-      onError: () => setTesting(false),
-    });
+    stopNatural();
+    setTesting(false);
+    setPreviewErr(null);
+    setLoadingVoice(voice);
+    try {
+      await ensureAudioMode();
+      const { url } = await api.ttsPreview(voice);
+      playNaturalUrl(url, settings.rate);
+      setTesting(true);
+    } catch (e: any) {
+      console.warn("[voice] preview failed", e);
+      setPreviewErr(e?.detail || "Anteprima non disponibile. Controlla la connessione e riprova.");
+    } finally {
+      setLoadingVoice(null);
+    }
   };
 
-  const stop = () => { Speech.stop(); setTesting(false); };
-
-  const pickVoice = async (v: VoiceRow | null) => {
-    await update({ voice: v?.identifier || null });
-    if (Platform.OS !== "web") Haptics.selectionAsync().catch(() => {});
-    // preview
-    Speech.stop();
-    Speech.speak(SAMPLE, {
-      language: "it-IT",
-      rate: settings.rate,
-      pitch: settings.pitch,
-      voice: v?.identifier || undefined,
-    });
-    setVoicePickerOpen(false);
+  const pickVoice = async (voice: string) => {
+    await update({ voice });
+    preview(voice);
   };
+
+  const stop = () => { stopNatural(); setTesting(false); };
 
   return (
     <View style={styles.root} testID="settings-screen">
@@ -89,27 +66,41 @@ export default function SettingsScreen() {
           <Ionicons name="volume-high" size={44} color={colors.brand} />
           <View style={{ flex: 1 }}>
             <Text style={styles.title} accessibilityRole="header">Voce di lettura</Text>
-            <Text style={styles.subtitle}>Personalizza il TTS del dispositivo</Text>
+            <Text style={styles.subtitle}>Voce naturale, letta come un audiolibro</Text>
           </View>
         </View>
 
-        {/* Voice selector */}
-        <Pressable
-          testID="settings-voice-selector"
-          style={({ pressed }) => [styles.voiceRow, pressed && { opacity: 0.7 }]}
-          onPress={() => setVoicePickerOpen(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Scegli voce di lettura"
-        >
-          <Ionicons name="person-circle" size={36} color={colors.brand} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.voiceLabel}>Voce</Text>
-            <Text style={styles.voiceValue} numberOfLines={1}>
-              {voicesLoading ? "Caricamento…" : currentVoice ? `${currentVoice.name} (${currentVoice.language})` : "Voce di sistema"}
+        {/* Natural voice list */}
+        <View style={styles.card} testID="settings-voice-list">
+          <Text style={styles.cardTitle} accessibilityRole="header">Scegli la voce</Text>
+          {NATURAL_VOICES.map((v) => {
+            const active = settings.voice === v.id;
+            return (
+              <Pressable
+                key={v.id}
+                testID={`voice-option-${v.id}`}
+                style={[styles.voiceOption, active && styles.voiceOptionActive]}
+                onPress={() => pickVoice(v.id)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: active }}
+                aria-checked={active}
+                accessibilityLabel={`Voce ${v.label}, ${v.desc}`}
+              >
+                <Ionicons name={active ? "radio-button-on" : "radio-button-off"} size={26} color={colors.brand} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.voiceName}>{v.label}</Text>
+                  <Text style={styles.voiceLang}>{v.desc}</Text>
+                </View>
+                {loadingVoice === v.id ? <ActivityIndicator color={colors.brand} /> : null}
+              </Pressable>
+            );
+          })}
+          {previewErr ? (
+            <Text style={styles.errText} testID="settings-preview-error" accessibilityLiveRegion="polite">
+              {previewErr}
             </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={28} color={colors.onSurface} />
-        </Pressable>
+          ) : null}
+        </View>
 
         {/* Rate */}
         <View style={styles.card}>
@@ -134,7 +125,7 @@ export default function SettingsScreen() {
             {[0.75, 1.0, 1.25, 1.5].map((r) => (
               <Pressable
                 key={r}
-                testID={`settings-rate-preset-${r}`}
+                testID={`settings-rate-preset-${r.toFixed(2)}`}
                 style={({ pressed }) => [styles.chip, settings.rate === r && styles.chipActive, pressed && { opacity: 0.7 }]}
                 onPress={() => update({ rate: r })}
                 accessibilityRole="button"
@@ -146,32 +137,12 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Pitch */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Tono</Text>
-            <Text style={styles.value} testID="settings-pitch-value">{settings.pitch.toFixed(2)}</Text>
-          </View>
-          <Slider
-            testID="settings-pitch-slider"
-            style={styles.slider}
-            minimumValue={0.5}
-            maximumValue={1.5}
-            step={0.05}
-            value={settings.pitch}
-            onSlidingComplete={(v) => update({ pitch: Math.round(v * 100) / 100 })}
-            minimumTrackTintColor={colors.brand}
-            maximumTrackTintColor={colors.surfaceTertiary}
-            thumbTintColor={colors.brand}
-            accessibilityLabel="Tono di lettura"
-          />
-        </View>
-
         {/* Test */}
         <Pressable
           testID="settings-test-button"
           style={({ pressed }) => [styles.testBtn, pressed && { opacity: 0.7 }]}
-          onPress={testing ? stop : () => speak()}
+          onPress={testing ? stop : () => preview(settings.voice)}
+          disabled={!!loadingVoice}
           accessibilityRole="button"
           accessibilityLabel={testing ? "Ferma prova voce" : "Prova voce"}
         >
@@ -182,79 +153,17 @@ export default function SettingsScreen() {
         <View style={styles.info}>
           <Ionicons name="information-circle" size={24} color={colors.brand} />
           <Text style={styles.infoText}>
-            Le voci disponibili sono quelle installate sul dispositivo. Puoi aggiungerne altre dalle impostazioni di sistema.
+            La voce naturale richiede internet la prima volta che ascolti una pagina. Le pagine già ascoltate vengono salvate e partono subito.
           </Text>
         </View>
       </ScrollView>
-
-      {/* Voice picker modal */}
-      <Modal visible={voicePickerOpen} animationType="slide" transparent onRequestClose={() => setVoicePickerOpen(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalSheet, { paddingBottom: insets.bottom + spacing.md, paddingTop: spacing.sm }]} testID="voice-picker">
-            <View style={styles.sheetGrabber} />
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Scegli la voce</Text>
-              <Pressable
-                testID="voice-picker-close"
-                onPress={() => setVoicePickerOpen(false)}
-                style={styles.iconBtn}
-                accessibilityLabel="Chiudi selezione voce"
-              >
-                <Ionicons name="close" size={28} color={colors.onSurface} />
-              </Pressable>
-            </View>
-            {voicesLoading ? (
-              <View style={styles.loadingBox}>
-                <ActivityIndicator size="large" color={colors.brand} />
-              </View>
-            ) : voices.length === 0 ? (
-              <Text style={styles.emptyText}>Nessuna voce disponibile sul dispositivo.</Text>
-            ) : (
-              <ScrollView style={{ maxHeight: 480 }}>
-                <Pressable
-                  testID="voice-option-system"
-                  style={({ pressed }) => [styles.voiceOption, !settings.voice && styles.voiceOptionActive, pressed && { opacity: 0.7 }]}
-                  onPress={() => pickVoice(null)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Voce di sistema"
-                >
-                  <Ionicons name={!settings.voice ? "radio-button-on" : "radio-button-off"} size={26} color={colors.brand} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.voiceName}>Voce di sistema</Text>
-                    <Text style={styles.voiceLang}>Predefinita</Text>
-                  </View>
-                </Pressable>
-                {voices.map((v) => {
-                  const active = settings.voice === v.identifier;
-                  return (
-                    <Pressable
-                      key={v.identifier}
-                      testID={`voice-option-${v.identifier}`}
-                      style={({ pressed }) => [styles.voiceOption, active && styles.voiceOptionActive, pressed && { opacity: 0.7 }]}
-                      onPress={() => pickVoice(v)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Voce ${v.name}, lingua ${v.language}`}
-                    >
-                      <Ionicons name={active ? "radio-button-on" : "radio-button-off"} size={26} color={colors.brand} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.voiceName} numberOfLines={1}>{v.name}</Text>
-                        <Text style={styles.voiceLang}>{v.language}{v.quality ? ` · ${v.quality}` : ""}</Text>
-                      </View>
-                      {active ? <Ionicons name="checkmark-circle" size={24} color={colors.brand} /> : null}
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            )}
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
+  errText: { color: colors.error, fontSize: font.sm, fontWeight: "700" },
   header: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   title: { color: colors.onSurface, fontSize: font.xl, fontWeight: "900" },
   subtitle: { color: colors.muted, fontSize: font.sm },

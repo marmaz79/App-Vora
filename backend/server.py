@@ -22,6 +22,10 @@ import ebooklib
 from bs4 import BeautifulSoup
 import pytesseract
 from PIL import Image
+import re
+import hashlib
+import asyncio
+from emergentintegrations.llm.openai import OpenAITextToSpeech
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -460,6 +464,114 @@ async def scan_book(
     return Book(**book)
 
 
+# ---------- Natural voice (OpenAI TTS) ----------
+TTS_MODEL = "gpt-4o-mini-tts"
+TTS_FALLBACK_MODEL = "tts-1"
+TTS_VOICES = {"alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer", "verse"}
+TTS_MINI_ONLY = {"ballad", "verse"}
+TTS_INSTRUCTIONS = (
+    "Leggi in italiano come un narratore professionista di audiolibri: voce calda, calma e naturale, "
+    "ritmo pacato, brevi pause alla punteggiatura, pronuncia chiara e scorrevole."
+)
+TTS_PREVIEW_TEXT = "Ciao, sono la voce di Vora. Ti leggerò i tuoi libri con calma e chiarezza."
+
+
+class TtsPageRequest(BaseModel):
+    book_id: str
+    page_index: int
+    voice: str = "coral"
+
+
+class TtsPreviewRequest(BaseModel):
+    voice: str = "coral"
+
+
+def clean_for_tts(text: str) -> str:
+    text = re.sub(r"https?://\S+", "", text)
+    text = re.sub(r"[*_#>~|`]", "", text)
+    text = re.sub(r"(\w)-\s*\n\s*(\w)", r"\1\2", text)  # rejoin words split across lines
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def tts_key(text: str, voice: str, model: str, instructions: str) -> str:
+    return hashlib.sha256(f"{text}|{voice}|1.0|{model}|mp3|{instructions}".encode()).hexdigest()
+
+
+async def synthesize_cached(text: str, voice: str, model: str, instructions: Optional[str]) -> str:
+    key = tts_key(text, voice, model, instructions or "")
+    if await db.tts_cache.find_one({"key": key}, {"_id": 0}):
+        return key
+    tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+    kwargs = {"text": text, "model": model, "voice": voice, "response_format": "mp3"}
+    if instructions:
+        kwargs["instructions"] = instructions
+    audio = await asyncio.wait_for(tts.generate_speech(**kwargs), timeout=90)
+    path = f"{APP_NAME}/tts/{key}.mp3"
+    await run_in_threadpool(put_object_sync, path, audio, "audio/mpeg")
+    await db.tts_cache.update_one(
+        {"key": key},
+        {"$set": {"key": key, "path": path, "voice": voice, "model": model, "created_at": datetime.now(timezone.utc)}},
+        upsert=True,
+    )
+    return key
+
+
+async def get_tts_url(raw_text: str, voice: str) -> str:
+    if voice not in TTS_VOICES:
+        raise HTTPException(status_code=400, detail="Voce non valida")
+    text = clean_for_tts(raw_text)[:4000]
+    if not text:
+        raise HTTPException(status_code=400, detail="Questa pagina non contiene testo da leggere")
+    try:
+        key = await synthesize_cached(text, voice, TTS_MODEL, TTS_INSTRUCTIONS)
+    except Exception as e:
+        logger.warning(f"TTS primary failed ({type(e).__name__}: {e}); falling back to {TTS_FALLBACK_MODEL}")
+        fb_voice = "coral" if voice in TTS_MINI_ONLY else voice
+        try:
+            key = await synthesize_cached(text, fb_voice, TTS_FALLBACK_MODEL, None)
+        except Exception as e2:
+            logger.exception(f"TTS fallback failed: {e2}")
+            raise HTTPException(status_code=502, detail="Generazione della voce non riuscita. Riprova tra poco.")
+    return f"/api/tts/audio/{key}.mp3"
+
+
+@api_router.post("/tts/page")
+async def tts_page(payload: TtsPageRequest, user: User = Depends(get_current_user)):
+    book = await db.books.find_one(
+        {"book_id": payload.book_id, "owner_id": user.user_id, "deleted": {"$ne": True}}, {"_id": 0}
+    )
+    if not book:
+        raise HTTPException(status_code=404, detail="Libro non trovato")
+    pages_doc = await db.book_pages.find_one({"book_id": payload.book_id, "owner_id": user.user_id}, {"_id": 0})
+    # same filtering as the reader: only non-empty pages
+    pages = [p.strip() for p in (pages_doc or {}).get("pages", []) if p and p.strip()]
+    if payload.page_index < 0 or payload.page_index >= len(pages):
+        raise HTTPException(status_code=404, detail="Pagina non trovata")
+    url = await get_tts_url(pages[payload.page_index], payload.voice)
+    return {"url": url}
+
+
+@api_router.post("/tts/preview")
+async def tts_preview(payload: TtsPreviewRequest, user: User = Depends(get_current_user)):
+    url = await get_tts_url(TTS_PREVIEW_TEXT, payload.voice)
+    return {"url": url}
+
+
+@api_router.get("/tts/audio/{key}.mp3")
+async def tts_audio(key: str):
+    if not re.fullmatch(r"[0-9a-f]{64}", key):
+        raise HTTPException(status_code=404, detail="Audio non trovato")
+    doc = await db.tts_cache.find_one({"key": key}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Audio non trovato")
+    try:
+        data, _ = await run_in_threadpool(get_object_sync, doc["path"])
+    except Exception as e:
+        logger.exception(f"TTS audio fetch failed: {e}")
+        raise HTTPException(status_code=502, detail="Audio non disponibile")
+    return Response(content=data, media_type="audio/mpeg", headers={"Cache-Control": "public, max-age=31536000"})
+
+
 # ---------- Health ----------
 @api_router.get("/")
 async def root():
@@ -488,6 +600,7 @@ async def startup():
         await db.user_sessions.create_index("expires_at", expireAfterSeconds=0)
         await db.books.create_index([("owner_id", 1), ("created_at", -1)])
         await db.books.create_index("book_id", unique=True)
+        await db.tts_cache.create_index("key", unique=True)
     except Exception as e:
         logger.warning(f"Index setup failed: {e}")
     # storage init

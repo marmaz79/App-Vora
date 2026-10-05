@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Speech from "expo-speech";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  AppState,
+  BackHandler,
   Platform,
   Pressable,
   ScrollView,
@@ -15,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { api, BookContent } from "@/src/lib/api";
 import { useTts } from "@/src/lib/tts";
+import { ensureAudioMode, getPlayer, playNaturalUrl, stopNatural, voiceLabel } from "@/src/lib/naturalVoice";
 import { colors, font, radius, spacing, touchTarget } from "@/src/theme";
 
 export default function ReaderScreen() {
@@ -27,8 +29,12 @@ export default function ReaderScreen() {
   const [err, setErr] = useState<string | null>(null);
   const [pageIdx, setPageIdx] = useState(0);
   const [speaking, setSpeaking] = useState(false);
-  const speakingRef = useRef(false);
-  const stoppedManually = useRef(false);
+  const [generating, setGenerating] = useState(false);
+  const [voiceErr, setVoiceErr] = useState<string | null>(null);
+  const activeRef = useRef(false);
+  const seqRef = useRef(0);
+  const pageIdxRef = useRef(0);
+  const contentRef = useRef<BookContent | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   const buzz = () => { if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); };
@@ -46,50 +52,78 @@ export default function ReaderScreen() {
         setLoading(false);
       }
     })();
-    return () => { Speech.stop(); };
+    return () => {
+      seqRef.current += 1;
+      activeRef.current = false;
+      stopNatural();
+    };
   }, [id]);
 
+  useEffect(() => { pageIdxRef.current = pageIdx; }, [pageIdx]);
+  useEffect(() => { contentRef.current = content; }, [content]);
+
   const stop = useCallback(() => {
-    stoppedManually.current = true;
-    Speech.stop();
-    speakingRef.current = false;
+    seqRef.current += 1; // invalidate any in-flight request
+    activeRef.current = false;
+    stopNatural();
     setSpeaking(false);
+    setGenerating(false);
   }, []);
 
-  const speakPage = useCallback((idx: number) => {
-    if (!content) return;
-    const text = content.pages[idx];
-    if (!text) return;
-    stoppedManually.current = false;
-    speakingRef.current = true;
-    setSpeaking(true);
-    Speech.stop();
-    Speech.speak(text, {
-      language: "it-IT",
-      rate: settings.rate,
-      pitch: settings.pitch,
-      voice: settings.voice || undefined,
-      onDone: () => {
-        speakingRef.current = false;
-        setSpeaking(false);
-        if (stoppedManually.current) return;
-        // auto-advance
-        if (content && idx + 1 < content.pages.length) {
-          setPageIdx((p) => {
-            const next = p + 1;
-            setTimeout(() => speakPage(next), 200);
-            return next;
-          });
+  const speakPage = useCallback(async (idx: number) => {
+    const c = contentRef.current;
+    if (!c || !c.pages[idx]) return;
+    const seq = ++seqRef.current;
+    activeRef.current = true;
+    setVoiceErr(null);
+    setGenerating(true);
+    try {
+      await ensureAudioMode();
+      const { url } = await api.ttsPage(String(id), idx, settings.voice);
+      if (seq !== seqRef.current) return;
+      playNaturalUrl(url, settings.rate);
+      // prepare the next page in the background so it starts right away
+      if (idx + 1 < c.pages.length) api.ttsPage(String(id), idx + 1, settings.voice).catch(() => {});
+    } catch (e: any) {
+      if (seq !== seqRef.current) return;
+      console.warn("[voice] page audio failed", e);
+      activeRef.current = false;
+      setSpeaking(false);
+      setVoiceErr(e?.detail || "Voce non disponibile. Controlla la connessione.");
+    } finally {
+      if (seq === seqRef.current) setGenerating(false);
+    }
+  }, [id, settings.voice, settings.rate]);
+
+  const speakPageRef = useRef(speakPage);
+  speakPageRef.current = speakPage;
+
+  useEffect(() => {
+    const sub = getPlayer().addListener("playbackStatusUpdate", (s) => {
+      if (!activeRef.current) return;
+      if (s.playing) setSpeaking(true);
+      if (s.didJustFinish) {
+        const c = contentRef.current;
+        const next = pageIdxRef.current + 1;
+        if (c && next < c.pages.length) {
+          pageIdxRef.current = next;
+          setPageIdx(next);
+          scrollRef.current?.scrollTo({ y: 0, animated: true });
+          speakPageRef.current(next);
+        } else {
+          activeRef.current = false;
+          setSpeaking(false);
         }
-      },
-      onStopped: () => { speakingRef.current = false; setSpeaking(false); },
-      onError: () => { speakingRef.current = false; setSpeaking(false); },
+      }
     });
-  }, [content, settings.rate, settings.pitch]);
+    const back = BackHandler.addEventListener("hardwareBackPress", () => { stop(); return false; });
+    const app = AppState.addEventListener("change", (st) => { if (st !== "active") stop(); });
+    return () => { sub.remove(); back.remove(); app.remove(); };
+  }, [stop]);
 
   const togglePlay = () => {
     buzz();
-    if (speaking) {
+    if (speaking || generating) {
       stop();
     } else {
       speakPage(pageIdx);
@@ -188,9 +222,13 @@ export default function ReaderScreen() {
                 style={({ pressed }) => [styles.playBtn, pressed && styles.pressed]}
                 onPress={togglePlay}
                 accessibilityRole="button"
-                accessibilityLabel={speaking ? "Pausa lettura" : "Avvia lettura"}
+                accessibilityLabel={speaking || generating ? "Ferma lettura" : "Avvia lettura"}
               >
-                <Ionicons name={speaking ? "pause" : "play"} size={64} color={colors.onBrand} />
+                {generating ? (
+                  <ActivityIndicator size="large" color={colors.onBrand} />
+                ) : (
+                  <Ionicons name={speaking ? "pause" : "play"} size={64} color={colors.onBrand} />
+                )}
               </Pressable>
 
               <Pressable
@@ -204,7 +242,25 @@ export default function ReaderScreen() {
                 <Ionicons name="play-skip-forward" size={38} color={colors.onSurface} />
               </Pressable>
             </View>
-            <Text style={styles.speedHint}>Velocità: {settings.rate.toFixed(2)}x · Tono: {settings.pitch.toFixed(2)}</Text>
+            {voiceErr ? (
+              <Pressable
+                testID="reader-voice-error"
+                style={styles.voiceErrBox}
+                onPress={() => speakPage(pageIdx)}
+                accessibilityRole="button"
+                accessibilityLabel={`${voiceErr} Tocca per riprovare`}
+                accessibilityLiveRegion="polite"
+              >
+                <Ionicons name="refresh" size={20} color={colors.error} />
+                <Text style={styles.voiceErrText}>{voiceErr} Tocca per riprovare.</Text>
+              </Pressable>
+            ) : (
+              <Text style={styles.speedHint} testID="reader-status">
+                {generating
+                  ? "Preparazione voce…"
+                  : `Voce: ${voiceLabel(settings.voice)} · Velocità: ${settings.rate.toFixed(2)}x`}
+              </Text>
+            )}
           </View>
         </>
       )}
@@ -264,5 +320,10 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   disabled: { opacity: 0.4 },
+  voiceErrBox: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs,
+    minHeight: 48, borderWidth: 2, borderColor: colors.error, borderRadius: radius.md, paddingHorizontal: spacing.sm,
+  },
+  voiceErrText: { color: colors.error, fontSize: font.sm, fontWeight: "700", flexShrink: 1 },
   speedHint: { color: colors.muted, fontSize: font.sm, textAlign: "center", fontWeight: "700" },
 });

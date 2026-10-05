@@ -1,13 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
+import { DEFAULT_VOICE, isValidVoice } from "./naturalVoice";
+
 export type TtsSettings = {
-  rate: number; // 0.5 - 1.5
-  pitch: number; // 0.5 - 1.5
-  voice: string | null;
+  rate: number; // playback speed 0.5 - 1.75
+  voice: string; // natural (OpenAI) voice id
 };
 
-const DEFAULT: TtsSettings = { rate: 1.0, pitch: 1.0, voice: null };
+const DEFAULT: TtsSettings = { rate: 1.0, voice: DEFAULT_VOICE };
 const KEY = "leggimi_tts_settings";
 
 type Ctx = {
@@ -23,7 +24,14 @@ export function TtsProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(KEY);
-        if (raw) setSettings({ ...DEFAULT, ...JSON.parse(raw) });
+        if (raw) {
+          const saved = JSON.parse(raw);
+          setSettings({
+            rate: typeof saved.rate === "number" ? saved.rate : DEFAULT.rate,
+            // old device-voice ids are not valid anymore -> default natural voice
+            voice: isValidVoice(saved.voice) ? saved.voice : DEFAULT.voice,
+          });
+        }
       } catch {}
     })();
   }, []);

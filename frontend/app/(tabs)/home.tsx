@@ -202,7 +202,7 @@ export default function HomeScreen() {
             <View style={styles.centerBox} testID="home-empty">
               <Ionicons name="book-outline" size={64} color={colors.muted} />
               <Text style={styles.emptyText}>Nessun libro caricato</Text>
-              <Text style={styles.emptySub}>Premi "Carica Libri" per iniziare</Text>
+              <Text style={styles.emptySub}>Premi Carica File o Scansiona per iniziare</Text>
             </View>
           )
         }
