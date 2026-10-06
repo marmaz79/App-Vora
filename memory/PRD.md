@@ -58,3 +58,8 @@ Leggimi is an Italian mobile app (React Native / Expo) for reading digital books
 - P1: ElevenLabs native Italian voices (needs user's API key)
 - P1: Resume from last listened page; continuous multi-page camera scan
 - P2: Background/lock-screen playback (needs native build); voice bookmarks; premium tier
+
+## Update — AI OCR for scans
+- Scans are read by Gemini 3 Flash (`gemini-3-flash-preview`, Emergent LLM key) with an Italian book-OCR prompt; Tesseract `ita` is the automatic fallback per page. Books store `source: "scan"` and `ocr_engine` (ai | tesseract | mixed).
+- Page photos are now saved in Object Storage (`vora/scans/<user>/<book>/page_NNN.jpg`) so they can be re-read later.
+- `POST /api/books/{id}/enhance` ("Migliora testo con AI" in the reader): re-reads stored photos with AI; older scans without photos get AI correction of the extracted text.

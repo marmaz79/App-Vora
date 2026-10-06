@@ -58,10 +58,12 @@ export type Book = {
   storage_path: string;
   size: number;
   pages: number;
+  source?: string | null;
+  ocr_engine?: string | null;
   created_at: string;
 };
 
-export type BookContent = { book_id: string; title: string; pages: string[] };
+export type BookContent = { book_id: string; title: string; pages: string[]; source?: string | null };
 
 export const api = {
   register: (email: string, password: string, name: string) =>
@@ -84,6 +86,9 @@ export const api = {
   listBooks: () => request<Book[]>("/books"),
   getContent: (book_id: string) => request<BookContent>(`/books/${book_id}/content`),
   deleteBook: (book_id: string) => request<{ ok: boolean }>(`/books/${book_id}`, { method: "DELETE" }),
+  enhanceBook: (book_id: string) =>
+    withTimeout((signal) =>
+      request<Book>(`/books/${book_id}/enhance`, { method: "POST", signal }), 300000),
   ttsPage: (book_id: string, page_index: number, voice: string) =>
     withTimeout((signal) =>
       request<{ url: string }>("/tts/page", {

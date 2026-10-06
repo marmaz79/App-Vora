@@ -21,7 +21,9 @@ from ebooklib import epub
 import ebooklib
 from bs4 import BeautifulSoup
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageOps
+import base64
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent, TextDelta, StreamDone
 import re
 import hashlib
 import asyncio
@@ -122,6 +124,8 @@ class Book(BaseModel):
     storage_path: str
     size: int
     pages: int = 0
+    source: Optional[str] = None  # "scan" for scanned books
+    ocr_engine: Optional[str] = None  # ai | tesseract | mixed
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -129,6 +133,7 @@ class BookContent(BaseModel):
     book_id: str
     title: str
     pages: List[str]  # each page's plain text
+    source: Optional[str] = None
 
 
 # ---------- Auth utilities ----------
@@ -372,7 +377,7 @@ async def get_book_content(book_id: str, user: User = Depends(get_current_user))
         raise HTTPException(status_code=404, detail="Libro non trovato")
     pages_doc = await db.book_pages.find_one({"book_id": book_id, "owner_id": user.user_id}, {"_id": 0})
     pages = pages_doc.get("pages", []) if pages_doc else []
-    return BookContent(book_id=book_id, title=book["title"], pages=pages)
+    return BookContent(book_id=book_id, title=book["title"], pages=pages, source=book.get("source"))
 
 
 @api_router.delete("/books/{book_id}")
@@ -405,6 +410,99 @@ def ocr_image(data: bytes) -> str:
     return (text or "").strip()
 
 
+# ---------- AI OCR (Gemini 3 Flash) ----------
+OCR_PROVIDER, OCR_MODEL = "gemini", "gemini-3-flash-preview"
+OCR_SYSTEM = (
+    "Sei un motore OCR per libri in italiano. Trascrivi fedelmente tutto il testo leggibile della pagina fotografata, "
+    "nell'ordine naturale di lettura (colonne da sinistra a destra). Unisci le parole spezzate a fine riga e mantieni "
+    "i paragrafi separati da una riga vuota. Ignora numeri di pagina e intestazioni ripetute. Non aggiungere commenti, "
+    "titoli tuoi o formattazione markdown. Se la pagina non contiene testo rispondi con una stringa vuota."
+)
+FIX_SYSTEM = (
+    "Sei un correttore di testo estratto con OCR da libri in italiano. Correggi solo gli errori di riconoscimento "
+    "evidenti (lettere sbagliate, parole spezzate, spazi e a capo casuali) senza riformulare, riassumere o aggiungere "
+    "contenuti. Restituisci solo il testo corretto, senza commenti né markdown."
+)
+
+
+def prepare_image_b64(data: bytes) -> str:
+    img = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
+    img.thumbnail((2000, 2000))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=85)
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def clean_llm_text(text: str) -> str:
+    text = text.strip()
+    text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    return text.strip()
+
+
+async def run_llm(system: str, message: UserMessage) -> str:
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"ocr-{uuid.uuid4().hex}",
+        system_message=system,
+    ).with_model(OCR_PROVIDER, OCR_MODEL)
+    parts: List[str] = []
+
+    async def consume():
+        async for ev in chat.stream_message(message):
+            if isinstance(ev, TextDelta):
+                parts.append(ev.content)
+            elif isinstance(ev, StreamDone):
+                break
+
+    await asyncio.wait_for(consume(), timeout=90)
+    return clean_llm_text("".join(parts))
+
+
+async def ai_ocr(data: bytes) -> str:
+    b64 = await run_in_threadpool(prepare_image_b64, data)
+    return await run_llm(
+        OCR_SYSTEM,
+        UserMessage(text="Trascrivi il testo di questa pagina.", file_contents=[ImageContent(image_base64=b64)]),
+    )
+
+
+def is_blank_image(data: bytes) -> bool:
+    from PIL import ImageStat
+    img = Image.open(io.BytesIO(data)).convert("L")
+    img.thumbnail((400, 400))
+    return ImageStat.Stat(img).stddev[0] < 4  # uniform page: nothing to read
+
+
+async def ocr_page(data: bytes) -> tuple:
+    """AI OCR first, Tesseract as automatic fallback. Returns (text, engine)."""
+    try:
+        if await run_in_threadpool(is_blank_image, data):
+            return "", "none"
+    except Exception as e:
+        logger.warning(f"blank check failed: {e}")
+    try:
+        text = await ai_ocr(data)
+        if text:
+            return text, "ai"
+    except Exception as e:
+        logger.warning(f"AI OCR failed ({type(e).__name__}: {e}); falling back to Tesseract")
+    try:
+        return await run_in_threadpool(ocr_image, data), "tesseract"
+    except Exception as e:
+        logger.warning(f"Tesseract OCR failed: {e}")
+        return "", "none"
+
+
+def summarize_engines(engines: List[str]) -> str:
+    used = {e for e in engines if e != "none"}
+    if used == {"ai"}:
+        return "ai"
+    if "ai" in used:
+        return "mixed"
+    return "tesseract"
+
+
 @api_router.post("/books/scan", response_model=Book)
 async def scan_book(
     title: str = "Libro scansionato",
@@ -416,30 +514,36 @@ async def scan_book(
     if len(files) > 100:
         raise HTTPException(status_code=400, detail="Massimo 100 pagine per libro")
 
-    pages: List[str] = []
-    total_size = 0
+    images: List[bytes] = []
     for f in files:
         data = await f.read()
-        if not data:
-            continue
-        total_size += len(data)
-        try:
-            text = await run_in_threadpool(ocr_image, data)
-        except Exception as e:
-            logger.warning(f"OCR failed on a page: {e}")
-            text = ""
-        pages.append(text)
-    if not pages or all(not p.strip() for p in pages):
-        raise HTTPException(status_code=400, detail="Impossibile estrarre testo dalle scansioni")
+        if data:
+            images.append(data)
+    if not images:
+        raise HTTPException(status_code=400, detail="Nessuna pagina caricata")
+    total_size = sum(len(d) for d in images)
 
     book_id = uuid.uuid4().hex
-    # Store a JSON of pages as pseudo storage artifact for reference
-    storage_path = f"{APP_NAME}/scans/{user.user_id}/{book_id}.json"
-    try:
-        payload = ("\n\f\n".join(pages)).encode("utf-8")
-        await run_in_threadpool(put_object_sync, storage_path, payload, "text/plain; charset=utf-8")
-    except Exception as e:
-        logger.warning(f"scan storage failed: {e}")
+    storage_path = f"{APP_NAME}/scans/{user.user_id}/{book_id}/"
+    sem = asyncio.Semaphore(4)
+
+    async def process(i: int, data: bytes):
+        async with sem:
+            path: Optional[str] = f"{storage_path}page_{i + 1:03d}.jpg"
+            try:
+                await run_in_threadpool(put_object_sync, path, data, "image/jpeg")
+            except Exception as e:
+                logger.warning(f"scan image storage failed: {e}")
+                path = None
+            text, engine = await ocr_page(data)
+            return text, engine, path
+
+    results = await asyncio.gather(*(process(i, d) for i, d in enumerate(images)))
+    pages = [r[0] for r in results]
+    if all(not p.strip() for p in pages):
+        raise HTTPException(status_code=400, detail="Impossibile estrarre testo dalle scansioni")
+    ocr_engine = summarize_engines([r[1] for r in results])
+    image_paths = [r[2] for r in results]
 
     book = {
         "book_id": book_id,
@@ -452,15 +556,59 @@ async def scan_book(
         "created_at": datetime.now(timezone.utc),
         "deleted": False,
         "source": "scan",
+        "ocr_engine": ocr_engine,
     }
     await db.books.insert_one(book)
     await db.book_pages.insert_one({
         "book_id": book_id,
         "owner_id": user.user_id,
         "pages": pages,
+        "images": image_paths,
     })
     book.pop("deleted", None)
-    book.pop("source", None)
+    book.pop("_id", None)
+    return Book(**book)
+
+
+@api_router.post("/books/{book_id}/enhance", response_model=Book)
+async def enhance_book(book_id: str, user: User = Depends(get_current_user)):
+    book = await db.books.find_one(
+        {"book_id": book_id, "owner_id": user.user_id, "deleted": {"$ne": True}}, {"_id": 0, "deleted": 0}
+    )
+    if not book:
+        raise HTTPException(status_code=404, detail="Libro non trovato")
+    if book.get("source") != "scan":
+        raise HTTPException(status_code=400, detail="Disponibile solo per i libri scansionati")
+    pages_doc = await db.book_pages.find_one({"book_id": book_id, "owner_id": user.user_id}, {"_id": 0}) or {}
+    pages: List[str] = list(pages_doc.get("pages", []))
+    images: List[Optional[str]] = pages_doc.get("images") or []
+    sem = asyncio.Semaphore(4)
+
+    async def improve(i: int):
+        async with sem:
+            path = images[i] if i < len(images) else None
+            try:
+                if path:  # re-read the original photo
+                    data, _ = await run_in_threadpool(get_object_sync, path)
+                    new_text = await ai_ocr(data)
+                elif pages[i].strip():  # older scans: no photo saved, fix the extracted text
+                    new_text = await run_llm(FIX_SYSTEM, UserMessage(text=pages[i]))
+                else:
+                    return pages[i], False
+            except Exception as e:
+                logger.warning(f"enhance page {i} failed ({type(e).__name__}: {e})")
+                return pages[i], False
+            return (new_text, True) if new_text.strip() else (pages[i], False)
+
+    results = await asyncio.gather(*(improve(i) for i in range(len(pages))))
+    improved = sum(1 for _, ok in results if ok)
+    if improved == 0:
+        raise HTTPException(status_code=502, detail="Non è stato possibile migliorare il testo. Riprova tra poco.")
+    new_pages = [r[0] for r in results]
+    engine = "ai" if improved == len(pages) else "mixed"
+    await db.book_pages.update_one({"book_id": book_id, "owner_id": user.user_id}, {"$set": {"pages": new_pages}})
+    await db.books.update_one({"book_id": book_id}, {"$set": {"ocr_engine": engine}})
+    book["ocr_engine"] = engine
     return Book(**book)
 
 

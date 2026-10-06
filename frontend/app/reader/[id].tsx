@@ -39,13 +39,22 @@ export default function ReaderScreen() {
 
   const buzz = () => { if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); };
 
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhanceMsg, setEnhanceMsg] = useState<string | null>(null);
+
+  const loadContent = useCallback(async () => {
+    const c = await api.getContent(String(id));
+    // filter out empty pages
+    const nonEmpty = c.pages.map((p) => p.trim()).filter((p) => p.length > 0);
+    const pages = nonEmpty.length ? nonEmpty : ["(Nessun testo estratto da questo libro.)"];
+    setContent({ ...c, pages });
+    return pages.length;
+  }, [id]);
+
   useEffect(() => {
     (async () => {
       try {
-        const c = await api.getContent(String(id));
-        // filter out empty pages
-        const nonEmpty = c.pages.map((p) => p.trim()).filter((p) => p.length > 0);
-        setContent({ ...c, pages: nonEmpty.length ? nonEmpty : ["(Nessun testo estratto da questo libro.)"] });
+        await loadContent();
       } catch (e: any) {
         setErr(e?.detail || "Impossibile caricare il libro");
       } finally {
@@ -121,6 +130,24 @@ export default function ReaderScreen() {
     return () => { sub.remove(); back.remove(); app.remove(); };
   }, [stop]);
 
+  const enhance = async () => {
+    buzz();
+    stop();
+    setEnhancing(true);
+    setEnhanceMsg(null);
+    try {
+      await api.enhanceBook(String(id));
+      const count = await loadContent();
+      setPageIdx((p) => Math.min(p, count - 1));
+      setEnhanceMsg("Testo migliorato con l'AI.");
+    } catch (e: any) {
+      console.warn("[ocr] enhance failed", e);
+      setEnhanceMsg(e?.detail || "Miglioramento non riuscito. Controlla la connessione e riprova.");
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
   const togglePlay = () => {
     buzz();
     if (speaking || generating) {
@@ -183,6 +210,30 @@ export default function ReaderScreen() {
             <Text style={styles.pageInfo} testID="reader-page-info">
               Pagina {pageIdx + 1} di {content?.pages.length || 0}
             </Text>
+            {content?.source === "scan" ? (
+              <Pressable
+                testID="reader-enhance-button"
+                style={({ pressed }) => [styles.enhanceBtn, pressed && styles.pressed, enhancing && styles.disabled]}
+                onPress={enhance}
+                disabled={enhancing}
+                accessibilityRole="button"
+                accessibilityLabel={enhancing ? "Miglioramento del testo in corso" : "Migliora testo con AI"}
+              >
+                {enhancing ? (
+                  <ActivityIndicator color={colors.onSurface} />
+                ) : (
+                  <Ionicons name="sparkles" size={20} color={colors.onSurface} />
+                )}
+                <Text style={styles.enhanceText}>
+                  {enhancing ? "Miglioramento in corso…" : "Migliora testo con AI"}
+                </Text>
+              </Pressable>
+            ) : null}
+            {enhanceMsg ? (
+              <Text style={styles.enhanceMsg} testID="reader-enhance-message" accessibilityLiveRegion="polite">
+                {enhanceMsg}
+              </Text>
+            ) : null}
           </View>
 
           <ScrollView
@@ -320,6 +371,13 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   disabled: { opacity: 0.4 },
+  enhanceBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs,
+    minHeight: 48, marginTop: spacing.xs, paddingHorizontal: spacing.sm,
+    borderWidth: 2, borderColor: colors.onSurface, borderRadius: radius.md, backgroundColor: "transparent",
+  },
+  enhanceText: { color: colors.onSurface, fontSize: font.sm, fontWeight: "800" },
+  enhanceMsg: { color: colors.muted, fontSize: font.sm, fontWeight: "700", marginTop: spacing.xs },
   voiceErrBox: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.xs,
     minHeight: 48, borderWidth: 2, borderColor: colors.error, borderRadius: radius.md, paddingHorizontal: spacing.sm,

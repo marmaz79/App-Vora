@@ -116,6 +116,7 @@ export default function HomeScreen() {
         pages = res.assets.map((a, i) => ({ uri: a.uri, name: a.fileName || `page_${i + 1}.jpg` }));
       }
       const title = `Scansione ${new Date().toLocaleDateString("it-IT")}`;
+      setScanSheetOpen(false);
       setUploading(true);
       await api.scanBook(pages, title);
       await load();
@@ -181,6 +182,12 @@ export default function HomeScreen() {
               </Pressable>
             </View>
 
+            {uploading ? (
+              <Text style={styles.uploadSub} testID="home-upload-status" accessibilityLiveRegion="polite">
+                Caricamento in corso… la lettura delle pagine con l&apos;AI richiede qualche secondo per pagina.
+              </Text>
+            ) : null}
+
             {err ? (
               <View style={styles.errorBox} accessibilityLiveRegion="polite" testID="home-error">
                 <Ionicons name="alert-circle" size={24} color={colors.onError} />
@@ -216,7 +223,7 @@ export default function HomeScreen() {
           <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]} onPress={(e) => e.stopPropagation()} testID="scan-sheet">
             <View style={styles.sheetGrabber} />
             <Text style={styles.sheetTitle}>Scansiona pagine</Text>
-            <Text style={styles.sheetSub}>Le pagine saranno lette con OCR italiano</Text>
+            <Text style={styles.sheetSub}>Le pagine saranno lette dall&apos;AI</Text>
             <Pressable
               testID="scan-camera-option"
               style={({ pressed }) => [styles.sheetItem, pressed && styles.pressed]}
