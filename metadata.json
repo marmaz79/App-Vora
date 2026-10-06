@@ -1,0 +1,8 @@
+{
+  "name": "Vora - Lettore Libri Accessibile",
+  "description": "Lettore di libri digitali (PDF, EPUB, scansioni) con sintesi vocale naturale in italiano, interfaccia ad alto contrasto per ipovedenti e non vedenti.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
