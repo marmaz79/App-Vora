@@ -34,3 +34,15 @@ export interface TtsSettings {
   fontSize: 'normal' | 'large' | 'huge';
   highContrastMode: 'black-yellow' | 'black-white' | 'cream-black';
 }
+
+export interface ScanSessionData {
+  bookId: string;
+  title: string;
+  pages: string[];
+  imageUrls: (string | null)[];
+  rawPages: string[];
+  engine: string;
+  confidence: number;
+  isAiOptimized: boolean;
+  currentPageIndex: number;
+}

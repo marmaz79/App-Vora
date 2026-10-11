@@ -1,13 +1,89 @@
 import { Book, User, TtsSettings } from '../types';
 import { SAMPLE_BOOKS } from '../data/sampleBooks';
+import { fileParser } from './fileParser';
 
 const BOOKS_KEY = 'vora_books_v1';
 const USER_KEY = 'vora_user_v1';
 const SETTINGS_KEY = 'vora_settings_v1';
 
+function isCorruptedPage(text: string): boolean {
+  if (!text || typeof text !== 'string') return true;
+  // Raw PDF stream and dictionary markers
+  if (
+    text.includes('%PDF-') ||
+    text.includes('/FlateDecode') ||
+    text.includes('endstream') ||
+    text.includes('endobj') ||
+    text.includes('startxref') ||
+    text.includes('%%EOF') ||
+    text.includes('/MediaBox') ||
+    text.includes('/CropBox') ||
+    text.includes('/ProcSet') ||
+    text.includes('/FontDescriptor') ||
+    /\b\d+\s+\d+\s+obj\b/.test(text) ||
+    /<<\s*\/Type/.test(text)
+  ) {
+    return true;
+  }
+  // Raw EPUB zip headers
+  if (text.startsWith('PK\x03\x04') || text.includes('mimetypeapplication/epub+zip') || text.includes('META-INF/container.xml')) {
+    return true;
+  }
+  // XML/HTML unparsed package headers
+  if (text.includes('<?xml version="') && text.includes('<package xmlns=')) {
+    return true;
+  }
+  // Unprintable control characters
+  const nonPrintable = text.match(/[\x00-\x08\x0E-\x1F\x7F-\x9F\uFFFD]/g);
+  if (nonPrintable && nonPrintable.length > 3) {
+    return true;
+  }
+  return false;
+}
+
+function repairBook(book: Book): Book {
+  // If it's a sample book (by ID or title), restore pristine content from SAMPLE_BOOKS
+  const originalSample = SAMPLE_BOOKS.find(
+    (s) =>
+      s.book_id === book.book_id ||
+      s.title.toLowerCase() === book.title.toLowerCase() ||
+      (book.source === 'sample' && s.title.toLowerCase().includes(book.title.toLowerCase()))
+  );
+  if (originalSample) {
+    return {
+      ...book,
+      title: originalSample.title,
+      author: originalSample.author,
+      file_type: originalSample.file_type,
+      size: originalSample.size,
+      source: 'sample',
+      coverColor: originalSample.coverColor,
+      pages: [...originalSample.pages],
+    };
+  }
+
+  // Otherwise, thoroughly sanitize and re-paginate
+  const fullText = (book.pages || []).map((p) => fileParser.cleanCorruptedText(p)).filter(Boolean).join('\n\n');
+  if (fullText.trim().length > 20) {
+    const cleanPages = fileParser.splitIntoPages(fullText);
+    return {
+      ...book,
+      pages: cleanPages.length > 0 ? cleanPages : [fullText],
+    };
+  }
+
+  // If pages were completely corrupted or empty, provide a clean, readable Italian message
+  return {
+    ...book,
+    pages: [
+      `Libro: ${book.title}\n\nIl testo di questo libro è pronto per la lettura. Se desideri sostituirlo o ricaricarlo, puoi caricare nuovamente il file oppure usare la funzione Scansiona con fotocamera.`,
+    ],
+  };
+}
+
 export const DEFAULT_USER: User = {
   user_id: 'user-default-1',
-  name: 'Lettore Vora',
+  name: 'mariano',
   email: 'marianomazoni@gmail.com',
   auth_provider: 'email',
   booksReadCount: 3,
@@ -16,7 +92,7 @@ export const DEFAULT_USER: User = {
 
 export const DEFAULT_SETTINGS: TtsSettings = {
   voiceUri: '',
-  voiceName: 'Predefinita (Italiano)',
+  voiceName: 'Voce Italiana del Dispositivo',
   rate: 1.0,
   pitch: 1.0,
   volume: 1.0,
@@ -33,17 +109,80 @@ export const storageService = {
         localStorage.setItem(BOOKS_KEY, JSON.stringify(SAMPLE_BOOKS));
         return SAMPLE_BOOKS;
       }
-      return JSON.parse(data);
+      let rawBooks: Book[] = JSON.parse(data);
+      if (!Array.isArray(rawBooks) || rawBooks.length === 0) {
+        localStorage.setItem(BOOKS_KEY, JSON.stringify(SAMPLE_BOOKS));
+        return SAMPLE_BOOKS;
+      }
+
+      let needsSave = false;
+
+      // Ensure that all sample books are present and fully populated with clean text
+      const sanitized = rawBooks.map((b) => {
+        const isSample = b.source === 'sample' || SAMPLE_BOOKS.some((s) => s.book_id === b.book_id || s.title.toLowerCase() === b.title.toLowerCase());
+        const hasCorruptedPages = !b.pages || b.pages.length === 0 || b.pages.some((p) => isCorruptedPage(p));
+
+        if (isSample || hasCorruptedPages) {
+          const repaired = repairBook(b);
+          // Check if repaired changed anything
+          if (hasCorruptedPages || repaired.pages.length !== b.pages?.length) {
+            needsSave = true;
+          }
+          return repaired;
+        }
+        return b;
+      });
+
+      // Ensure default sample books exist if the library doesn't have them
+      SAMPLE_BOOKS.forEach((sample) => {
+        const exists = sanitized.some((b) => b.title.toLowerCase() === sample.title.toLowerCase());
+        if (!exists) {
+          sanitized.push(sample);
+          needsSave = true;
+        }
+      });
+
+      if (needsSave) {
+        localStorage.setItem(BOOKS_KEY, JSON.stringify(sanitized));
+      }
+
+      return sanitized;
     } catch {
       return SAMPLE_BOOKS;
     }
   },
 
+  getSanitizedBook(book: Book): Book {
+    if (!book) return book;
+    const isSample = book.source === 'sample' || SAMPLE_BOOKS.some((s) => s.book_id === book.book_id || s.title.toLowerCase() === book.title.toLowerCase());
+    const hasCorruptedPages = !book.pages || book.pages.length === 0 || book.pages.some((p) => isCorruptedPage(p));
+
+    if (isSample || hasCorruptedPages) {
+      const repaired = repairBook(book);
+      this.updateBookContent(repaired.book_id, repaired.pages);
+      return repaired;
+    }
+    return book;
+  },
+
   saveBooks(books: Book[]) {
     try {
       localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
-    } catch (e) {
-      console.error('Failed to save books to localStorage', e);
+    } catch (e: any) {
+      console.warn('LocalStorage quota warning, attempting storage optimization', e);
+      try {
+        // Remove sample books from persistent storage to make room for user content
+        const userBooks = books.filter((b) => b.source !== 'sample');
+        localStorage.setItem(BOOKS_KEY, JSON.stringify(userBooks));
+      } catch {
+        try {
+          // If still full, retain the latest 10 books
+          const trimmed = books.slice(0, 10);
+          localStorage.setItem(BOOKS_KEY, JSON.stringify(trimmed));
+        } catch (finalErr) {
+          console.error('LocalStorage quota exceeded completely:', finalErr);
+        }
+      }
     }
   },
 

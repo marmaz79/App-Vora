@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { User, Book } from '../types';
 import { storageService, DEFAULT_USER } from '../services/storageService';
-import { User as UserIcon, BookOpen, Clock, RotateCcw, Check, Sparkles } from 'lucide-react';
+import { User as UserIcon, BookOpen, Clock, RotateCcw, Check, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface ProfileTabProps {
   user: User;
   books: Book[];
   onUpdateUser: (user: User) => void;
   onResetSampleBooks: () => void;
+  onShowSplash?: () => void;
+  onBack?: () => void;
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -15,6 +17,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   books,
   onUpdateUser,
   onResetSampleBooks,
+  onShowSplash,
+  onBack,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user.name);
@@ -33,40 +37,52 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   };
 
   return (
-    <section className="flex flex-col gap-6" aria-label="Profilo e statistiche">
-      <div>
-        <h2 className="text-2xl font-black text-white flex items-center gap-2">
-          <UserIcon size={28} className="text-[#FFD600]" aria-hidden="true" />
-          Profilo Utente
-        </h2>
-        <p className="text-sm font-bold text-[#B8B8B8]">Le tue statistiche di lettura e preferenze</p>
+    <section className="flex flex-col gap-3.5" aria-label="Profilo e statistiche">
+      <div className="flex items-center gap-3 pt-1">
+        {onBack && (
+          <button
+            onClick={onBack}
+            aria-label="Torna indietro"
+            className="w-11 h-11 rounded-xl border border-gray-200 hover:border-gray-300 bg-white flex items-center justify-center shrink-0 text-gray-700 hover:bg-gray-50 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black shadow-xs"
+            title="Torna indietro"
+          >
+            <ArrowLeft size={22} className="text-gray-800" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+            <UserIcon size={24} className="text-red-600" aria-hidden="true" />
+            Profilo Utente
+          </h2>
+          <p className="text-xs font-semibold text-gray-500">Le tue statistiche di lettura e preferenze</p>
+        </div>
       </div>
 
       {/* User Info Card */}
-      <div className="bg-[#1A1A1A] border-2 border-[#333333] rounded-3xl p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-[#FFD600] text-black font-black text-2xl flex items-center justify-center border-2 border-white shrink-0">
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 font-bold text-xl flex items-center justify-center border border-red-200 shrink-0">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-black text-white truncate">{user.name}</h3>
-            <p className="text-sm font-bold text-[#B8B8B8] truncate">{user.email}</p>
-            <span className="inline-block mt-1 text-[11px] font-black uppercase bg-black text-[#FFD600] border border-[#FFD600] px-2.5 py-0.5 rounded-full">
+            <h3 className="text-lg font-bold text-gray-900 truncate">{user.name}</h3>
+            <p className="text-xs font-medium text-gray-500 truncate">{user.email}</p>
+            <span className="inline-block mt-0.5 text-[10px] font-bold uppercase bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
               Account Attivo
             </span>
           </div>
         </div>
 
         {saveSuccess && (
-          <div className="bg-[#00E676]/20 border border-[#00E676] text-white text-xs font-bold p-2 rounded-lg flex items-center gap-2">
-            <Check size={16} className="text-[#00E676]" /> Profilo aggiornato con successo!
+          <div className="bg-green-50 border border-green-200 text-green-800 text-xs font-semibold p-2.5 rounded-xl flex items-center gap-2">
+            <Check size={16} className="text-green-600" /> Profilo aggiornato con successo!
           </div>
         )}
 
         {isEditing ? (
-          <form onSubmit={handleSave} className="flex flex-col gap-3 pt-2 border-t border-[#333333]">
+          <form onSubmit={handleSave} className="flex flex-col gap-3 pt-2 border-t border-gray-100">
             <div>
-              <label htmlFor="user-name-input" className="text-xs font-bold text-[#B8B8B8] block mb-1">
+              <label htmlFor="user-name-input" className="text-xs font-bold text-gray-700 block mb-1">
                 Nome completo
               </label>
               <input
@@ -74,12 +90,12 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-black border-2 border-white focus:border-[#FFD600] rounded-xl p-3 text-white font-bold"
+                className="w-full bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-xl p-3 text-gray-900 font-medium text-sm focus:outline-none focus:ring-1 focus:ring-black"
                 required
               />
             </div>
             <div>
-              <label htmlFor="user-email-input" className="text-xs font-bold text-[#B8B8B8] block mb-1">
+              <label htmlFor="user-email-input" className="text-xs font-bold text-gray-700 block mb-1">
                 Email
               </label>
               <input
@@ -87,21 +103,21 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black border-2 border-white focus:border-[#FFD600] rounded-xl p-3 text-white font-bold"
+                className="w-full bg-gray-50 border border-gray-200 focus:border-black focus:bg-white rounded-xl p-3 text-gray-900 font-medium text-sm focus:outline-none focus:ring-1 focus:ring-black"
                 required
               />
             </div>
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 min-h-[48px] bg-[#FFD600] text-black font-black rounded-xl border border-white hover:bg-[#FFEA00]"
+                className="flex-1 min-h-[46px] bg-gray-900 text-white font-bold text-sm rounded-xl hover:bg-black"
               >
                 Salva modifiche
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="min-h-[48px] px-4 bg-[#333333] text-white font-bold rounded-xl"
+                className="min-h-[46px] px-4 bg-gray-100 text-gray-700 font-semibold text-sm rounded-xl hover:bg-gray-200"
               >
                 Annulla
               </button>
@@ -110,7 +126,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         ) : (
           <button
             onClick={() => setIsEditing(true)}
-            className="min-h-[48px] bg-black border border-white hover:border-[#FFD600] text-white font-black text-sm rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFD600]"
+            className="min-h-[44px] bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-sm rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
           >
             Modifica dati profilo
           </button>
@@ -118,48 +134,58 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </div>
 
       {/* Reading Statistics */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-[#1A1A1A] border-2 border-[#333333] rounded-3xl p-5 flex flex-col justify-between min-h-[110px]">
-          <div className="flex items-center gap-2 text-[#FFD600]">
-            <BookOpen size={24} />
-            <span className="text-xs font-black uppercase text-white">Libri in libreria</span>
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col justify-between min-h-[96px] shadow-sm">
+          <div className="flex items-center gap-2 text-red-600">
+            <BookOpen size={20} />
+            <span className="text-[11px] font-bold uppercase text-gray-500">Libri in libreria</span>
           </div>
-          <p className="text-3xl font-black text-white mt-2">{books.length}</p>
-          <span className="text-xs font-bold text-[#B8B8B8]">{totalPages} pagine totali</span>
+          <p className="text-2xl font-black text-gray-900 mt-1">{books.length}</p>
+          <span className="text-[11px] font-medium text-gray-500">{totalPages} pagine totali</span>
         </div>
 
-        <div className="bg-[#1A1A1A] border-2 border-[#333333] rounded-3xl p-5 flex flex-col justify-between min-h-[110px]">
-          <div className="flex items-center gap-2 text-[#FFD600]">
-            <Clock size={24} />
-            <span className="text-xs font-black uppercase text-white">Tempo ascolto</span>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col justify-between min-h-[96px] shadow-sm">
+          <div className="flex items-center gap-2 text-blue-600">
+            <Clock size={20} />
+            <span className="text-[11px] font-bold uppercase text-gray-500">Tempo ascolto</span>
           </div>
-          <p className="text-3xl font-black text-white mt-2">{user.totalReadingMinutes} m</p>
-          <span className="text-xs font-bold text-[#B8B8B8]">Sessioni completate</span>
+          <p className="text-2xl font-black text-gray-900 mt-1">{user.totalReadingMinutes} m</p>
+          <span className="text-[11px] font-medium text-gray-500">Sessioni completate</span>
         </div>
       </div>
 
       {/* Quick accessibility instructions */}
-      <div className="bg-[#1A1A1A] border-2 border-[#333333] rounded-3xl p-5 flex flex-col gap-3">
-        <h3 className="text-base font-black text-white flex items-center gap-2">
-          <Sparkles size={18} className="text-[#FFD600]" />
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <Sparkles size={16} className="text-red-600" />
           Scorciatoie da tastiera e comandi
         </h3>
-        <ul className="text-xs font-semibold text-[#B8B8B8] space-y-2 list-disc list-inside">
-          <li><strong className="text-white">Tab / Shift+Tab:</strong> Spostati tra i pulsanti ad alto contrasto</li>
-          <li><strong className="text-white">Spazio / Invio:</strong> Attiva la lettura o apri il libro selezionato</li>
-          <li><strong className="text-white">Esc:</strong> Chiudi le finestre o torna indietro dal lettore</li>
+        <ul className="text-xs font-medium text-gray-600 space-y-1.5 list-disc list-inside">
+          <li><strong className="text-gray-900">Tab / Shift+Tab:</strong> Spostati tra i pulsanti e gli elementi interattivi</li>
+          <li><strong className="text-gray-900">Spazio / Invio:</strong> Attiva la lettura o apri il libro selezionato</li>
+          <li><strong className="text-gray-900">Esc:</strong> Chiudi le finestre o torna indietro dal lettore</li>
         </ul>
       </div>
 
-      {/* Reset data */}
-      <div className="bg-[#1A1A1A] border-2 border-[#333333] rounded-3xl p-5 flex flex-col gap-3">
-        <h3 className="text-sm font-black text-white">Opzioni libreria</h3>
+      {/* Reset data & splash screen */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-900">Opzioni libreria e aspetto</h3>
+        {onShowSplash && (
+          <button
+            onClick={onShowSplash}
+            className="min-h-[44px] bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-xs rounded-xl flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+            aria-label="Mostra schermata iniziale di benvenuto con logo e titolo"
+          >
+            <Sparkles size={16} className="text-red-600" />
+            Mostra schermata iniziale (Splash screen)
+          </button>
+        )}
         <button
           onClick={onResetSampleBooks}
-          className="min-h-[52px] bg-black border border-white hover:border-[#FFD600] text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFD600]"
+          className="min-h-[44px] bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-xs rounded-xl flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
           aria-label="Ripristina i libri di esempio della letteratura italiana"
         >
-          <RotateCcw size={18} className="text-[#FFD600]" />
+          <RotateCcw size={16} className="text-gray-600" />
           Ripristina libri classici di esempio (Pinocchio, Manzoni, Rodari)
         </button>
       </div>
