@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Book } from '../types';
+import { VoraLogo } from './VoraLogo';
 import {
   FileText,
   Camera,
@@ -74,20 +75,18 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) =>
       >
         {/* Left: Acrobat Red Badge + Title & White Details */}
         <div className="flex items-center gap-3.5 min-w-0 flex-1">
-          {/* Adobe Acrobat Signature Red Icon Badge */}
+          {/* Vora Signature Icon Badge - Bianco con Cerchio Bianco */}
           <div
-            className="w-10 h-10 rounded-xl bg-[#260A0D] border border-[#ED2224] flex flex-col items-center justify-center shrink-0 shadow-xs group-hover:border-red-400 transition-colors"
+            className="w-10 h-10 rounded-full bg-[#181A22] border border-white flex flex-col items-center justify-center shrink-0 shadow-xs group-hover:border-white transition-colors"
             title={`Tipo file: ${getFileTypeLabel()}`}
             aria-label={`Tipo file: ${getFileTypeLabel()}`}
           >
             {book.file_type === 'scan' ? (
-              <Camera size={18} className="text-[#ED2224]" />
+              <Camera size={18} className="text-white" />
             ) : (
-              <svg className="w-5 h-5 text-[#ED2224]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13.983 0C10.748 0 7.828 1.488 5.895 3.82L0 19.344h5.666l3.355-8.243c.96-2.358 2.684-4.098 4.962-4.098 2.376 0 4.148 1.83 4.148 4.298 0 2.215-1.464 4.398-3.791 5.656l-3.23 1.748c-3.155 1.706-5.077 4.707-5.077 8.295h5.666c0-2.308 1.258-4.325 3.32-5.438l3.23-1.747c3.674-1.986 5.922-5.467 5.922-9.283C24.17 4.636 19.534 0 13.983 0z"/>
-              </svg>
+              <VoraLogo size={20} variant="white" showCircle={false} className="w-5 h-5 text-white" />
             )}
-            <span className="text-[8px] font-black tracking-tight text-[#ED2224] -mt-0.5 leading-none">
+            <span className="text-[7px] font-black tracking-tight text-white -mt-0.5 leading-none">
               {getFileTypeLabel()}
             </span>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Bell, User as UserIcon, X } from 'lucide-react';
+import { VoraLogo } from './VoraLogo';
 
 interface HeaderProps {
   searchQuery: string;
@@ -42,16 +43,12 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between">
           {/* Logo e Titolo dell'Applicazione Vora */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#260A0D] border border-[#ED2224] flex items-center justify-center shrink-0 shadow-xs">
-              <svg
-                className="w-5 h-5 text-[#ED2224] shrink-0"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-label="Logo Vora"
-              >
-                <path d="M13.983 0C10.748 0 7.828 1.488 5.895 3.82L0 19.344h5.666l3.355-8.243c.96-2.358 2.684-4.098 4.962-4.098 2.376 0 4.148 1.83 4.148 4.298 0 2.215-1.464 4.398-3.791 5.656l-3.23 1.748c-3.155 1.706-5.077 4.707-5.077 8.295h5.666c0-2.308 1.258-4.325 3.32-5.438l3.23-1.747c3.674-1.986 5.922-5.467 5.922-9.283C24.17 4.636 19.534 0 13.983 0z" />
-              </svg>
-            </div>
+            <VoraLogo
+              size={34}
+              variant="white-circle"
+              className="w-[34px] h-[34px] text-white shrink-0 drop-shadow-xs"
+              alt="Logo Vora bianco con cerchio bianco"
+            />
             <div className="flex flex-col">
               <span className="text-lg font-black text-white tracking-tight leading-none">
                 {title}
