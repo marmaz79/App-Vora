@@ -32,6 +32,7 @@ import {
 import { ScanProgressCircle } from './ScanProgressCircle';
 import { pdfOcrService } from '../services/pdfOcrService';
 import { CameraScanner } from './CameraScanner';
+import { CamScannerEditor } from './CamScannerEditor';
 
 interface ScanModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
   onClose,
   onBookAdded,
   onScanResultsReady,
-  initialOpenLiveCamera = false,
+  initialOpenLiveCamera = true,
 }) => {
   const [scanTitle, setScanTitle] = useState('');
   const [scannedPages, setScannedPages] = useState<string[]>([]);
@@ -72,13 +73,14 @@ export const ScanModal: React.FC<ScanModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isEnhancingAi, setIsEnhancingAi] = useState(false);
   const [activeAiMode, setActiveAiMode] = useState<AiOptimizationMode | null>(null);
-  const [showLiveCamera, setShowLiveCamera] = useState(initialOpenLiveCamera);
+  const [showLiveCamera, setShowLiveCamera] = useState(true);
+  const [rawImageForEditing, setRawImageForEditing] = useState<File | null>(null);
 
   useEffect(() => {
-    if (isOpen && initialOpenLiveCamera) {
+    if (isOpen) {
       setShowLiveCamera(true);
     }
-  }, [isOpen, initialOpenLiveCamera]);
+  }, [isOpen]);
 
   const fileInputCameraRef = useRef<HTMLInputElement>(null);
   const fileInputGalleryRef = useRef<HTMLInputElement>(null);
@@ -142,7 +144,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
     e.target.value = '';
   };
 
-  const handleImageFile = async (file: File) => {
+  const handleImageFile = async (file: File, preProcessedUrl?: string) => {
     if (!file) return;
 
     setError(null);
@@ -152,8 +154,8 @@ export const ScanModal: React.FC<ScanModalProps> = ({
     setLastConfidence(null);
     setIsAiOptimized(false);
 
-    // Create local object URL for preview
-    const objectUrl = URL.createObjectURL(file);
+    // Create local object URL for preview or use preProcessedUrl
+    const objectUrl = preProcessedUrl || URL.createObjectURL(file);
     setPreviewImageUrl(objectUrl);
 
     setOcrProgress({
@@ -227,7 +229,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
   const handleCameraChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleImageFile(files[0]);
+      setRawImageForEditing(files[0]);
     }
     e.target.value = '';
   };
@@ -235,7 +237,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
   const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleImageFile(files[0]);
+      setRawImageForEditing(files[0]);
     }
     e.target.value = '';
   };
@@ -390,9 +392,6 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                   AI Ottimizzato
                 </span>
               </div>
-              <p className="text-xs font-semibold text-gray-400">
-                Riconoscimento caratteri ad alta fedeltà con Gemini 3.8 Flash e Tesseract
-              </p>
             </div>
           </div>
           <button
@@ -908,6 +907,23 @@ export const ScanModal: React.FC<ScanModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* CamScanner Editor per Ritaglio e Pulizia Documento */}
+      {rawImageForEditing && (
+        <CamScannerEditor
+          imageFile={rawImageForEditing}
+          onConfirm={(processedFile, processedUrl) => {
+            setRawImageForEditing(null);
+            handleImageFile(processedFile, processedUrl);
+          }}
+          onRetake={() => {
+            setRawImageForEditing(null);
+          }}
+          onCancel={() => {
+            setRawImageForEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 };

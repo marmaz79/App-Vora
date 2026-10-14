@@ -12,7 +12,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
   const tabs = [
     { id: 'home' as TabType, label: 'Home', icon: Home },
     { id: 'library' as TabType, label: 'Libreria', icon: Library },
-    { id: 'scan' as TabType, label: 'scan.ocr', icon: Camera },
+    { id: 'scan' as TabType, label: 'Scansione', icon: Camera },
     { id: 'settings' as TabType, label: 'Impostazioni', icon: Settings },
   ];
 

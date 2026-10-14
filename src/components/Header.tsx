@@ -57,9 +57,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-lg font-black text-white tracking-tight leading-none">
                 {title}
               </span>
-              <span className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase leading-none mt-0.5">
-                Lettore Libri
-              </span>
             </div>
           </div>
 

@@ -262,10 +262,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           </span>
         </div>
 
-        <p className="text-xs text-gray-400 leading-relaxed -mt-1">
-          Scegli la modalità ad alto contrasto per la lettura dei libri e delle scansioni OCR. Ottimizzata con standard WCAG per ipovedenti, lettura notturna e affaticamento da luce blu.
-        </p>
-
         {/* Elenco Temi con Anteprima Visiva */}
         <div className="flex flex-col gap-2.5">
           {CONTRAST_THEME_OPTIONS.map((opt) => {
@@ -309,9 +305,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         {opt.badge}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1 leading-snug">
-                      {opt.description}
-                    </p>
                   </div>
                 </div>
 
@@ -441,9 +434,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         {/* AI Voices Grid List */}
         {voiceTab === 'ai' && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-medium text-gray-400">
-              Le voci AI offrono cadenza umana realistica, espressività e dizione fluida in italiano.
-            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
               {aiVoices.map((v) => {
                 const isSelected = settings.voiceUri === v.uri;
@@ -482,9 +472,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                           {v.gender}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 line-clamp-2 pl-6">
-                        {v.description}
-                      </p>
                     </div>
 
                     {/* Preview button per-voice */}
@@ -520,9 +507,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         {/* System Voices Selection */}
         {voiceTab === 'system' && (
           <div className="flex flex-col gap-3">
-            <p className="text-xs font-medium text-gray-400">
-              Voci sintetiche di sistema (funzionano anche offline).
-            </p>
             {systemVoices.length === 0 ? (
               <p className="text-xs font-medium text-gray-400 italic p-3 bg-[#161824] rounded-xl border border-[#232736]">
                 Nessuna voce italiana di sistema trovata nel browser. Ti consigliamo di utilizzare le Voci AI.
@@ -652,9 +636,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
       <div className="bg-[#12141C] border border-[#232736] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm">
         <div>
           <h3 className="text-base font-bold text-white">Avanzamento automatico</h3>
-          <p className="text-xs font-medium text-gray-400">
-            Passa automaticamente alla pagina successiva al termine della lettura
-          </p>
         </div>
         <button
           role="switch"
@@ -673,17 +654,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             }`}
           />
         </button>
-      </div>
-
-      {/* Accessibility details */}
-      <div className="bg-[#12141C] border border-[#232736] rounded-2xl p-4 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-white">
-          <CheckCircle size={18} className="text-red-500" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">Garanzia di Accessibilità Vora</h3>
-        </div>
-        <p className="text-xs font-medium text-gray-400 leading-relaxed">
-          Vora unisce sintesi vocale neurale AI in italiano con standard di contrasto e leggibilità elevata, bersagli tattili ampi e navigazione fluida in Dark Mode.
-        </p>
       </div>
     </section>
   );

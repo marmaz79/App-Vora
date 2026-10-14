@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, FileText, BookOpen, Camera } from 'lucide-react';
+
 import { Book, User, TtsSettings, ScanSessionData, AppNotification } from './types';
 import { storageService, DEFAULT_SETTINGS } from './services/storageService';
 import { SAMPLE_BOOKS } from './data/sampleBooks';
@@ -118,8 +118,7 @@ export function App() {
     setTabHistory((prev) => [...prev, tab]);
     setCurrentTab(tab);
     if (tab === 'scan') {
-      setOpenLiveCameraDirectly(true);
-      setIsScanModalOpen(true);
+      setIsScanModalOpen(false);
     }
   }, []);
 
@@ -152,7 +151,7 @@ export function App() {
       setActivePdfBook(null);
       setActiveBook(cleanBook);
       setLoadingBook(null);
-    }, 350);
+    }, 450);
   }, []);
 
   // Opzione 2: Apri nel visualizzatore documento PDF
@@ -164,7 +163,7 @@ export function App() {
       setActiveBook(null);
       setActivePdfBook(cleanBook);
       setLoadingBook(null);
-    }, 350);
+    }, 450);
   }, []);
 
   const handleCloseReader = useCallback(() => {
@@ -270,35 +269,19 @@ export function App() {
         </div>
       )}
 
-      {/* Loading overlay when opening a book */}
+      {/* Loading overlay when opening a book: mostra solo caricamento... con loading bianco */}
       {loadingBook && (
         <div
           role="status"
           aria-live="polite"
-          aria-label={`Caricamento del libro ${loadingBook.title}`}
-          className="fixed inset-0 z-50 bg-[#0A0B10]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+          aria-label="Caricamento..."
+          className="fixed inset-0 z-50 bg-[#0A0B10]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
         >
-          <div className="relative flex items-center justify-center mb-6">
-            <div className="w-24 h-24 rounded-full border-4 border-zinc-800 border-t-red-600 animate-spin" />
-            <Loader2 className="absolute text-red-600 animate-spin" size={38} />
+          <div className="relative flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin" />
           </div>
-          <h2 className="text-2xl font-black text-white mb-2">
-            Apertura del libro in corso...
-          </h2>
-          <div className="flex items-center justify-center gap-2 text-lg font-bold text-gray-200 max-w-md truncate mb-2">
-            <span className="text-red-500 shrink-0 inline-flex items-center" title={`Tipo file: ${loadingBook.file_type.toUpperCase()}`}>
-              {loadingBook.file_type === 'pdf' ? (
-                <FileText size={20} aria-hidden="true" />
-              ) : loadingBook.file_type === 'scan' ? (
-                <Camera size={20} aria-hidden="true" />
-              ) : (
-                <BookOpen size={20} aria-hidden="true" />
-              )}
-            </span>
-            <span className="truncate">{loadingBook.title}</span>
-          </div>
-          <p className="text-sm font-medium text-gray-400 max-w-xs leading-relaxed">
-            Caricamento di tutto il contenuto ({loadingBook.pages.length} {loadingBook.pages.length === 1 ? 'pagina' : 'pagine'})...
+          <p className="text-base font-bold text-white tracking-wide">
+            Caricamento...
           </p>
         </div>
       )}
@@ -376,6 +359,7 @@ export function App() {
                 onAddBook={handleAddBook}
                 onScanResultsReady={(session) => setScanSession(session)}
                 hideFab={showSplash}
+                onOpenScan={() => handleSelectTab('scan')}
               />
             )}
 

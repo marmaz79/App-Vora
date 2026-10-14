@@ -58,7 +58,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <UserIcon size={24} className="text-red-500 shrink-0" aria-hidden="true" />
             Profilo Utente
           </h2>
-          <p className="text-xs font-semibold text-gray-400">Le tue statistiche di lettura e preferenze</p>
         </div>
       </div>
 

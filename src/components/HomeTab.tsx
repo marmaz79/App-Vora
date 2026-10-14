@@ -16,6 +16,9 @@ import {
   Check,
   X,
   Sparkles,
+  Clock,
+  Star,
+  Smartphone,
 } from 'lucide-react';
 
 interface HomeTabProps {
@@ -29,6 +32,7 @@ interface HomeTabProps {
   hideFab?: boolean;
   onOpenPdf?: (book: Book) => void;
   onOpenReader?: (book: Book) => void;
+  onOpenScan?: () => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -42,6 +46,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   hideFab = false,
   onOpenPdf,
   onOpenReader,
+  onOpenScan,
 }) => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
@@ -123,37 +128,86 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </button>
         </div>
 
-        {/* Tre puntini verticali per ordinamento */}
-        <button
-          onClick={() => setShowSortMenu((prev) => !prev)}
-          aria-label="Opzioni visualizzazione elenco"
-          className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white"
-        >
-          <MoreVertical size={18} />
-        </button>
+        {/* Tre puntini verticali per opzioni ed elenco */}
+        <div className="relative">
+          <button
+            onClick={() => setShowSortMenu((prev) => !prev)}
+            aria-label="Opzioni visualizzazione elenco"
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+              showSortMenu
+                ? 'bg-zinc-800 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2338] active:scale-95'
+            }`}
+          >
+            <MoreVertical size={18} />
+          </button>
 
-        {showSortMenu && (
-          <div className="absolute right-2 top-10 bg-[#161822] border border-zinc-700 rounded-2xl p-2 z-30 shadow-2xl flex flex-col gap-1 min-w-[170px]">
-            <button
-              onClick={() => {
-                setActiveTabFilter('recenti');
-                setShowSortMenu(false);
-              }}
-              className="text-xs font-semibold text-white px-3 py-2 text-left hover:bg-zinc-800 rounded-lg"
-            >
-              Ordina per data recente
-            </button>
-            <button
-              onClick={() => {
-                setActiveTabFilter('stella');
-                setShowSortMenu(false);
-              }}
-              className="text-xs font-semibold text-white px-3 py-2 text-left hover:bg-zinc-800 rounded-lg"
-            >
-              Mostra solo con stella
-            </button>
-          </div>
-        )}
+          {showSortMenu && (
+            <>
+              {/* Backdrop to close on click outside */}
+              <div
+                className="fixed inset-0 z-20"
+                onClick={() => setShowSortMenu(false)}
+              />
+
+              <div className="absolute right-0 top-11 bg-[#12141D] border border-[#232736] rounded-2xl p-2 z-30 shadow-2xl flex flex-col gap-1 min-w-[210px] animate-fade-in select-none">
+                <div className="px-2.5 py-1.5 border-b border-[#1E2232] mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                    Opzioni visualizzazione
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setActiveTabFilter('recenti');
+                    setShowSortMenu(false);
+                  }}
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-[#1C2030] rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Clock size={15} className="text-white" />
+                    <span className="text-white">Ordina per data recente</span>
+                  </div>
+                  {activeTabFilter === 'recenti' && (
+                    <Check size={14} className="text-white" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTabFilter('stella');
+                    setShowSortMenu(false);
+                  }}
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-[#1C2030] rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Star size={15} className="text-white" />
+                    <span className="text-white">Mostra solo con stella</span>
+                  </div>
+                  {activeTabFilter === 'stella' && (
+                    <Check size={14} className="text-white" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTabFilter('dispositivo');
+                    setShowSortMenu(false);
+                  }}
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-[#1C2030] rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Smartphone size={15} className="text-white" />
+                    <span className="text-white">Sul dispositivo</span>
+                  </div>
+                  {activeTabFilter === 'dispositivo' && (
+                    <Check size={14} className="text-white" />
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* 4. DOCUMENT LIST (Stile Adobe Acrobat) */}
@@ -162,7 +216,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           <div className="p-12 text-center flex flex-col items-center justify-center gap-2 text-gray-400">
             <FileText size={38} className="text-zinc-600 mb-2" />
             <p className="text-sm font-bold text-white">Nessun file trovato</p>
-            <p className="text-xs text-gray-500">I tuoi documenti PDF ed eBook appariranno qui.</p>
           </div>
         ) : (
           filteredBooks.map((book) => (
@@ -204,7 +257,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#12141C] border border-[#232734] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto"
+            className="bg-[#12141C] border border-[#232736] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto"
           >
             {/* Header del modale Azioni Rapide */}
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
@@ -216,9 +269,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   <h3 id="quick-actions-title" className="text-lg font-black text-white leading-snug">
                     Cosa vorresti fare?
                   </h3>
-                  <p className="text-xs text-gray-400 font-medium">
-                    Tutte le voci e le azioni disponibili in Vora
-                  </p>
                 </div>
               </div>
               <button
@@ -254,9 +304,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         👑
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      Importa PDF digitali, PDF scansionati (OCR), EPUB o TXT
-                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-[#6E87FF] shrink-0 ml-2">
@@ -269,7 +316,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 type="button"
                 onClick={() => {
                   setIsQuickActionsOpen(false);
-                  setIsScanOpen(true);
+                  if (onOpenScan) {
+                    onOpenScan();
+                  } else {
+                    setIsScanOpen(true);
+                  }
                 }}
                 className="bg-[#09241B] hover:bg-[#0E3528] border border-[#164836] hover:border-[#226B50] rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
               >
@@ -286,9 +337,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         👑
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      Acquisisci foto o PDF scansionati e trasforma in testo
-                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-[#2ECC71] shrink-0 ml-2">
@@ -318,9 +366,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         👑
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      Trascrizione intelligente e pulizia impaginazione AI
-                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-[#FF4757] shrink-0 ml-2">
@@ -349,11 +394,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         Ascolta audio
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      {books.length > 0
-                        ? `Ascolta subito "${books[0].title}"`
-                        : 'Riproduci libri con voce naturale italiana AI'}
-                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-[#FFA502] shrink-0 ml-2">
@@ -383,9 +423,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         👑
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      Unisci documenti multipli in una singola opera
-                    </p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-[#9B59B6] shrink-0 ml-2">
@@ -415,6 +452,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       />
       <ScanModal
         isOpen={isScanOpen}
+        initialOpenLiveCamera={true}
         onClose={() => setIsScanOpen(false)}
         onBookAdded={onAddBook}
         onScanResultsReady={onScanResultsReady}

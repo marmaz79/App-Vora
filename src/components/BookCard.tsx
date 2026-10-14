@@ -12,6 +12,8 @@ import {
   BookOpen,
   Smartphone,
   Cpu,
+  Share2,
+  Check,
 } from 'lucide-react';
 
 interface BookCardProps {
@@ -32,6 +34,7 @@ export const BookCard: React.FC<BookCardProps> = ({
   const [showOptions, setShowOptions] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const formatSize = (bytes?: number) => {
     if (!bytes) return '450,2 KB';
@@ -181,97 +184,190 @@ export const BookCard: React.FC<BookCardProps> = ({
         </button>
       </article>
 
-      {/* Options Panel (Stile Adobe Acrobat Scuro con Dettagli Libro Bianco) */}
+      {/* Toast Feedback */}
+      {toastMsg && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-60 bg-zinc-800 text-white font-bold px-4 py-2 rounded-xl border border-zinc-700 shadow-2xl text-xs animate-fade-in flex items-center gap-2">
+          <Check size={16} className="text-white" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Menu a comparsa quando si clicca sui tre puntini (Elenco di opzioni con testo bianco) */}
       {showOptions && (
         <div
-          onClick={(e) => e.stopPropagation()}
-          className="bg-[#12141A] border-b border-[#202430] px-4 py-3 flex flex-col gap-2 animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Opzioni per ${book.title}`}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in select-none"
+          onClick={() => {
+            setShowOptions(false);
+            setConfirmDelete(false);
+          }}
         >
-          {confirmDelete ? (
-            <div className="flex items-center justify-between flex-wrap gap-2 text-white" role="alert">
-              <span className="text-xs text-white font-semibold flex items-center gap-1.5">
-                <AlertCircle size={15} className="text-red-500 shrink-0" />
-                Eliminare definitivamente questo file?
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    onDelete(book.book_id);
-                    setShowOptions(false);
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg active:scale-95"
-                >
-                  Sì, elimina
-                </button>
-                <button
-                  onClick={() => {
-                    setConfirmDelete(false);
-                    setShowOptions(false);
-                  }}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg active:scale-95"
-                >
-                  Annulla
-                </button>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#12141D] border border-[#232736] rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl flex flex-col gap-3 text-white mb-20 sm:mb-0 animate-slide-up"
+          >
+            {/* Intestazione opzioni */}
+            <div className="flex items-center justify-between border-b border-[#232736] pb-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-[#1C1F2E] border border-zinc-700 text-white flex items-center justify-center shrink-0">
+                  <FileText size={20} className="text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-black text-white truncate">
+                    {book.title}
+                  </h4>
+                  <span className="text-xs text-white/70 font-semibold block truncate">
+                    {getFileTypeLabel()} · {book.pages.length} {book.pages.length === 1 ? 'pagina' : 'pagine'} · {formatSize(book.size)}
+                  </span>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOptions(false);
+                  setConfirmDelete(false);
+                }}
+                className="w-8 h-8 rounded-full bg-[#1C202F] text-white hover:bg-[#252B3E] flex items-center justify-center transition-colors shrink-0"
+                aria-label="Chiudi opzioni"
+              >
+                <X size={16} className="text-white" />
+              </button>
             </div>
-          ) : (
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                Opzioni file
-              </span>
-              <div className="flex items-center flex-wrap gap-2">
+
+            {/* Elenco di opzioni con testo bianco */}
+            {confirmDelete ? (
+              <div className="flex flex-col gap-3 p-3 bg-red-950/40 border border-red-800/50 rounded-2xl">
+                <div className="flex items-center gap-2 text-white">
+                  <AlertCircle size={18} className="text-red-400 shrink-0" />
+                  <span className="text-sm font-bold text-white">
+                    Eliminare definitivamente questo file?
+                  </span>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDelete(book.book_id);
+                      setShowOptions(false);
+                      setConfirmDelete(false);
+                    }}
+                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs rounded-xl transition-all"
+                  >
+                    Sì, elimina
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2.5 bg-[#1C202F] hover:bg-[#252B3E] active:scale-95 text-white font-bold text-xs rounded-xl transition-all"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col divide-y divide-[#1D212F]">
+                {/* 1. Apri in PDF */}
                 {onOpenPdf && (
                   <button
+                    type="button"
                     onClick={() => {
                       setShowOptions(false);
                       onOpenPdf(book);
                     }}
-                    className="bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs"
-                    title="Apri in formato PDF"
+                    className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#1A1E2D] rounded-xl transition-colors group"
                   >
-                    <FileText size={14} className="text-red-400" />
-                    <span>Apri PDF</span>
+                    <div className="w-9 h-9 rounded-xl bg-[#1C202F] flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
+                      <FileText size={18} className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold text-white">
+                      Apri in PDF
+                    </span>
                   </button>
                 )}
+
+                {/* 2. Leggi libro */}
                 {onOpenReader && (
                   <button
+                    type="button"
                     onClick={() => {
                       setShowOptions(false);
                       onOpenReader(book);
                     }}
-                    className="bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs"
-                    title="Leggi libro con voce AI"
+                    className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#1A1E2D] rounded-xl transition-colors group"
                   >
-                    <BookOpen size={14} className="text-emerald-400" />
-                    <span>Leggi libro</span>
+                    <div className="w-9 h-9 rounded-xl bg-[#1C202F] flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
+                      <BookOpen size={18} className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold text-white">
+                      Leggi libro
+                    </span>
                   </button>
                 )}
+
+                {/* 3. Dettagli */}
                 <button
+                  type="button"
                   onClick={() => {
                     setShowOptions(false);
                     setShowDetailsModal(true);
                   }}
-                  className="bg-[#1C2030] hover:bg-[#252A40] text-[#60A5FA] border border-[#2B3042] px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs"
+                  className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#1A1E2D] rounded-xl transition-colors group"
                 >
-                  <Info size={14} className="text-[#60A5FA]" />
-                  <span>Dettagli</span>
+                  <div className="w-9 h-9 rounded-xl bg-[#1C202F] flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
+                    <Info size={18} className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-white">
+                    Dettagli
+                  </span>
                 </button>
+
+                {/* 4. Condividi */}
                 <button
+                  type="button"
+                  onClick={async () => {
+                    const text = book.pages.join('\n\n');
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({
+                          title: book.title,
+                          text: text.slice(0, 500),
+                        });
+                      } catch {}
+                    } else if (navigator.clipboard) {
+                      await navigator.clipboard.writeText(text.slice(0, 5000));
+                      setToastMsg('Testo copiato negli appunti!');
+                      setTimeout(() => setToastMsg(null), 2000);
+                    }
+                    setShowOptions(false);
+                  }}
+                  className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#1A1E2D] rounded-xl transition-colors group"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-[#1C202F] flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
+                    <Share2 size={18} className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-white">
+                    Condividi
+                  </span>
+                </button>
+
+                {/* 5. Elimina */}
+                <button
+                  type="button"
                   onClick={() => setConfirmDelete(true)}
-                  className="bg-zinc-900 hover:bg-red-950/60 text-red-400 border border-red-900/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold transition-all active:scale-95"
+                  className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-red-950/30 rounded-xl transition-colors group"
                 >
-                  <Trash2 size={14} className="text-red-500" />
-                  <span>Elimina</span>
-                </button>
-                <button
-                  onClick={() => setShowOptions(false)}
-                  className="w-7 h-7 rounded-md bg-zinc-800 text-gray-400 flex items-center justify-center hover:bg-zinc-700 hover:text-white"
-                >
-                  <X size={14} />
+                  <div className="w-9 h-9 rounded-xl bg-[#1C202F] flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
+                    <Trash2 size={18} className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold text-white">
+                    Elimina
+                  </span>
                 </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

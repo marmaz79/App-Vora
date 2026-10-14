@@ -202,9 +202,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <h2 id="upload-modal-title" className="text-xl font-black text-white">
                 Carica Libro
               </h2>
-              <p className="text-xs font-semibold text-gray-400">
-                PDF digitali, PDF scansionati (OCR), EPUB e TXT
-              </p>
             </div>
           </div>
           {!loading && (
@@ -281,9 +278,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                       OCR AI
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">
-                    Rileva automaticamente o esegui OCR su tutte le pagine
-                  </p>
                 </div>
               </div>
 
@@ -338,21 +332,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 <p className="text-base font-bold text-white group-hover:text-red-400">
                   Tocca o trascina qui il tuo file
                 </p>
-                <p className="text-xs text-gray-400 font-medium mt-1">
-                  Se il PDF è scansionato, aprirà automaticamente l'OCR per trasformarlo in testo
-                </p>
               </div>
 
               <div className="mt-1 bg-red-600 hover:bg-red-500 text-white font-bold px-5 py-2.5 rounded-xl active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-md shadow-red-900/30">
                 <span>Scegli file dal dispositivo</span>
               </div>
             </div>
-          </div>
-        )}
-
-        {!loading && (
-          <div className="text-[11px] text-gray-400 font-medium text-center">
-            Suggerimento: I libri caricati vengono convertiti in testo leggibile e pronti per l'ascolto vocale.
           </div>
         )}
       </div>

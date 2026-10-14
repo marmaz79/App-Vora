@@ -18,6 +18,7 @@ import { ScanSessionData, Book } from '../types';
 import { tesseractOcr, OcrEngineMode, OcrLanguage, OcrProgress } from '../services/tesseractOcr';
 import { pdfOcrService } from '../services/pdfOcrService';
 import { ScanProgressCircle } from './ScanProgressCircle';
+import { CamScannerEditor } from './CamScannerEditor';
 
 interface CameraScannerProps {
   onScanResultsReady: (session: ScanSessionData) => void;
@@ -35,6 +36,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [rawImageForEditing, setRawImageForEditing] = useState<File | null>(null);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -55,19 +57,22 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
+  const streamRef = useRef<MediaStream | null>(null);
+
   // Stop camera tracks cleanly
   const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach((track) => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
         track.stop();
       });
-      setStream(null);
+      streamRef.current = null;
     }
+    setStream(null);
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
     setCameraActive(false);
-  }, [stream]);
+  }, []);
 
   // Check if multiple camera devices exist
   useEffect(() => {
@@ -82,54 +87,87 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     }
   }, []);
 
-  // Start live camera stream
+  // Keep videoRef in sync with active stream
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch((err) => {
+        console.warn('Autoplay video stream:', err);
+      });
+    }
+  }, [stream]);
+
+  // Start live camera stream with progressive constraint fallbacks
   const startCamera = useCallback(
     async (mode: 'environment' | 'user' = facingMode) => {
       setCameraError(null);
 
       // Clean up previous stream
-      if (stream) {
-        stream.getTracks().forEach((t) => t.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
 
       if (!navigator?.mediaDevices?.getUserMedia) {
         setCameraError(
-          'La fotocamera live non è supportata da questo browser. Usa il pulsante sottostante per scattare foto con la fotocamera di sistema.'
+          'La fotocamera live non è accessibile direttamente. Tocca il pulsante sotto per scattare una foto con la fotocamera del dispositivo.'
         );
         return;
       }
 
       try {
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: { ideal: mode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-          audio: false,
-        };
-
-        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-        setStream(mediaStream);
-        setCameraActive(true);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-          videoRef.current.play().catch(() => {});
+        let mediaStream: MediaStream | null = null;
+        try {
+          // 1. Prova con risoluzione alta e fotocamera posteriore per OCR ottimale
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: mode },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+            audio: false,
+          });
+        } catch (firstErr) {
+          console.warn('Fallback standard per fotocamera:', firstErr);
+          try {
+            // 2. Fallback senza vincoli di risoluzione ma con facingMode
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: mode },
+              audio: false,
+            });
+          } catch (secondErr) {
+            console.warn('Fallback video generico:', secondErr);
+            // 3. Fallback universale: qualsiasi fotocamera disponibile
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: false,
+            });
+          }
         }
 
-        // Check if torch/flashlight capability is available
-        const videoTrack = mediaStream.getVideoTracks()[0];
-        if (videoTrack && typeof (videoTrack.getCapabilities as any) === 'function') {
-          const caps = (videoTrack.getCapabilities as any)();
-          setHasTorch(Boolean(caps && caps.torch));
+        if (mediaStream) {
+          streamRef.current = mediaStream;
+          setStream(mediaStream);
+          setCameraActive(true);
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = mediaStream;
+            videoRef.current.play().catch(() => {});
+          }
+
+          // Controlla supporto torcia
+          const videoTrack = mediaStream.getVideoTracks()[0];
+          if (videoTrack && typeof (videoTrack.getCapabilities as any) === 'function') {
+            const caps = (videoTrack.getCapabilities as any)();
+            setHasTorch(Boolean(caps && caps.torch));
+          }
         }
       } catch (err: any) {
         console.warn('Impossibile accedere alla fotocamera live:', err);
         let msg =
           'Impossibile avviare la fotocamera live. Verifica i permessi nel browser oppure usa la fotocamera di sistema.';
         if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
-          msg = 'Permesso fotocamera negato. Puoi comunque scattare foto toccando il pulsante Fotocamera di Sistema.';
+          msg = 'Permesso fotocamera negato nel browser. Puoi scattare la foto toccando il pulsante Fotocamera di Sistema qui sotto.';
         } else if (err?.name === 'NotFoundError') {
           msg = 'Nessuna fotocamera rilevata sul dispositivo.';
         }
@@ -137,7 +175,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         setCameraActive(false);
       }
     },
-    [facingMode, stream]
+    [facingMode]
   );
 
   // Auto-start camera when autoStart is enabled
@@ -148,7 +186,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     return () => {
       stopCamera();
     };
-  }, [autoStart]);
+  }, [autoStart, startCamera, facingMode, stopCamera]);
 
   // Flip camera (front / back)
   const toggleCameraFacing = async () => {
@@ -175,7 +213,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   };
 
   // Process a captured or uploaded image file with OCR
-  const processImageFile = async (file: File) => {
+  const processImageFile = async (file: File, preProcessedUrl?: string) => {
     if (!file) return;
 
     stopCamera();
@@ -188,7 +226,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       message: 'Inizializzazione estrazione testo con Gemini AI Vision...',
     });
 
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = preProcessedUrl || URL.createObjectURL(file);
 
     try {
       const result = await tesseractOcr.recognize(file, {
@@ -288,7 +326,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               const file = new File([blob], `scansione-camera-${Date.now()}.jpg`, {
                 type: 'image/jpeg',
               });
-              processImageFile(file);
+              // Apri subito l'editor CamScanner per ritaglio e pulizia prima dell'OCR
+              setRawImageForEditing(file);
             } else {
               setCameraError('Impossibile acquisire il fotogramma della fotocamera.');
             }
@@ -522,7 +561,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         onChange={(e) => {
           const files = e.target.files;
           if (files && files.length > 0) {
-            processImageFile(files[0]);
+            setRawImageForEditing(files[0]);
           }
           e.target.value = '';
         }}
@@ -535,7 +574,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         onChange={(e) => {
           const files = e.target.files;
           if (files && files.length > 0) {
-            processImageFile(files[0]);
+            setRawImageForEditing(files[0]);
           }
           e.target.value = '';
         }}
@@ -554,6 +593,29 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         }}
         className="hidden"
       />
+
+      {/* CamScanner Editor per Ritaglio e Pulizia Documento */}
+      {rawImageForEditing && (
+        <CamScannerEditor
+          imageFile={rawImageForEditing}
+          onConfirm={(processedFile, processedUrl) => {
+            setRawImageForEditing(null);
+            processImageFile(processedFile, processedUrl);
+          }}
+          onRetake={() => {
+            setRawImageForEditing(null);
+            if (!cameraActive) {
+              startCamera(facingMode);
+            }
+          }}
+          onCancel={() => {
+            setRawImageForEditing(null);
+            if (!cameraActive) {
+              startCamera(facingMode);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

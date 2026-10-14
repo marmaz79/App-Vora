@@ -66,7 +66,6 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
               <Library size={24} className="text-red-500 shrink-0" aria-hidden="true" />
               Libreria
             </h2>
-            <p className="text-xs font-semibold text-gray-400 truncate">Tutti i documenti e le opere digitali</p>
           </div>
         </div>
 
@@ -134,7 +133,6 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
       {filtered.length === 0 ? (
         <div className="bg-[#12141C] border border-[#232736] rounded-2xl p-8 text-center flex flex-col items-center gap-1.5 shadow-sm">
           <p className="text-base font-bold text-white">Nessun libro trovato per questo filtro</p>
-          <p className="text-xs text-gray-400">Prova a selezionare un'altra categoria o azzerare la ricerca.</p>
         </div>
       ) : (
         <div className="bg-[#12141C] border border-[#232736] rounded-2xl overflow-hidden divide-y divide-[#1D212F] shadow-sm">

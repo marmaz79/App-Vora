@@ -5,11 +5,7 @@ import {
   BookOpen,
   X,
   Volume2,
-  Printer,
-  Sparkles,
   ArrowRight,
-  Eye,
-  CheckCircle2,
 } from 'lucide-react';
 import { VoraLogo } from './VoraLogo';
 
@@ -116,9 +112,6 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
                     Documento
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 font-medium leading-relaxed mt-1">
-                  Visualizza con impaginazione A4 autentica, zoom, sfoglia pagine e opzioni di stampa/salvataggio PDF.
-                </p>
               </div>
             </div>
 
@@ -148,9 +141,6 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
                     Audio AI
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 font-medium leading-relaxed mt-1">
-                  Lettore eBook interattivo con sintesi vocale AI, riproduzione continua, modalità ad alto contrasto e segnalibri.
-                </p>
               </div>
             </div>
 
@@ -161,15 +151,11 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
         </div>
 
         {/* Footer info & close */}
-        <div className="flex items-center justify-between pt-1 border-t border-[#1F2436] text-xs text-gray-400">
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 size={14} className="text-gray-500" />
-            Puoi passare da una modalità all'altra in qualsiasi momento
-          </span>
+        <div className="flex items-center justify-end pt-1 border-t border-[#1F2436] text-xs text-gray-400">
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-semibold text-gray-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-[#1E2338] transition-colors"
+            className="w-full sm:w-auto text-xs font-bold text-gray-300 hover:text-white px-4 py-2 rounded-xl bg-[#1C202F] hover:bg-[#252B3E] transition-colors text-center"
           >
             Annulla
           </button>
