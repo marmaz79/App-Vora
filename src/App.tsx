@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2, FileText, BookOpen, Camera } from 'lucide-react';
-import { Book, User, TtsSettings, ScanSessionData } from './types';
+import { Book, User, TtsSettings, ScanSessionData, AppNotification } from './types';
 import { storageService, DEFAULT_SETTINGS } from './services/storageService';
 import { SAMPLE_BOOKS } from './data/sampleBooks';
 import { Navbar, TabType } from './components/Navbar';
@@ -9,26 +9,54 @@ import { HomeTab } from './components/HomeTab';
 import { LibraryTab } from './components/LibraryTab';
 import { SettingsTab } from './components/SettingsTab';
 import { ProfileTab } from './components/ProfileTab';
+import { ScanTab } from './components/ScanTab';
+import { ScanModal } from './components/ScanModal';
 import { ReaderView } from './components/ReaderView';
+import { PdfDocumentView } from './components/PdfDocumentView';
+import { BookOpenOptionsModal } from './components/BookOpenOptionsModal';
+import { NotificationsModal } from './components/NotificationsModal';
 import { ScanResultsPage } from './components/ScanResultsPage';
 import { SplashScreen } from './components/SplashScreen';
+import { LoginScreen } from './components/LoginScreen';
+import { signOutFirebase, subscribeToAuthState } from './services/firebase';
 
 export function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [showLogin, setShowLogin] = useState(!storageService.isAuthenticated());
   const [currentTab, setCurrentTab] = useState<TabType>('home');
   const [books, setBooks] = useState<Book[]>([]);
   const [user, setUser] = useState<User>(storageService.getUser());
   const [settings, setSettings] = useState<TtsSettings>(storageService.getSettings());
   const [activeBook, setActiveBook] = useState<Book | null>(null);
+  const [activePdfBook, setActivePdfBook] = useState<Book | null>(null);
+  const [bookForOptions, setBookForOptions] = useState<Book | null>(null);
   const [scanSession, setScanSession] = useState<ScanSessionData | null>(null);
   const [loadingBook, setLoadingBook] = useState<Book | null>(null);
+  const [isScanModalOpen, setIsScanModalOpen] = useState(false);
+  const [openLiveCameraDirectly, setOpenLiveCameraDirectly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tabHistory, setTabHistory] = useState<TabType[]>(['home']);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() =>
+    storageService.getNotifications()
+  );
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const loadedBooks = storageService.getBooks();
     setBooks(loadedBooks);
+  }, []);
+
+  // Listen to Firebase Auth state for seamless Google session restore
+  useEffect(() => {
+    const unsubscribe = subscribeToAuthState((fbUser) => {
+      if (fbUser) {
+        setUser(fbUser);
+        storageService.saveUser(fbUser);
+        storageService.setAuthenticated(true);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const showToast = useCallback((msg: string) => {
@@ -36,9 +64,63 @@ export function App() {
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
+  const handleLoginSuccess = useCallback((loggedInUser: User) => {
+    setUser(loggedInUser);
+    storageService.saveUser(loggedInUser);
+    storageService.setAuthenticated(true);
+    setShowLogin(false);
+    showToast(`Accesso effettuato come ${loggedInUser.name}`);
+  }, [showToast]);
+
+  const handleSkipLogin = useCallback(() => {
+    setShowLogin(false);
+    showToast('Accesso come ospite completato.');
+  }, [showToast]);
+
+  const handleLogout = useCallback(() => {
+    signOutFirebase().catch(() => {});
+    storageService.logout();
+    setUser(storageService.getUser());
+    setShowLogin(true);
+    setCurrentTab('home');
+    showToast('Disconnessione effettuata. Accedi con Google.');
+  }, [showToast]);
+
+  const handleMarkAsRead = useCallback((id: string) => {
+    const updated = storageService.markNotificationAsRead(id);
+    setNotifications(updated);
+  }, []);
+
+  const handleMarkAllAsRead = useCallback(() => {
+    const updated = storageService.markAllNotificationsAsRead();
+    setNotifications(updated);
+    showToast('Tutte le notifiche segnate come lette.');
+  }, [showToast]);
+
+  const handleDeleteNotification = useCallback((id: string) => {
+    const updated = storageService.deleteNotification(id);
+    setNotifications(updated);
+  }, []);
+
+  const handleClearAllNotifications = useCallback(() => {
+    const updated = storageService.clearAllNotifications();
+    setNotifications(updated);
+    showToast('Tutte le notifiche sono state cancellate.');
+  }, [showToast]);
+
+  const handleResetSampleNotifications = useCallback(() => {
+    const updated = storageService.resetSampleNotifications();
+    setNotifications(updated);
+    showToast('Notifiche ripristinate.');
+  }, [showToast]);
+
   const handleSelectTab = useCallback((tab: TabType) => {
     setTabHistory((prev) => [...prev, tab]);
     setCurrentTab(tab);
+    if (tab === 'scan') {
+      setOpenLiveCameraDirectly(true);
+      setIsScanModalOpen(true);
+    }
   }, []);
 
   const handleBackToPrevious = useCallback(() => {
@@ -55,17 +137,39 @@ export function App() {
     });
   }, []);
 
+  // Al tocco del libro: mostra il modale con le due opzioni "Apri in PDF" o "Leggi libro"
   const handleOpenBook = useCallback((book: Book) => {
+    const cleanBook = storageService.getSanitizedBook(book);
+    setBookForOptions(cleanBook);
+  }, []);
+
+  // Opzione 1: Apri nel lettore eBook (ReaderView con voce AI)
+  const handleReadBook = useCallback((book: Book) => {
+    setBookForOptions(null);
     const cleanBook = storageService.getSanitizedBook(book);
     setLoadingBook(cleanBook);
     setTimeout(() => {
+      setActivePdfBook(null);
       setActiveBook(cleanBook);
       setLoadingBook(null);
-    }, 450);
+    }, 350);
+  }, []);
+
+  // Opzione 2: Apri nel visualizzatore documento PDF
+  const handleOpenInPdf = useCallback((book: Book) => {
+    setBookForOptions(null);
+    const cleanBook = storageService.getSanitizedBook(book);
+    setLoadingBook(cleanBook);
+    setTimeout(() => {
+      setActiveBook(null);
+      setActivePdfBook(cleanBook);
+      setLoadingBook(null);
+    }, 350);
   }, []);
 
   const handleCloseReader = useCallback(() => {
     setActiveBook(null);
+    setActivePdfBook(null);
     setBooks(storageService.getBooks());
   }, []);
 
@@ -86,19 +190,29 @@ export function App() {
   }, [showToast]);
 
   const handleUpdatePage = useCallback((pageIndex: number) => {
+    const currentId = activeBook?.book_id || activePdfBook?.book_id;
+    if (!currentId) return;
+
     setActiveBook((prev) => {
       if (!prev || prev.currentPage === pageIndex) return prev;
       storageService.updateBookPage(prev.book_id, pageIndex);
       return { ...prev, currentPage: pageIndex };
     });
+
+    setActivePdfBook((prev) => {
+      if (!prev || prev.currentPage === pageIndex) return prev;
+      storageService.updateBookPage(prev.book_id, pageIndex);
+      return { ...prev, currentPage: pageIndex };
+    });
+
     setBooks((prev) => {
       return prev.map((b) =>
-        b.book_id === activeBook?.book_id && b.currentPage !== pageIndex
+        b.book_id === currentId && b.currentPage !== pageIndex
           ? { ...b, currentPage: pageIndex }
           : b
       );
     });
-  }, [activeBook?.book_id]);
+  }, [activeBook?.book_id, activePdfBook?.book_id]);
 
   const handleUpdateContent = useCallback((pages: string[]) => {
     setActiveBook((prev) => {
@@ -130,10 +244,19 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#0A0B10] text-gray-100 flex flex-col font-sans">
       {/* Splash Screen with Logo and Title */}
       {showSplash && (
         <SplashScreen onDismiss={() => setShowSplash(false)} />
+      )}
+
+      {/* Login Screen con Firebase Google Auth - Mostrato dopo lo splash screen se non autenticato */}
+      {!showSplash && showLogin && (
+        <LoginScreen
+          onLoginSuccess={handleLoginSuccess}
+          onSkip={handleSkipLogin}
+          initialEmail={user.email}
+        />
       )}
 
       {/* Toast Notification */}
@@ -141,7 +264,7 @@ export function App() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white text-gray-900 font-bold px-6 py-3 rounded-2xl shadow-2xl border border-gray-200 text-sm animate-bounce"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#161824] text-white font-bold px-6 py-3 rounded-2xl shadow-2xl border border-[#2B3042] text-sm animate-bounce"
         >
           {toastMessage}
         </div>
@@ -153,17 +276,17 @@ export function App() {
           role="status"
           aria-live="polite"
           aria-label={`Caricamento del libro ${loadingBook.title}`}
-          className="fixed inset-0 z-50 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
+          className="fixed inset-0 z-50 bg-[#0A0B10]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
         >
           <div className="relative flex items-center justify-center mb-6">
-            <div className="w-24 h-24 rounded-full border-4 border-gray-200 border-t-red-600 animate-spin" />
+            <div className="w-24 h-24 rounded-full border-4 border-zinc-800 border-t-red-600 animate-spin" />
             <Loader2 className="absolute text-red-600 animate-spin" size={38} />
           </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-2">
+          <h2 className="text-2xl font-black text-white mb-2">
             Apertura del libro in corso...
           </h2>
-          <div className="flex items-center justify-center gap-2 text-lg font-bold text-gray-800 max-w-md truncate mb-2">
-            <span className="text-red-600 shrink-0 inline-flex items-center" title={`Tipo file: ${loadingBook.file_type.toUpperCase()}`}>
+          <div className="flex items-center justify-center gap-2 text-lg font-bold text-gray-200 max-w-md truncate mb-2">
+            <span className="text-red-500 shrink-0 inline-flex items-center" title={`Tipo file: ${loadingBook.file_type.toUpperCase()}`}>
               {loadingBook.file_type === 'pdf' ? (
                 <FileText size={20} aria-hidden="true" />
               ) : loadingBook.file_type === 'scan' ? (
@@ -174,14 +297,35 @@ export function App() {
             </span>
             <span className="truncate">{loadingBook.title}</span>
           </div>
-          <p className="text-sm font-medium text-gray-500 max-w-xs leading-relaxed">
+          <p className="text-sm font-medium text-gray-400 max-w-xs leading-relaxed">
             Caricamento di tutto il contenuto ({loadingBook.pages.length} {loadingBook.pages.length === 1 ? 'pagina' : 'pagine'})...
           </p>
         </div>
       )}
 
-      {/* Reader View when active */}
-      {activeBook ? (
+      {/* Modale con le due opzioni al tocco del libro: Apri in PDF o Leggi libro */}
+      {bookForOptions && (
+        <BookOpenOptionsModal
+          book={bookForOptions}
+          onOpenPdf={handleOpenInPdf}
+          onOpenReader={handleReadBook}
+          onClose={() => setBookForOptions(null)}
+        />
+      )}
+
+      {/* Visualizzatore Documento PDF autentico */}
+      {activePdfBook ? (
+        <PdfDocumentView
+          book={activePdfBook}
+          settings={settings}
+          onBack={() => {
+            setActivePdfBook(null);
+            setBooks(storageService.getBooks());
+          }}
+          onSwitchToReader={handleReadBook}
+          onPageChange={handleUpdatePage}
+        />
+      ) : activeBook ? (
         <ReaderView
           book={activeBook}
           settings={settings}
@@ -189,6 +333,7 @@ export function App() {
           onPageChange={handleUpdatePage}
           onUpdateContent={handleUpdateContent}
           onUpdateSettings={handleUpdateSettings}
+          onSwitchToPdf={handleOpenInPdf}
         />
       ) : scanSession ? (
         <ScanResultsPage
@@ -212,6 +357,9 @@ export function App() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               title="Vora"
+              onOpenProfile={() => handleSelectTab('profile')}
+              onOpenNotifications={() => setIsNotificationsOpen(true)}
+              unreadNotificationsCount={notifications.filter((n) => !n.read).length}
             />
           )}
 
@@ -222,6 +370,8 @@ export function App() {
                 books={books}
                 searchQuery={searchQuery}
                 onOpenBook={handleOpenBook}
+                onOpenPdf={handleOpenInPdf}
+                onOpenReader={handleReadBook}
                 onDeleteBook={handleDeleteBook}
                 onAddBook={handleAddBook}
                 onScanResultsReady={(session) => setScanSession(session)}
@@ -235,8 +385,18 @@ export function App() {
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 onOpenBook={handleOpenBook}
+                onOpenPdf={handleOpenInPdf}
+                onOpenReader={handleReadBook}
                 onDeleteBook={handleDeleteBook}
                 onBack={handleBackToPrevious}
+              />
+            )}
+
+            {currentTab === 'scan' && (
+              <ScanTab
+                onAddBook={handleAddBook}
+                onScanResultsReady={(session) => setScanSession(session)}
+                onOpenScanModal={() => setIsScanModalOpen(true)}
               />
             )}
 
@@ -245,6 +405,10 @@ export function App() {
                 settings={settings}
                 onUpdateSettings={handleUpdateSettings}
                 onBack={handleBackToPrevious}
+                user={user}
+                onOpenProfile={() => handleSelectTab('profile')}
+                onOpenLogin={() => setShowLogin(true)}
+                onLogout={handleLogout}
               />
             )}
 
@@ -256,12 +420,47 @@ export function App() {
                 onResetSampleBooks={handleResetSampleBooks}
                 onShowSplash={() => setShowSplash(true)}
                 onBack={handleBackToPrevious}
+                onOpenLogin={() => setShowLogin(true)}
+                onLogout={handleLogout}
               />
             )}
           </main>
 
-          {/* Bottom Navigation */}
+          {/* Bottom Navigation con scan.ocr al posto del profilo */}
           <Navbar currentTab={currentTab} onSelectTab={handleSelectTab} />
+
+          {/* Modale Scan.ocr globale */}
+          <ScanModal
+            isOpen={isScanModalOpen}
+            initialOpenLiveCamera={openLiveCameraDirectly}
+            onClose={() => {
+              setIsScanModalOpen(false);
+              setOpenLiveCameraDirectly(false);
+            }}
+            onBookAdded={handleAddBook}
+            onScanResultsReady={(session) => {
+              setIsScanModalOpen(false);
+              setOpenLiveCameraDirectly(false);
+              setScanSession(session);
+            }}
+          />
+
+          {/* Modale Notifiche aperto al tocco della campana */}
+          {isNotificationsOpen && (
+            <NotificationsModal
+              notifications={notifications}
+              onClose={() => setIsNotificationsOpen(false)}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onDeleteNotification={handleDeleteNotification}
+              onClearAll={handleClearAllNotifications}
+              onResetSample={handleResetSampleNotifications}
+              onNavigateTab={(tab) => {
+                handleSelectTab(tab);
+                setIsNotificationsOpen(false);
+              }}
+            />
+          )}
         </>
       )}
     </div>

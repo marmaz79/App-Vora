@@ -1,0 +1,112 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information stored in Firestore",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique Firebase Auth UID of the user",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address of the authenticated Google user",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full display name from Google account",
+          "maxLength": 128
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Profile avatar URL",
+          "maxLength": 1024
+        },
+        "authProvider": {
+          "type": "string",
+          "description": "Identity provider used for authentication",
+          "enum": ["google"]
+        },
+        "booksReadCount": {
+          "type": "number",
+          "description": "Number of books or scans read by user"
+        },
+        "totalReadingMinutes": {
+          "type": "number",
+          "description": "Total reading minutes accumulated"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account creation",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "email", "displayName", "authProvider"]
+    },
+    "BookDocument": {
+      "title": "BookDocument",
+      "description": "Saved book or OCR document item belonging to a user",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique book identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the book or scanned document",
+          "maxLength": 256
+        },
+        "author": {
+          "type": "string",
+          "description": "Author or document source",
+          "maxLength": 128
+        },
+        "currentPage": {
+          "type": "number",
+          "description": "Current active reading page index"
+        },
+        "totalPages": {
+          "type": "number",
+          "description": "Total number of pages"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "title"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Private profile document for each authenticated user"
+    },
+    "/users/{userId}/books/{bookId}": {
+      "schema": "BookDocument",
+      "description": "Subcollection of books and scanned documents owned by the user"
+    }
+  }
+}

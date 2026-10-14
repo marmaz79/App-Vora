@@ -18,9 +18,17 @@ interface BookCardProps {
   book: Book;
   onOpen: (book: Book) => void;
   onDelete: (bookId: string) => void;
+  onOpenPdf?: (book: Book) => void;
+  onOpenReader?: (book: Book) => void;
 }
 
-export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) => {
+export const BookCard: React.FC<BookCardProps> = ({
+  book,
+  onOpen,
+  onDelete,
+  onOpenPdf,
+  onOpenReader,
+}) => {
   const [showOptions, setShowOptions] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -207,20 +215,46 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) =>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Opzioni file
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center flex-wrap gap-2">
+                {onOpenPdf && (
+                  <button
+                    onClick={() => {
+                      setShowOptions(false);
+                      onOpenPdf(book);
+                    }}
+                    className="bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs"
+                    title="Apri in formato PDF"
+                  >
+                    <FileText size={14} className="text-red-400" />
+                    <span>Apri PDF</span>
+                  </button>
+                )}
+                {onOpenReader && (
+                  <button
+                    onClick={() => {
+                      setShowOptions(false);
+                      onOpenReader(book);
+                    }}
+                    className="bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs"
+                    title="Leggi libro con voce AI"
+                  >
+                    <BookOpen size={14} className="text-emerald-400" />
+                    <span>Leggi libro</span>
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setShowOptions(false);
                     setShowDetailsModal(true);
                   }}
-                  className="bg-white hover:bg-gray-100 text-[#1A73E8] border border-gray-200 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold shadow-xs transition-all active:scale-95"
+                  className="bg-[#1C2030] hover:bg-[#252A40] text-[#60A5FA] border border-[#2B3042] px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs"
                 >
-                  <Info size={14} className="text-[#1A73E8]" />
-                  <span>Dettagli libro</span>
+                  <Info size={14} className="text-[#60A5FA]" />
+                  <span>Dettagli</span>
                 </button>
                 <button
                   onClick={() => setConfirmDelete(true)}
@@ -241,23 +275,23 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) =>
         </div>
       )}
 
-      {/* ===================== MODAL: DETTAGLI LIBRO (STILE BIANCO GOOGLE DRIVE) ===================== */}
+      {/* ===================== MODAL: DETTAGLI LIBRO (DARK MODE GOOGLE DRIVE) ===================== */}
       {showDetailsModal && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby={`book-details-title-${book.book_id}`}
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setShowDetailsModal(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#DADCE0] rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-[#202124] select-text"
+            className="bg-[#12141D] border border-[#232736] rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-gray-100 select-text"
           >
-            {/* Header del modale Dettagli - Stile Google Drive */}
-            <div className="flex items-center justify-between border-b border-[#E8EAED] pb-4">
+            {/* Header del modale Dettagli - Stile Google Drive Dark */}
+            <div className="flex items-center justify-between border-b border-[#232736] pb-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-[#E8F0FE] border border-[#D2E3FC] flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#14233D] border border-[#2684FC]/40 flex items-center justify-center shrink-0 shadow-2xs">
                   {/* Google Drive colored triangle icon */}
                   <svg
                     className="w-6 h-6 shrink-0"
@@ -277,15 +311,15 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) =>
                   <div className="flex items-center gap-2">
                     <h3
                       id={`book-details-title-${book.book_id}`}
-                      className="text-lg font-black text-[#202124] leading-snug truncate"
+                      className="text-lg font-black text-white leading-snug truncate"
                     >
                       Dettagli libro
                     </h3>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E8F0FE] text-[#1A73E8] shrink-0">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#14233D] text-[#4BA3E3] border border-[#2684FC]/30 shrink-0">
                       Google Drive
                     </span>
                   </div>
-                  <p className="text-xs text-[#5F6368] font-medium truncate">
+                  <p className="text-xs text-gray-400 font-medium truncate">
                     Proprietà del documento e metadati file
                   </p>
                 </div>
@@ -293,114 +327,114 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) =>
 
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="w-9 h-9 rounded-full bg-[#F1F3F4] text-[#5F6368] hover:text-[#202124] hover:bg-[#E8EAED] flex items-center justify-center transition-colors shrink-0"
+                className="w-9 h-9 rounded-full bg-[#1C202F] text-gray-400 hover:text-white hover:bg-[#252B3E] flex items-center justify-center transition-colors shrink-0"
                 aria-label="Chiudi dettagli libro"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Griglia Dettagli in Stile Bianco Google Drive */}
+            {/* Griglia Dettagli in Stile Dark Google Drive */}
             <div className="flex flex-col gap-2.5">
               {/* Titolo */}
-              <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3.5 shadow-2xs">
-                <span className="block text-[11px] font-bold text-[#5F6368] uppercase tracking-wider mb-1">
+              <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3.5 shadow-2xs">
+                <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Titolo documento
                 </span>
-                <span className="block text-sm font-black text-[#202124] leading-snug break-words">
+                <span className="block text-sm font-black text-white leading-snug break-words">
                   {book.title}
                 </span>
               </div>
 
               {/* Autore se disponibile */}
               {book.author && (
-                <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3.5 shadow-2xs">
-                  <span className="block text-[11px] font-bold text-[#5F6368] uppercase tracking-wider mb-0.5">
+                <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3.5 shadow-2xs">
+                  <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                     Autore
                   </span>
-                  <span className="block text-sm font-bold text-[#202124]">
+                  <span className="block text-sm font-bold text-white">
                     {book.author}
                   </span>
                 </div>
               )}
 
-              {/* Formato, Pagine e Dimensione - Box Bianchi Google Drive */}
+              {/* Formato, Pagine e Dimensione - Box Dark Google Drive */}
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-center shadow-2xs">
-                  <span className="block text-[10px] font-bold text-[#5F6368] uppercase tracking-wider mb-1">
+                <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3 text-center shadow-2xs">
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                     Formato
                   </span>
-                  <span className="inline-block text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F0FE] border border-[#D2E3FC] text-[#1A73E8]">
+                  <span className="inline-block text-xs font-black px-2.5 py-0.5 rounded-full bg-[#14233D] border border-[#2684FC]/40 text-[#4BA3E3]">
                     {getFileTypeLabel()}
                   </span>
                 </div>
 
-                <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-center shadow-2xs">
-                  <span className="block text-[10px] font-bold text-[#5F6368] uppercase tracking-wider mb-1">
+                <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3 text-center shadow-2xs">
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                     Pagine
                   </span>
-                  <span className="block text-sm font-black text-[#202124]">
+                  <span className="block text-sm font-black text-white">
                     {book.pages.length}
                   </span>
                 </div>
 
-                <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3 text-center shadow-2xs">
-                  <span className="block text-[10px] font-bold text-[#5F6368] uppercase tracking-wider mb-1">
+                <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3 text-center shadow-2xs">
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                     Dimensione
                   </span>
-                  <span className="block text-xs font-bold text-[#202124]">
+                  <span className="block text-xs font-bold text-white">
                     {formatSize(book.size)}
                   </span>
                 </div>
               </div>
 
-              {/* Posizione del file (Stile Google Drive) */}
-              <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
+              {/* Posizione del file (Stile Google Drive Dark) */}
+              <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
                 <div>
-                  <span className="block text-[11px] font-bold text-[#5F6368] uppercase tracking-wider">
+                  <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">
                     Posizione archiviazione
                   </span>
-                  <span className="block text-xs font-bold text-[#202124] mt-0.5">
+                  <span className="block text-xs font-bold text-white mt-0.5">
                     I miei file · Google Drive & Locale
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1A73E8] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#14233D] text-[#4BA3E3] flex items-center justify-center shrink-0">
                   <FileText size={16} />
                 </div>
               </div>
 
               {/* Motore OCR / Elaborazione */}
               {book.ocr_engine && (
-                <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
+                <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
                   <div>
-                    <span className="block text-[11px] font-bold text-[#5F6368] uppercase tracking-wider">
+                    <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">
                       Motore di Elaborazione
                     </span>
-                    <span className="block text-xs font-bold text-[#202124] mt-0.5">
+                    <span className="block text-xs font-bold text-white mt-0.5">
                       {book.ocr_engine}
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1A73E8] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-[#14233D] text-[#4BA3E3] flex items-center justify-center shrink-0">
                     <Cpu size={16} />
                   </div>
                 </div>
               )}
 
               {/* Data di Aggiunta */}
-              <div className="bg-[#F8F9FA] border border-[#DADCE0] rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-2xs">
-                <span className="font-bold text-[#5F6368]">Data documento</span>
-                <span className="font-bold text-[#202124]">
+              <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-2xs">
+                <span className="font-bold text-gray-400">Data documento</span>
+                <span className="font-bold text-white">
                   {formatDate(book.created_at)}
                 </span>
               </div>
             </div>
 
-            {/* Azioni in Stile Google Drive */}
-            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#E8EAED]">
+            {/* Azioni in Stile Google Drive Dark */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#232736]">
               <button
                 type="button"
                 onClick={() => setShowDetailsModal(false)}
-                className="min-h-[46px] rounded-xl border border-[#DADCE0] bg-white hover:bg-[#F1F3F4] text-[#3C4043] hover:text-[#202124] text-xs font-bold transition-all active:scale-95"
+                className="min-h-[46px] rounded-xl border border-[#2B3042] bg-[#161824] hover:bg-[#1E2235] text-gray-200 hover:text-white text-xs font-bold transition-all active:scale-95"
               >
                 Chiudi
               </button>
@@ -411,7 +445,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onOpen, onDelete }) =>
                   setShowDetailsModal(false);
                   onOpen(book);
                 }}
-                className="min-h-[46px] rounded-xl bg-[#1A73E8] hover:bg-[#1557B0] text-white text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-[#1A73E8]/20"
+                className="min-h-[46px] rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-600/20"
               >
                 <BookOpen size={16} />
                 <span>Apri Documento</span>

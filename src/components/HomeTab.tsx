@@ -27,6 +27,8 @@ interface HomeTabProps {
   onAddBook: (book: Book) => void;
   onScanResultsReady?: (session: ScanSessionData) => void;
   hideFab?: boolean;
+  onOpenPdf?: (book: Book) => void;
+  onOpenReader?: (book: Book) => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -38,6 +40,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onAddBook,
   onScanResultsReady,
   hideFab = false,
+  onOpenPdf,
+  onOpenReader,
 }) => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
@@ -167,6 +171,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               book={book}
               onOpen={onOpenBook ? onOpenBook : () => {}}
               onDelete={onDeleteBook ? onDeleteBook : () => {}}
+              onOpenPdf={onOpenPdf}
+              onOpenReader={onOpenReader}
             />
           ))
         )}
@@ -249,7 +255,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      Importa PDF, EPUB, TXT o immagini con OCR
+                      Importa PDF digitali, PDF scansionati (OCR), EPUB o TXT
                     </p>
                   </div>
                 </div>
@@ -281,7 +287,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
-                      Acquisisci foto e converti testo con Gemini AI Vision
+                      Acquisisci foto o PDF scansionati e trasforma in testo
                     </p>
                   </div>
                 </div>

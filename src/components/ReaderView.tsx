@@ -33,9 +33,10 @@ interface ReaderViewProps {
   onPageChange: (pageIndex: number) => void;
   onUpdateContent: (pages: string[]) => void;
   onUpdateSettings?: (settings: TtsSettings) => void;
+  onSwitchToPdf?: (book: Book) => void;
 }
 
-type KindleTheme = 'white' | 'paperwhite' | 'sepia' | 'dark';
+type KindleTheme = 'black-yellow' | 'cream-black' | 'dark' | 'white' | 'sepia' | 'paperwhite';
 type SleepTimerOption = 'off' | '15' | '30' | '45' | 'end-of-page';
 
 export const ReaderView: React.FC<ReaderViewProps> = ({
@@ -45,14 +46,36 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   onPageChange,
   onUpdateContent,
   onUpdateSettings,
+  onSwitchToPdf,
 }) => {
   const [currentPage, setCurrentPage] = useState(book.currentPage || 0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [enhanceNotice, setEnhanceNotice] = useState<string | null>(null);
 
-  // Kindle Display Settings (default clean white)
-  const [kindleTheme, setKindleTheme] = useState<KindleTheme>('white');
+  // Kindle Display Settings (synced with settings.highContrastMode)
+  const getInitialTheme = (): KindleTheme => {
+    if (settings?.highContrastMode) {
+      if (settings.highContrastMode === 'black-yellow') return 'black-yellow';
+      if (settings.highContrastMode === 'cream-black') return 'cream-black';
+      if (settings.highContrastMode === 'sepia') return 'sepia';
+      if (settings.highContrastMode === 'white' || settings.highContrastMode === 'black-white') return 'white';
+      if (settings.highContrastMode === 'dark') return 'dark';
+    }
+    return 'dark';
+  };
+
+  const [kindleTheme, setKindleTheme] = useState<KindleTheme>(getInitialTheme);
+
+  useEffect(() => {
+    if (settings?.highContrastMode) {
+      if (settings.highContrastMode === 'black-yellow') setKindleTheme('black-yellow');
+      else if (settings.highContrastMode === 'cream-black') setKindleTheme('cream-black');
+      else if (settings.highContrastMode === 'sepia') setKindleTheme('sepia');
+      else if (settings.highContrastMode === 'white' || settings.highContrastMode === 'black-white') setKindleTheme('white');
+      else if (settings.highContrastMode === 'dark') setKindleTheme('dark');
+    }
+  }, [settings?.highContrastMode]);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'huge'>(settings.fontSize || 'normal');
   const [lineHeight, setLineHeight] = useState<'normal' | 'relaxed' | 'loose'>('relaxed');
 
@@ -376,8 +399,53 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const remainingMinutes = Math.max(1, Math.round(wordsRemaining / (140 * settings.rate)));
   const progressPercent = Math.round(((currentPage + 1) / totalPages) * 100);
 
-  // Theme styles (white as primary clean light theme)
+  // Theme styles (including high contrast black-yellow and cream-black)
   const themeClasses = {
+    'black-yellow': {
+      bg: 'bg-black text-[#FFE600]',
+      card: 'bg-[#080808] border-[#333333] text-[#FFE600] shadow-md',
+      pageItemActive: 'border-[#FFE600] bg-[#141400] shadow-xl ring-2 ring-[#FFE600]',
+      pageItemInactive: 'border-[#262626] bg-[#050505] hover:border-[#FFE600]/70 text-[#FFE600]',
+      header: 'bg-black/95 border-[#2A2A2A] text-[#FFE600] shadow-md backdrop-blur-md',
+      player: 'bg-[#080808] border-[#333333] text-[#FFE600] shadow-xl',
+      sliderTrack: 'bg-[#262626]',
+      accentText: 'text-[#FFE600]',
+      titleText: 'text-[#FFE600]',
+      metaText: 'text-[#E6CF00]',
+      playBtn: 'bg-[#FFE600] text-black border-4 border-[#FFE600] hover:bg-[#FFD600]',
+      btnSecondary: 'bg-[#141414] border-[#333333] hover:border-[#FFE600] text-[#FFE600] shadow-xs',
+      highlight: 'bg-[#FFE600]/25 border-l-4 border-[#FFE600] pl-3 py-1 my-2 rounded-r text-[#FFE600]',
+    },
+    'cream-black': {
+      bg: 'bg-[#FAF7EE] text-[#111111]',
+      card: 'bg-[#FFFDF9] border-[#E5DEC9] text-[#111111] shadow-sm',
+      pageItemActive: 'border-[#B45309] bg-[#F5EEDB] shadow-md ring-2 ring-[#B45309]/30',
+      pageItemInactive: 'border-[#E5DEC9] bg-[#FFFDF9] hover:border-[#C5BBA4] shadow-xs text-[#111111]',
+      header: 'bg-[#FAF7EE]/95 border-[#E5DEC9] text-[#111111] shadow-xs backdrop-blur-md',
+      player: 'bg-[#FAF7EE] border-[#E5DEC9] text-[#111111] shadow-lg',
+      sliderTrack: 'bg-[#E5DEC9]',
+      accentText: 'text-[#B45309]',
+      titleText: 'text-[#111111]',
+      metaText: 'text-[#5C5346]',
+      playBtn: 'bg-[#111111] text-[#FAF7EE] border-4 border-[#111111] hover:bg-black',
+      btnSecondary: 'bg-[#FFFDF9] border-[#E5DEC9] hover:bg-[#F2ECE1] text-[#111111] shadow-xs',
+      highlight: 'bg-[#F59E0B]/20 border-l-4 border-[#D97706] pl-3 py-1 my-2 rounded-r text-[#111111]',
+    },
+    paperwhite: {
+      bg: 'bg-[#FAF7EE] text-[#111111]',
+      card: 'bg-[#FFFDF9] border-[#E5DEC9] text-[#111111] shadow-sm',
+      pageItemActive: 'border-[#B45309] bg-[#F5EEDB] shadow-md ring-2 ring-[#B45309]/30',
+      pageItemInactive: 'border-[#E5DEC9] bg-[#FFFDF9] hover:border-[#C5BBA4] shadow-xs text-[#111111]',
+      header: 'bg-[#FAF7EE]/95 border-[#E5DEC9] text-[#111111] shadow-xs backdrop-blur-md',
+      player: 'bg-[#FAF7EE] border-[#E5DEC9] text-[#111111] shadow-lg',
+      sliderTrack: 'bg-[#E5DEC9]',
+      accentText: 'text-[#B45309]',
+      titleText: 'text-[#111111]',
+      metaText: 'text-[#5C5346]',
+      playBtn: 'bg-[#111111] text-[#FAF7EE] border-4 border-[#111111] hover:bg-black',
+      btnSecondary: 'bg-[#FFFDF9] border-[#E5DEC9] hover:bg-[#F2ECE1] text-[#111111] shadow-xs',
+      highlight: 'bg-[#F59E0B]/20 border-l-4 border-[#D97706] pl-3 py-1 my-2 rounded-r text-[#111111]',
+    },
     white: {
       bg: 'bg-white text-gray-900',
       card: 'bg-white border-gray-200 text-gray-900 shadow-sm',
@@ -391,21 +459,6 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       metaText: 'text-gray-500',
       playBtn: 'bg-gray-900 text-white border-4 border-gray-900 hover:bg-black',
       btnSecondary: 'bg-white border-gray-200 hover:bg-gray-50 text-gray-800 shadow-xs',
-      highlight: 'bg-amber-100 border-l-4 border-amber-500 pl-3 py-1 my-2 rounded-r text-gray-900',
-    },
-    paperwhite: {
-      bg: 'bg-[#FAF8F5] text-gray-900',
-      card: 'bg-[#FFFDF9] border-[#E8E2D9] text-gray-900 shadow-sm',
-      pageItemActive: 'border-red-600 bg-red-50/20 shadow-md ring-2 ring-red-500/20',
-      pageItemInactive: 'border-[#E8E2D9] bg-[#FFFDF9] hover:border-[#D5CDBD] shadow-xs',
-      header: 'bg-[#FAF8F5]/95 border-[#E8E2D9] text-gray-900 shadow-xs backdrop-blur-md',
-      player: 'bg-[#FAF8F5] border-[#E8E2D9] text-gray-900 shadow-lg',
-      sliderTrack: 'bg-[#E8E2D9]',
-      accentText: 'text-red-600',
-      titleText: 'text-gray-900',
-      metaText: 'text-gray-500',
-      playBtn: 'bg-gray-900 text-white border-4 border-gray-900 hover:bg-black',
-      btnSecondary: 'bg-[#FFFDF9] border-[#E8E2D9] hover:bg-[#F2ECE1] text-gray-800 shadow-xs',
       highlight: 'bg-amber-100 border-l-4 border-amber-500 pl-3 py-1 my-2 rounded-r text-gray-900',
     },
     sepia: {
@@ -439,19 +492,19 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       highlight: 'bg-[#FFD600]/20 border-l-4 border-[#FFD600] pl-3 py-1 my-2 rounded-r text-white',
     },
   }[kindleTheme] || {
-    bg: 'bg-white text-gray-900',
-    card: 'bg-white border-gray-200 text-gray-900 shadow-sm',
-    pageItemActive: 'border-red-600 bg-red-50/30 shadow-md ring-2 ring-red-500/20',
-    pageItemInactive: 'border-gray-200 bg-white hover:border-gray-300 shadow-xs',
-    header: 'bg-white/95 border-gray-200 text-gray-900 shadow-xs backdrop-blur-md',
-    player: 'bg-white border-gray-200 text-gray-900 shadow-lg',
-    sliderTrack: 'bg-gray-200',
-    accentText: 'text-red-600',
-    titleText: 'text-gray-900',
-    metaText: 'text-gray-500',
-    playBtn: 'bg-gray-900 text-white border-4 border-gray-900 hover:bg-black',
-    btnSecondary: 'bg-white border-gray-200 hover:bg-gray-50 text-gray-800 shadow-xs',
-    highlight: 'bg-amber-100 border-l-4 border-amber-500 pl-3 py-1 my-2 rounded-r text-gray-900',
+    bg: 'bg-[#121212] text-white',
+    card: 'bg-[#1A1A1A] border-[#2A2A2A] text-white',
+    pageItemActive: 'border-[#FFD600] bg-[#161616] shadow-lg ring-2 ring-[#FFD600]/30',
+    pageItemInactive: 'border-[#262626] bg-[#101010] hover:border-[#444444]',
+    header: 'bg-[#121212] border-[#2A2A2A] text-white',
+    player: 'bg-[#1A1A1A] border-[#2A2A2A] text-white',
+    sliderTrack: 'bg-[#2A2A2A]',
+    accentText: 'text-[#FFD600]',
+    titleText: 'text-white',
+    metaText: 'text-white/90',
+    playBtn: 'bg-white text-black border-4 border-white hover:bg-neutral-200',
+    btnSecondary: 'bg-[#222222] border-[#333333] hover:border-white text-white',
+    highlight: 'bg-[#FFD600]/20 border-l-4 border-[#FFD600] pl-3 py-1 my-2 rounded-r text-white',
   };
 
   const fontSizeClass = {
@@ -519,8 +572,23 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           </p>
         </div>
 
-        {/* Right Kindle Tools: View Mode Toggle, Indice (Table of contents), Audio (Voce/Velocità) & Aa Display */}
+        {/* Right Kindle Tools: PDF Mode, View Mode Toggle, Indice, Audio & Aa Display */}
         <div className="flex items-center gap-1.5 shrink-0">
+          {onSwitchToPdf && (
+            <button
+              onClick={() => {
+                ttsService.stop();
+                onSwitchToPdf(book);
+              }}
+              className={`min-h-[50px] px-3 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+              aria-label="Passa alla visualizzazione PDF"
+              title="Apri in PDF"
+            >
+              <FileText size={17} className="text-red-400" />
+              <span className="hidden sm:inline">Apri in PDF</span>
+            </button>
+          )}
+
           <button
             onClick={() => setViewMode((prev) => (prev === 'full' ? 'page' : 'full'))}
             className={`min-h-[50px] px-3 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
@@ -657,7 +725,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 className={`absolute left-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-start pl-2 sm:pl-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-l-2xl text-gray-800 bg-gradient-to-r from-black/10 to-transparent cursor-pointer`}
                 aria-label="Pagina precedente"
               >
-                <div className="w-8 h-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center text-gray-800 hover:scale-105 active:scale-95 transition-transform">
+                <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
                   <ArrowLeft size={16} />
                 </div>
               </button>
@@ -665,10 +733,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               <button
                 onClick={handleNextPage}
                 disabled={currentPage >= totalPages - 1}
-                className={`absolute right-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-end pr-2 sm:pr-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-r-2xl text-gray-800 bg-gradient-to-l from-black/10 to-transparent cursor-pointer`}
+                className={`absolute right-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-end pr-2 sm:pr-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-r-2xl text-white bg-gradient-to-l from-black/20 to-transparent cursor-pointer`}
                 aria-label="Pagina successiva"
               >
-                <div className="w-8 h-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center text-gray-800 hover:scale-105 active:scale-95 transition-transform">
+                <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
                   <ArrowRight size={16} />
                 </div>
               </button>
@@ -817,19 +885,19 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="toc-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-white border border-gray-200 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-gray-900">
-            <div className="p-5 border-b border-gray-200 flex items-center justify-between shrink-0">
+          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-gray-100">
+            <div className="p-5 border-b border-[#232736] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
-                <BookOpen size={22} className="text-red-600" />
-                <h3 id="toc-modal-title" className="text-lg font-bold text-gray-900">
+                <BookOpen size={22} className="text-red-500" />
+                <h3 id="toc-modal-title" className="text-lg font-bold text-white">
                   Indice Pagine ({totalPages})
                 </h3>
               </div>
               <button
                 onClick={() => setShowTocModal(false)}
-                className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi indice"
               >
                 <X size={20} />
@@ -847,24 +915,24 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                       changePage(idx, isPlaying);
                       setShowTocModal(false);
                     }}
-                    className={`p-3.5 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 min-h-[64px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 min-h-[64px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                       isCurrent
-                        ? 'border-red-600 bg-red-50/50 shadow-xs'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                        ? 'border-red-500 bg-red-950/40 shadow-xs'
+                        : 'border-[#252A3C] bg-[#161824] hover:border-gray-500 hover:bg-[#1E2235]'
                     }`}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="text-sm font-bold text-white">
                           Pagina {idx + 1}
                         </span>
                         {isCurrent && (
-                          <span className="text-[10px] font-bold uppercase bg-red-100 border border-red-200 text-red-700 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold uppercase bg-red-900/60 border border-red-700/60 text-red-300 px-2 py-0.5 rounded-full">
                             In lettura
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 font-medium line-clamp-2 mt-1">
+                      <p className="text-xs text-gray-400 font-medium line-clamp-2 mt-1">
                         {snippet}...
                       </p>
                     </div>
@@ -882,54 +950,102 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="display-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-white border border-gray-200 rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-5 text-gray-900">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-5 text-gray-100">
+            <div className="flex items-center justify-between border-b border-[#232736] pb-4">
               <div className="flex items-center gap-2">
-                <Type size={22} className="text-red-600" />
-                <h3 id="display-modal-title" className="text-lg font-bold text-gray-900">
+                <Type size={22} className="text-red-500" />
+                <h3 id="display-modal-title" className="text-lg font-bold text-white">
                   Impostazioni di Lettura (Aa)
                 </h3>
               </div>
               <button
                 onClick={() => setShowDisplayModal(false)}
-                className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi impostazioni schermo"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Tema di sfondo stile Kindle */}
+            {/* Tema di contrasto e sfondo stile Kindle */}
             <div>
-              <label className="text-xs font-bold uppercase text-gray-500 block mb-2">
-                Tema di Lettura
-              </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold uppercase text-gray-400 block">
+                  Tema di Lettura & Contrasto
+                </label>
+                <span className="text-[11px] font-bold text-gray-400">
+                  {kindleTheme === 'black-yellow'
+                    ? 'Giallo su Nero'
+                    : kindleTheme === 'cream-black' || kindleTheme === 'paperwhite'
+                    ? 'Nero su Crema'
+                    : kindleTheme === 'dark'
+                    ? 'Notte'
+                    : kindleTheme === 'sepia'
+                    ? 'Seppia'
+                    : 'Bianco'}
+                </span>
+              </div>
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                 {[
-                  { id: 'white' as KindleTheme, label: 'Bianco', bg: 'bg-white text-gray-900 border-gray-300' },
-                  { id: 'paperwhite' as KindleTheme, label: 'Crema', bg: 'bg-[#FAF8F5] text-gray-900 border-[#E8E2D9]' },
-                  { id: 'sepia' as KindleTheme, label: 'Seppia', bg: 'bg-[#FBF0D9] text-[#2C2416] border-[#DFCFAB]' },
-                  { id: 'dark' as KindleTheme, label: 'Notte', bg: 'bg-[#18181B] text-white border-neutral-700' },
-                ].map((th) => (
-                  <button
-                    key={th.id}
-                    onClick={() => setKindleTheme(th.id)}
-                    className={`min-h-[50px] p-2 rounded-xl border font-bold text-xs flex flex-col items-center justify-center gap-1 transition-transform active:scale-95 ${th.bg} ${
-                      kindleTheme === th.id ? 'ring-2 ring-black shadow-xs font-extrabold' : 'opacity-80 hover:opacity-100'
-                    }`}
-                  >
-                    <span>{th.label}</span>
-                    {kindleTheme === th.id && <Check size={12} className={th.id === 'dark' ? 'text-white' : 'text-red-600'} />}
-                  </button>
-                ))}
+                  {
+                    id: 'black-yellow' as KindleTheme,
+                    label: 'Giallo/Nero',
+                    bg: 'bg-black text-[#FFE600] border-[#333333]',
+                    checkColor: 'text-[#FFE600]',
+                  },
+                  {
+                    id: 'cream-black' as KindleTheme,
+                    label: 'Crema',
+                    bg: 'bg-[#FAF7EE] text-[#111111] border-[#E5DEC9]',
+                    checkColor: 'text-[#111111]',
+                  },
+                  {
+                    id: 'dark' as KindleTheme,
+                    label: 'Notte',
+                    bg: 'bg-[#18181B] text-white border-neutral-700',
+                    checkColor: 'text-white',
+                  },
+                  {
+                    id: 'white' as KindleTheme,
+                    label: 'Bianco',
+                    bg: 'bg-white text-gray-900 border-gray-300',
+                    checkColor: 'text-gray-900',
+                  },
+                  {
+                    id: 'sepia' as KindleTheme,
+                    label: 'Seppia',
+                    bg: 'bg-[#FBF0D9] text-[#2C2416] border-[#DFCFAB]',
+                    checkColor: 'text-[#2C2416]',
+                  },
+                ].map((th) => {
+                  const isSelected = kindleTheme === th.id || (th.id === 'cream-black' && kindleTheme === 'paperwhite');
+                  return (
+                    <button
+                      key={th.id}
+                      onClick={() => {
+                        setKindleTheme(th.id);
+                        if (onUpdateSettings) {
+                          onUpdateSettings({ ...settings, highContrastMode: th.id });
+                        }
+                      }}
+                      className={`min-h-[52px] p-1.5 rounded-xl border font-bold text-[11px] flex flex-col items-center justify-center gap-1 transition-transform active:scale-95 ${th.bg} ${
+                        isSelected ? 'ring-2 ring-red-500 shadow-md font-extrabold' : 'opacity-80 hover:opacity-100'
+                      }`}
+                      title={th.label}
+                    >
+                      <span className="truncate w-full text-center">{th.label}</span>
+                      {isSelected && <Check size={12} className={th.checkColor} />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Dimensione Carattere */}
             <div>
-              <label className="text-xs font-bold uppercase text-gray-500 block mb-2">
+              <label className="text-xs font-bold uppercase text-gray-400 block mb-2">
                 Dimensione Carattere
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -946,8 +1062,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     }}
                     className={`min-h-[44px] rounded-xl border font-bold text-xs transition-colors ${
                       fontSize === fs.id
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-xs'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
                     }`}
                   >
                     <span>{fs.label}</span>
@@ -958,7 +1074,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
             {/* Interlinea */}
             <div>
-              <label className="text-xs font-bold uppercase text-gray-500 block mb-2">
+              <label className="text-xs font-bold uppercase text-gray-400 block mb-2">
                 Interlinea Paragrafi
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -972,8 +1088,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => setLineHeight(lh.id)}
                     className={`min-h-[44px] rounded-xl border font-bold text-xs transition-colors ${
                       lineHeight === lh.id
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-xs'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
                     }`}
                   >
                     <span>{lh.label}</span>
@@ -991,26 +1107,26 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="speed-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-white border border-gray-200 rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-gray-900">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-gray-100">
+            <div className="flex items-center justify-between border-b border-[#232736] pb-3">
               <div className="flex items-center gap-2">
-                <Gauge size={22} className="text-red-600" />
-                <h3 id="speed-modal-title" className="text-lg font-bold text-gray-900">
+                <Gauge size={22} className="text-red-500" />
+                <h3 id="speed-modal-title" className="text-lg font-bold text-white">
                   Velocità di Narrazione
                 </h3>
               </div>
               <button
                 onClick={() => setShowSpeedModal(false)}
-                className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi velocità"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 font-medium">
+            <p className="text-xs text-gray-400 font-medium">
               Seleziona la velocità di riproduzione vocale:
             </p>
 
@@ -1023,12 +1139,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => handleSpeedChange(rate)}
                     className={`min-h-[50px] rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 ${
                       isSelected
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-xs'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
                     }`}
                   >
                     <span>{rate}x</span>
-                    {isSelected && <Check size={16} className="text-white" />}
+                    {isSelected && <Check size={16} className="text-black" />}
                   </button>
                 );
               })}
@@ -1043,26 +1159,26 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="sleep-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-white border border-gray-200 rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-gray-900">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-gray-100">
+            <div className="flex items-center justify-between border-b border-[#232736] pb-3">
               <div className="flex items-center gap-2">
-                <Moon size={22} className="text-red-600" />
-                <h3 id="sleep-modal-title" className="text-lg font-bold text-gray-900">
+                <Moon size={22} className="text-red-500" />
+                <h3 id="sleep-modal-title" className="text-lg font-bold text-white">
                   Timer di Sospensione
                 </h3>
               </div>
               <button
                 onClick={() => setShowSleepModal(false)}
-                className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi timer"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 font-medium">
+            <p className="text-xs text-gray-400 font-medium">
               Ferma automaticamente la lettura dopo l'intervallo scelto:
             </p>
 
@@ -1081,12 +1197,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => setSleepTimer(opt.id)}
                     className={`min-h-[48px] px-4 rounded-xl border font-bold text-xs flex items-center justify-between transition-all ${
                       isSelected
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-xs'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {isSelected && <Check size={16} className="text-white" />}
+                    {isSelected && <Check size={16} className="text-black" />}
                   </button>
                 );
               })}
@@ -1094,19 +1210,20 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           </div>
         </div>
       )}
+
       {/* ===================== MODAL: SELEZIONE VOCE AI / SISTEMA ===================== */}
       {showVoiceModal && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="voice-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-white border border-gray-200 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-gray-900">
-            <div className="p-5 border-b border-gray-200 flex items-center justify-between shrink-0">
+          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-gray-100">
+            <div className="p-5 border-b border-[#232736] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles size={22} className="text-red-600" />
-                <h3 id="voice-modal-title" className="text-lg font-bold text-gray-900">
+                <Sparkles size={22} className="text-red-500" />
+                <h3 id="voice-modal-title" className="text-lg font-bold text-white">
                   Seleziona Voce di Lettura
                 </h3>
               </div>
@@ -1116,7 +1233,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   setPreviewVoiceUri(null);
                   setShowVoiceModal(false);
                 }}
-                className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi selezione voce"
               >
                 <X size={20} />
@@ -1124,7 +1241,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             </div>
 
             <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-400">
                 <Sparkles size={14} />
                 <span>Voci AI Neurali in Italiano</span>
               </div>
@@ -1145,10 +1262,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           handleVoiceSelect(v.uri, v.name);
                         }
                       }}
-                      className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${
+                      className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                         isSelected
-                          ? 'border-red-600 bg-red-50/40 shadow-xs'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-red-500 bg-red-950/40 shadow-xs'
+                          : 'border-[#252A3C] bg-[#161824] hover:border-gray-500 hover:bg-[#1E2235]'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -1157,18 +1274,18 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                             <Check size={13} className="stroke-[3]" />
                           </span>
                         ) : (
-                          <span className="w-5 h-5 rounded-full border border-gray-300 shrink-0" />
+                          <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
                         )}
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-gray-900 truncate">
+                            <span className="text-sm font-bold text-white truncate">
                               {v.name.split(' - ')[0]}
                             </span>
-                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-gray-100 border border-gray-200 text-gray-700 shrink-0">
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#1C2030] border border-[#2B3042] text-gray-300 shrink-0">
                               {v.gender}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-500 font-medium truncate mt-0.5">
+                          <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
                             {v.description}
                           </p>
                         </div>
@@ -1191,7 +1308,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                         className={`min-h-[38px] px-3 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                           isPlayingThis
                             ? 'bg-red-600 text-white border-red-600 animate-pulse'
-                            : 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-gray-100'
+                            : 'bg-[#1C2030] text-gray-200 border-[#2B3042] hover:bg-[#252B3E]'
                         }`}
                         aria-label={`Ascolta anteprima ${v.name}`}
                       >
@@ -1206,7 +1323,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               {/* System voices accordion / section */}
               {ttsService.getSystemVoices().length > 0 && (
                 <>
-                  <div className="pt-2 border-t border-gray-200 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+                  <div className="pt-2 border-t border-[#232736] flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
                     <Volume2 size={14} />
                     <span>Voci di Sistema (Browser Offline)</span>
                   </div>
@@ -1221,8 +1338,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           tabIndex={0}
                           className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
                             isSelected
-                              ? 'border-red-600 bg-red-50/40 shadow-xs'
-                              : 'border-gray-200 bg-white hover:border-gray-300'
+                              ? 'border-red-500 bg-red-950/40 shadow-xs'
+                              : 'border-[#252A3C] bg-[#161824] hover:border-gray-500 hover:bg-[#1E2235]'
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -1231,9 +1348,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                                 <Check size={13} className="stroke-[3]" />
                               </span>
                             ) : (
-                              <span className="w-5 h-5 rounded-full border border-gray-300 shrink-0" />
+                              <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
                             )}
-                            <span className="text-xs font-semibold text-gray-900 truncate">
+                            <span className="text-xs font-semibold text-white truncate">
                               {v.name}
                             </span>
                           </div>

@@ -1,5 +1,6 @@
 import { Book } from '../types';
 import { tesseractOcr } from './tesseractOcr';
+import { pdfOcrService } from './pdfOcrService';
 
 export const fileParser = {
   // Convert File to Base64 data string
@@ -110,7 +111,27 @@ export const fileParser = {
     if (ext === 'pdf') {
       const text = await this.extractTextFromPdf(file);
       const clean = this.cleanCorruptedText(text);
-      const pages = this.splitIntoPages(clean);
+
+      // If PDF has no digital text or is a photographic scan, perform OCR
+      if (!clean || clean.length < 35 || clean.includes('non contiene testo estraibile')) {
+        try {
+          const scanSession = await pdfOcrService.convertScannedPdf(file, { onProgress });
+          if (scanSession && scanSession.pages && scanSession.pages.length > 0) {
+            return {
+              title,
+              file_type: 'scan',
+              size: file.size,
+              pages: scanSession.pages,
+              source: 'scan',
+              ocr_engine: scanSession.engine || 'Gemini AI Vision',
+            };
+          }
+        } catch (ocrErr) {
+          console.warn('PDF OCR parsing fallback failed:', ocrErr);
+        }
+      }
+
+      const pages = this.splitIntoPages(clean || `Documento PDF: ${file.name}`);
       return {
         title,
         file_type: 'pdf',

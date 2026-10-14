@@ -380,6 +380,95 @@ Linee guida tassative:
   }
 });
 
+// Endpoint: Scansione e OCR di PDF scansionati con Gemini 3.8 Flash Multimodale
+app.post('/api/ocr/pdf', async (req: Request, res: Response) => {
+  try {
+    const { pdf, filename = 'documento.pdf', language = 'ita', speechOptimized = false } = req.body;
+    if (!pdf || typeof pdf !== 'string') {
+      return res.status(400).json({ error: 'Dati PDF mancanti o non validi.' });
+    }
+
+    const ai = getAiClient();
+    if (!ai) {
+      return res.status(200).json({
+        fallback: true,
+        error: 'Chiave API Gemini non configurata sul server.',
+      });
+    }
+
+    const base64Data = pdf.includes(',') ? pdf.split(',')[1] : pdf;
+    const langNotice = language === 'eng' ? 'in lingua inglese' : 'in lingua italiana';
+    const speechNotice = speechOptimized
+      ? 'Formatta ed espandi abbreviazioni per una sintesi vocale fluida e naturale.'
+      : 'Preserva la fedele suddivisione in capitoli, paragrafi e la formattazione narrativa del libro.';
+
+    const systemPrompt = `Sei un trascrittore ed esperto di riconoscimento ottico dei caratteri (OCR) ad altissima precisione.
+Trascrivi ed estrai fedelmente tutto il testo presente nelle pagine del documento PDF scansionato allegato ${langNotice}.
+
+Linee guida tassative:
+1. Trascrivi il testo con precisione millimetrica ed estrema fedeltà al documento originale, elaborando ogni pagina scansionata.
+2. IMPORTANTE: Separa nettamente il testo di ciascuna pagina scansionata inserendo il marcatore esatto:
+---PAGINA_PDF---
+su una riga separata tra una pagina e l'altra.
+3. Correggi automaticamente tutti gli artefatti ottici di scansione (caratteri scambiati, caratteri sfocati, ombre di curvatura delle pagine, sbavature di inchiostro).
+4. Ricongiungi le parole spezzate a fine riga da trattini (es. "straor- dinario" -> "straordinario").
+5. Ripristina la corretta accentazione italiana (es. è, é, à, ò, ù, ì, perché, affinché).
+6. Mantieni la punteggiatura narrativa e i dialoghi (« », " ", trattini di dialogo —).
+7. Elimina elementi parassiti dello scanner: numeri di pagina isolati in fondo o in cima, testatine correnti ripetute ai margini, sporcizia di scansione.
+8. ${speechNotice}
+9. Non aggiungere alcun testo di contorno, premesse, saluti o note di commento: fornisci ESCLUSIVAMENTE il testo estratto delle pagine separate da ---PAGINA_PDF---.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: 'application/pdf',
+          },
+        },
+        systemPrompt,
+      ],
+      config: {
+        temperature: 0.15,
+      },
+    });
+
+    const rawResponse = response.text || '';
+    let pages: string[] = rawResponse
+      .split(/---PAGINA_PDF---/gi)
+      .map((p) => cleanExtractedText(p))
+      .filter((p) => p.trim().length > 0);
+
+    if (pages.length === 0 && rawResponse.trim().length > 0) {
+      pages = splitTextIntoPages(rawResponse);
+    }
+
+    if (pages.length === 0) {
+      pages = ['(Nessun testo leggibile rilevato nel PDF scansionato)'];
+    }
+
+    const fullText = pages.join('\n\n');
+    const wordsCount = fullText ? fullText.split(/\s+/).filter(Boolean).length : 0;
+
+    return res.json({
+      success: true,
+      pages,
+      text: fullText,
+      pageCount: pages.length,
+      wordsCount,
+      confidence: 98,
+      engine: 'Gemini 3.8 Flash Vision (PDF OCR)',
+    });
+  } catch (err: any) {
+    console.error('Errore /api/ocr/pdf:', err);
+    return res.status(200).json({
+      fallback: true,
+      error: err?.message || 'Errore durante la scansione OCR del PDF con Gemini AI.',
+    });
+  }
+});
+
 // Endpoint: Ottimizzazione e perfezionamento del testo OCR con Gemini
 app.post('/api/ocr/optimize', async (req: Request, res: Response) => {
   const { text = '', mode = 'comprehensive' } = req.body;

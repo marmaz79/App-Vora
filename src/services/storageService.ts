@@ -1,10 +1,54 @@
-import { Book, User, TtsSettings } from '../types';
+import { Book, User, TtsSettings, AppNotification } from '../types';
 import { SAMPLE_BOOKS } from '../data/sampleBooks';
 import { fileParser } from './fileParser';
 
 const BOOKS_KEY = 'vora_books_v1';
 const USER_KEY = 'vora_user_v1';
 const SETTINGS_KEY = 'vora_settings_v1';
+const NOTIFICATIONS_KEY = 'vora_notifications_v1';
+
+export const DEFAULT_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'notif-pdf-mode',
+    title: 'Nuova opzione al tocco del libro',
+    message: 'Ora toccando un libro puoi scegliere tra "Apri in PDF" con impaginazione A4 autentica o "Leggi libro" con sintesi vocale AI.',
+    type: 'update',
+    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    read: false,
+    actionLabel: 'Sfoglia libreria',
+    actionTab: 'library',
+  },
+  {
+    id: 'notif-ai-voices',
+    title: 'Voci AI italiane ottimizzate',
+    message: 'La voce Kore AI è pronta per leggere i tuoi libri con intonazione naturale e supporto al timer di spegnimento.',
+    type: 'reading',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    read: false,
+    actionLabel: 'Impostazioni voce',
+    actionTab: 'settings',
+  },
+  {
+    id: 'notif-scan-camera',
+    title: 'Scanner OCR con fotocamera pronto',
+    message: 'Scansiona documenti cartacei e dispense direttamente dalla fotocamera per convertirli in audiolibri con OCR immediato.',
+    type: 'system',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+    read: false,
+    actionLabel: 'Apri scanner',
+    actionTab: 'scan',
+  },
+  {
+    id: 'notif-google-auth',
+    title: 'Accesso Google Firebase attivo',
+    message: 'I tuoi progressi di lettura e la tua libreria sono protetti e sincronizzati con il tuo account Google.',
+    type: 'security',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    read: true,
+    actionLabel: 'Profilo utente',
+    actionTab: 'profile',
+  },
+];
 
 function isCorruptedPage(text: string): boolean {
   if (!text || typeof text !== 'string') return true;
@@ -231,6 +275,37 @@ export const storageService = {
     }
   },
 
+  isAuthenticated(): boolean {
+    try {
+      const auth = localStorage.getItem('vora_auth_state_v1');
+      return auth === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setAuthenticated(isAuth: boolean) {
+    try {
+      localStorage.setItem('vora_auth_state_v1', isAuth ? 'true' : 'false');
+    } catch (e) {
+      console.error('Failed to set auth state', e);
+    }
+  },
+
+  logout() {
+    try {
+      localStorage.setItem('vora_auth_state_v1', 'false');
+      const guestUser: User = {
+        ...DEFAULT_USER,
+        auth_provider: 'guest',
+        is2FaVerified: false,
+      };
+      this.saveUser(guestUser);
+    } catch (e) {
+      console.error('Failed to logout', e);
+    }
+  },
+
   getSettings(): TtsSettings {
     try {
       const data = localStorage.getItem(SETTINGS_KEY);
@@ -246,5 +321,57 @@ export const storageService = {
     } catch (e) {
       console.error('Failed to save settings', e);
     }
+  },
+
+  getNotifications(): AppNotification[] {
+    try {
+      const data = localStorage.getItem(NOTIFICATIONS_KEY);
+      if (!data) {
+        this.saveNotifications(DEFAULT_NOTIFICATIONS);
+        return DEFAULT_NOTIFICATIONS;
+      }
+      return JSON.parse(data);
+    } catch {
+      return DEFAULT_NOTIFICATIONS;
+    }
+  },
+
+  saveNotifications(notifications: AppNotification[]) {
+    try {
+      localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
+    } catch (e) {
+      console.error('Failed to save notifications', e);
+    }
+  },
+
+  markNotificationAsRead(id: string): AppNotification[] {
+    const notifications = this.getNotifications();
+    const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
+    this.saveNotifications(updated);
+    return updated;
+  },
+
+  markAllNotificationsAsRead(): AppNotification[] {
+    const notifications = this.getNotifications();
+    const updated = notifications.map((n) => ({ ...n, read: true }));
+    this.saveNotifications(updated);
+    return updated;
+  },
+
+  deleteNotification(id: string): AppNotification[] {
+    const notifications = this.getNotifications();
+    const updated = notifications.filter((n) => n.id !== id);
+    this.saveNotifications(updated);
+    return updated;
+  },
+
+  clearAllNotifications(): AppNotification[] {
+    this.saveNotifications([]);
+    return [];
+  },
+
+  resetSampleNotifications(): AppNotification[] {
+    this.saveNotifications(DEFAULT_NOTIFICATIONS);
+    return DEFAULT_NOTIFICATIONS;
   },
 };

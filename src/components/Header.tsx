@@ -7,6 +7,8 @@ interface HeaderProps {
   onSearchChange: (query: string) => void;
   title?: string;
   onOpenProfile?: () => void;
+  onOpenNotifications?: () => void;
+  unreadNotificationsCount?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -14,6 +16,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   title = 'Vora',
   onOpenProfile,
+  onOpenNotifications,
+  unreadNotificationsCount = 0,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,10 +74,25 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              aria-label="Notifiche"
+              onClick={onOpenNotifications}
+              aria-label={
+                unreadNotificationsCount > 0
+                  ? `Notifiche (${unreadNotificationsCount} non lette)`
+                  : 'Notifiche'
+              }
+              title={
+                unreadNotificationsCount > 0
+                  ? `Apri notifiche (${unreadNotificationsCount} non lette)`
+                  : 'Apri notifiche'
+              }
               className="text-white hover:text-gray-300 transition-colors p-1 rounded-full active:scale-95 relative"
             >
               <Bell size={22} />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white ring-2 ring-black">
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                </span>
+              )}
             </button>
 
             <button

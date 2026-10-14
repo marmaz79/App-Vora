@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data, uid) {
+      return data.userId is string && data.userId == uid &&
+        data.email is string && data.email.size() <= 256 &&
+        data.displayName is string && data.displayName.size() <= 128 &&
+        data.authProvider is string && data.authProvider in ['google'] &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1024)) &&
+        (!('booksReadCount' in data) || (data.booksReadCount is number && data.booksReadCount >= 0)) &&
+        (!('totalReadingMinutes' in data) || (data.totalReadingMinutes is number && data.totalReadingMinutes >= 0)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidBook(data, uid) {
+      return data.userId is string && data.userId == uid &&
+        data.id is string && isValidId(data.id) &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 256 &&
+        (!('author' in data) || (data.author is string && data.author.size() <= 128)) &&
+        (!('currentPage' in data) || (data.currentPage is number && data.currentPage >= 0)) &&
+        (!('totalPages' in data) || (data.totalPages is number && data.totalPages >= 0));
+    }
+
+    // Health check endpoint for verifying connection
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // User profile documents
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Users cannot list other user profiles
+
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        incoming().userId == request.auth.uid &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().keys().hasAll(['userId', 'email', 'displayName', 'authProvider']) &&
+        incoming().keys().hasOnly(['userId', 'email', 'displayName', 'authProvider', 'photoURL', 'booksReadCount', 'totalReadingMinutes', 'createdAt', 'updatedAt']);
+
+      allow update: if isOwner(userId) && isValidId(userId) &&
+        incoming().userId == existing().userId &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'booksReadCount', 'totalReadingMinutes', 'updatedAt']);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // User books subcollection
+      match /books/{bookId} {
+        allow get: if isOwner(userId) && isValidId(bookId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(bookId) &&
+          incoming().userId == request.auth.uid &&
+          isValidBook(incoming(), userId) &&
+          incoming().keys().hasAll(['id', 'userId', 'title']) &&
+          incoming().keys().hasOnly(['id', 'userId', 'title', 'author', 'currentPage', 'totalPages', 'createdAt', 'updatedAt']);
+
+        allow update: if isOwner(userId) && isValidId(bookId) &&
+          incoming().userId == existing().userId &&
+          incoming().id == existing().id &&
+          isValidBook(incoming(), userId) &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'author', 'currentPage', 'totalPages', 'updatedAt']);
+
+        allow delete: if isOwner(userId) && isValidId(bookId);
+      }
+    }
+  }
+}

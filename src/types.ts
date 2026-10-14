@@ -19,10 +19,15 @@ export interface User {
   email: string;
   name: string;
   picture?: string | null;
-  auth_provider: 'email' | 'guest';
+  auth_provider: 'google' | 'email' | 'guest';
   booksReadCount: number;
   totalReadingMinutes: number;
+  is2FaVerified?: boolean;
+  googleAuthenticatorKey?: string;
+  lastLogin?: string;
 }
+
+export type ContrastThemeMode = 'black-yellow' | 'cream-black' | 'dark' | 'white' | 'sepia' | 'black-white' | 'paperwhite';
 
 export interface TtsSettings {
   voiceUri: string;
@@ -32,7 +37,7 @@ export interface TtsSettings {
   volume: number;
   autoAdvance: boolean;
   fontSize: 'normal' | 'large' | 'huge';
-  highContrastMode: 'black-yellow' | 'black-white' | 'cream-black';
+  highContrastMode: ContrastThemeMode;
 }
 
 export interface ScanSessionData {
@@ -46,3 +51,18 @@ export interface ScanSessionData {
   isAiOptimized: boolean;
   currentPageIndex: number;
 }
+
+export type NotificationType = 'system' | 'reading' | 'update' | 'security';
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  timestamp: string;
+  read: boolean;
+  actionLabel?: string;
+  actionTab?: 'home' | 'library' | 'scan' | 'settings' | 'profile';
+  actionUrl?: string;
+}
+
