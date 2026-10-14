@@ -427,9 +427,6 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                   Top
                 </span>
               </div>
-              <span className="text-[10px] text-gray-400 font-medium leading-tight">
-                Visione multimodale 3.8 Flash ad altissima accuratezza
-              </span>
             </button>
 
             <button
@@ -450,9 +447,6 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                   Ibrido
                 </span>
               </div>
-              <span className="text-[10px] text-gray-400 font-medium leading-tight">
-                OCR Tesseract con post-processing e correzione AI
-              </span>
             </button>
 
             <button
@@ -473,9 +467,6 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                   Locale
                 </span>
               </div>
-              <span className="text-[10px] text-gray-400 font-medium leading-tight">
-                Esecuzione offline nel browser senza cloud
-              </span>
             </button>
           </div>
         </div>

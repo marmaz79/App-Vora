@@ -90,63 +90,34 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
           </button>
         </div>
 
-        {/* The Two Main Options */}
-        <div className="flex flex-col gap-3">
+        {/* The Two Main Options: Icone e nome sotto */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* OPTION 1: APRI IN PDF */}
           <button
             type="button"
             onClick={() => onOpenPdf(book)}
-            className="w-full bg-[#161926] hover:bg-[#1E2338] border border-[#2B3147] hover:border-red-500/60 p-4 sm:p-4.5 rounded-2xl flex items-center justify-between text-left transition-all active:scale-[0.98] group shadow-sm"
+            className="bg-[#161926] hover:bg-[#1E2338] border border-[#2B3147] hover:border-red-500/80 p-4 sm:p-5 rounded-2xl flex flex-col items-center justify-center gap-2.5 sm:gap-3 text-center transition-all active:scale-[0.97] group shadow-sm"
           >
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-12 h-12 rounded-xl bg-red-950/40 border border-red-600/40 text-red-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-red-900/50 group-hover:text-red-300 transition-all shadow-inner">
-                <FileText size={24} />
-              </div>
-
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-bold text-white group-hover:text-red-300 transition-colors">
-                    Apri in PDF
-                  </span>
-                  <span className="text-[10px] font-bold uppercase bg-red-950/80 text-red-300 border border-red-800/60 px-2 py-0.5 rounded-full">
-                    Documento
-                  </span>
-                </div>
-              </div>
+            <div className="w-14 h-14 rounded-2xl bg-red-950/40 border border-red-600/40 text-red-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-red-900/50 group-hover:text-red-300 transition-all shadow-inner">
+              <FileText size={28} />
             </div>
-
-            <div className="w-8 h-8 rounded-full bg-[#202538] text-gray-400 group-hover:text-white group-hover:bg-red-600 flex items-center justify-center shrink-0 ml-3 transition-colors">
-              <ArrowRight size={16} />
-            </div>
+            <span className="text-sm sm:text-base font-bold text-white group-hover:text-red-300 transition-colors">
+              Apri in PDF
+            </span>
           </button>
 
           {/* OPTION 2: LEGGI LIBRO */}
           <button
             type="button"
             onClick={() => onOpenReader(book)}
-            className="w-full bg-[#161926] hover:bg-[#1E2338] border border-[#2B3147] hover:border-emerald-500/60 p-4 sm:p-4.5 rounded-2xl flex items-center justify-between text-left transition-all active:scale-[0.98] group shadow-sm"
+            className="bg-[#161926] hover:bg-[#1E2338] border border-[#2B3147] hover:border-emerald-500/80 p-4 sm:p-5 rounded-2xl flex flex-col items-center justify-center gap-2.5 sm:gap-3 text-center transition-all active:scale-[0.97] group shadow-sm"
           >
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-12 h-12 rounded-xl bg-emerald-950/40 border border-emerald-600/40 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-900/50 group-hover:text-emerald-300 transition-all shadow-inner">
-                <BookOpen size={24} />
-              </div>
-
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
-                    Leggi libro
-                  </span>
-                  <span className="text-[10px] font-bold uppercase bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Volume2 size={10} />
-                    Audio AI
-                  </span>
-                </div>
-              </div>
+            <div className="w-14 h-14 rounded-2xl bg-emerald-950/40 border border-emerald-600/40 text-emerald-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-emerald-900/50 group-hover:text-emerald-300 transition-all shadow-inner">
+              <BookOpen size={28} />
             </div>
-
-            <div className="w-8 h-8 rounded-full bg-[#202538] text-gray-400 group-hover:text-white group-hover:bg-emerald-600 flex items-center justify-center shrink-0 ml-3 transition-colors">
-              <ArrowRight size={16} />
-            </div>
+            <span className="text-sm sm:text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+              Leggi libro
+            </span>
           </button>
         </div>
 

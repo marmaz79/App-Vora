@@ -484,70 +484,67 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
             )}
           </div>
 
-          {/* Shutter Button & Primary Actions Bar */}
-          <div className="bg-[#12141E] border border-[#232738] rounded-3xl p-4 flex flex-col gap-3 shadow-md">
-            {/* Main Shutter Row */}
-            <div className="flex items-center justify-around gap-3 pt-1">
-              {/* Left: Gallery Picker */}
-              <button
-                type="button"
-                onClick={() => galleryInputRef.current?.click()}
-                className="flex flex-col items-center justify-center gap-1 min-w-[70px] py-1 text-gray-400 hover:text-white transition-colors group"
-                title="Scegli dalla galleria"
-              >
-                <div className="w-11 h-11 rounded-2xl bg-[#1A1D2B] border border-[#2D3349] group-hover:border-emerald-500/50 group-hover:text-emerald-400 flex items-center justify-center transition-all">
-                  <ImageIcon size={20} />
-                </div>
-                <span className="text-[11px] font-bold">Galleria</span>
-              </button>
-
-              {/* Center: Tactile Shutter Button (Scatta Foto) */}
-              <div className="flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={captureFromVideo}
-                  disabled={isCapturing}
-                  aria-label="Scatta foto e scansiona con OCR"
-                  className="w-20 h-20 rounded-full bg-white/10 p-1.5 border-4 border-red-500 flex items-center justify-center hover:scale-105 active:scale-90 transition-all shadow-xl shadow-red-900/40 group relative cursor-pointer"
-                >
-                  <div className="w-full h-full rounded-full bg-red-600 group-hover:bg-red-500 flex items-center justify-center transition-colors shadow-inner">
-                    <Camera size={30} className="text-white drop-shadow-sm" />
-                  </div>
-                  {/* Subtle pulsing ring around shutter */}
-                  <span className="absolute inset-0 rounded-full border-2 border-red-400/40 animate-ping pointer-events-none" />
-                </button>
-                <span className="text-xs font-black text-white mt-2 tracking-wide uppercase">
-                  Scatta & Converti (OCR)
-                </span>
+          {/* Shutter Button & Primary Actions Bar - Icone e nome sotto */}
+          <div className="bg-[#12141E] border border-[#232738] rounded-3xl p-3 sm:p-4 flex items-center justify-around gap-2 shadow-xl">
+            {/* 1. Galleria */}
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="flex flex-col items-center justify-center gap-1.5 p-1.5 sm:p-2 rounded-2xl hover:bg-white/10 active:scale-90 transition-all text-white min-w-[64px]"
+              title="Scegli dalla galleria"
+              aria-label="Galleria"
+            >
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+                <ImageIcon size={22} className="text-white" />
               </div>
+              <span className="text-[11px] font-bold text-white tracking-tight">Galleria</span>
+            </button>
 
-              {/* Right: Scanned PDF Upload */}
-              <button
-                type="button"
-                onClick={() => pdfInputRef.current?.click()}
-                className="flex flex-col items-center justify-center gap-1 min-w-[70px] py-1 text-gray-400 hover:text-white transition-colors group"
-                title="Carica PDF scansionato"
-              >
-                <div className="w-11 h-11 rounded-2xl bg-[#1A1D2B] border border-[#2D3349] group-hover:border-purple-500/50 group-hover:text-purple-400 flex items-center justify-center transition-all">
-                  <FileText size={20} />
+            {/* 2. Centro: Scatto Fotocamera */}
+            <button
+              type="button"
+              onClick={captureFromVideo}
+              disabled={isCapturing}
+              aria-label="Scatta foto"
+              title="Scatta foto"
+              className="flex flex-col items-center justify-center gap-1 active:scale-90 transition-all group cursor-pointer"
+            >
+              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/10 p-1.5 border-4 border-red-500 flex items-center justify-center hover:scale-105 transition-all shadow-xl shadow-red-900/40 relative">
+                <div className="w-full h-full rounded-full bg-red-600 group-hover:bg-red-500 flex items-center justify-center transition-colors shadow-inner">
+                  <Camera size={26} className="text-white drop-shadow-sm" />
                 </div>
-                <span className="text-[11px] font-bold">PDF OCR</span>
-              </button>
-            </div>
+                <span className="absolute inset-0 rounded-full border-2 border-red-400/40 animate-ping pointer-events-none" />
+              </div>
+              <span className="text-[11px] font-bold text-white tracking-tight">Scatta</span>
+            </button>
 
-            {/* Bottom Secondary Action: Direct native camera fallback */}
-            <div className="pt-2 border-t border-[#1C202F] flex items-center justify-between text-xs">
-              <span className="text-gray-400 font-medium">
-                Preferisci usare l'app fotocamera del tuo telefono?
-              </span>
-              <button
-                type="button"
-                onClick={() => nativeCameraInputRef.current?.click()}
-                className="font-bold text-red-400 hover:text-red-300 underline underline-offset-4 transition-colors"
-              >
-                Fotocamera nativa →
-              </button>
-            </div>
+            {/* 3. Fotocamera Nativa di Sistema */}
+            <button
+              type="button"
+              onClick={() => nativeCameraInputRef.current?.click()}
+              className="flex flex-col items-center justify-center gap-1.5 p-1.5 sm:p-2 rounded-2xl hover:bg-white/10 active:scale-90 transition-all text-white min-w-[64px]"
+              title="Fotocamera di sistema"
+              aria-label="Fotocamera"
+            >
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+                <SwitchCamera size={22} className="text-white" />
+              </div>
+              <span className="text-[11px] font-bold text-white tracking-tight">Fotocamera</span>
+            </button>
+
+            {/* 4. Carica PDF */}
+            <button
+              type="button"
+              onClick={() => pdfInputRef.current?.click()}
+              className="flex flex-col items-center justify-center gap-1.5 p-1.5 sm:p-2 rounded-2xl hover:bg-white/10 active:scale-90 transition-all text-white min-w-[64px]"
+              title="Carica PDF scansionato"
+              aria-label="PDF OCR"
+            >
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+                <FileText size={22} className="text-white" />
+              </div>
+              <span className="text-[11px] font-bold text-white tracking-tight">PDF OCR</span>
+            </button>
           </div>
         </div>
       )}
