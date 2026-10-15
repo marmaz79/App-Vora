@@ -12,6 +12,7 @@ export interface Book {
   ocr_engine?: string;
   created_at: string;
   coverColor?: string;
+  imageUrls?: string[];
 }
 
 export interface User {

@@ -9,12 +9,18 @@ import {
   Contrast,
   Camera,
   RefreshCw,
+  Plus,
+  ArrowRight,
 } from 'lucide-react';
 
 export type CamScannerFilter = 'magic_color' | 'bw' | 'grayscale' | 'original';
 
 interface CamScannerEditorProps {
   imageFile: File;
+  pageIndex?: number;
+  totalPages?: number;
+  onAddPage?: (processedFile: File, processedUrl: string) => void;
+  onContinueSavePdf?: (processedFile: File, processedUrl: string) => void;
   onConfirm: (processedFile: File, processedUrl: string) => void;
   onRetake: () => void;
   onCancel?: () => void;
@@ -29,6 +35,10 @@ interface CropBox {
 
 export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   imageFile,
+  pageIndex = 0,
+  totalPages = 1,
+  onAddPage,
+  onContinueSavePdf,
   onConfirm,
   onRetake,
   onCancel,
@@ -241,20 +251,34 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     // Calcolo coordinate di ritaglio
     const cropX = Math.max(0, Math.min(rotW, cropBox.x * rotW));
     const cropY = Math.max(0, Math.min(rotH, cropBox.y * rotH));
-    const cropW = Math.max(50, Math.min(rotW - cropX, cropBox.width * rotW));
-    const cropH = Math.max(50, Math.min(rotH - cropY, cropBox.height * rotH));
+    const rawCropW = Math.max(50, Math.min(rotW - cropX, cropBox.width * rotW));
+    const rawCropH = Math.max(50, Math.min(rotH - cropY, cropBox.height * rotH));
+
+    // Scala a risoluzione ad alta definizione ottimale (max 1280px) per prestazioni istantanee senza blocchi
+    const maxDimension = 1280;
+    let targetW = Math.round(rawCropW);
+    let targetH = Math.round(rawCropH);
+    if (targetW > maxDimension || targetH > maxDimension) {
+      if (targetW > targetH) {
+        targetH = Math.round((targetH * maxDimension) / targetW);
+        targetW = maxDimension;
+      } else {
+        targetW = Math.round((targetW * maxDimension) / targetH);
+        targetH = maxDimension;
+      }
+    }
 
     // Dimensiona il canvas finale di anteprima
-    canvas.width = cropW;
-    canvas.height = cropH;
+    canvas.width = targetW;
+    canvas.height = targetH;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
-    // Disegna la porzione ritagliata
-    ctx.drawImage(rotCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    // Disegna la porzione ritagliata scalata
+    ctx.drawImage(rotCanvas, cropX, cropY, rawCropW, rawCropH, 0, 0, targetW, targetH);
 
     // Applica sempre la pulizia automatica o il filtro selezionato
-    const imageData = ctx.getImageData(0, 0, cropW, cropH);
+    const imageData = ctx.getImageData(0, 0, targetW, targetH);
     applyCamScannerCleanFilter(imageData, selectedFilter, brightness, contrast);
     ctx.putImageData(imageData, 0, 0);
   }, [rotation, cropBox, selectedFilter, brightness, contrast, applyCamScannerCleanFilter]);
@@ -333,30 +357,78 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   };
 
   /**
-   * Esporta il documento ripulito ed esegue OCR
+   * Genera il file e l'URL ripulito dal canvas in formato JPEG compatto e durevole
    */
-  const handleConfirmAndProcess = () => {
-    const canvas = previewCanvasRef.current;
-    if (!canvas) return;
+  const getProcessedResult = (): Promise<{ file: File; url: string } | null> => {
+    return new Promise((resolve) => {
+      const canvas = previewCanvasRef.current;
+      if (!canvas) return resolve(null);
+      try {
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              const byteString = atob(dataUrl.split(',')[1]);
+              const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+              const ab = new ArrayBuffer(byteString.length);
+              const ia = new Uint8Array(ab);
+              for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+              }
+              const fallbackBlob = new Blob([ab], { type: mimeString });
+              const fallbackFile = new File(
+                [fallbackBlob],
+                `camscanner-pulita-${Date.now()}.jpg`,
+                { type: 'image/jpeg' }
+              );
+              resolve({ file: fallbackFile, url: dataUrl });
+              return;
+            }
+            const processedFile = new File(
+              [blob],
+              `camscanner-pulita-${Date.now()}.jpg`,
+              { type: 'image/jpeg' }
+            );
+            resolve({ file: processedFile, url: dataUrl });
+          },
+          'image/jpeg',
+          0.82
+        );
+      } catch (err) {
+        console.error('Errore getProcessedResult:', err);
+        resolve(null);
+      }
+    });
+  };
 
+  /**
+   * Scatti Multipli: Salva la pagina corrente e apre la fotocamera per il prossimo scatto
+   */
+  const handleAddPage = async () => {
+    if (isProcessing) return;
     setIsProcessing(true);
+    const result = await getProcessedResult();
+    setIsProcessing(false);
+    if (result && onAddPage) {
+      onAddPage(result.file, result.url);
+    }
+  };
 
-    canvas.toBlob(
-      (blob) => {
-        setIsProcessing(false);
-        if (blob) {
-          const processedFile = new File(
-            [blob],
-            `camscanner-pulita-${Date.now()}.jpg`,
-            { type: 'image/jpeg' }
-          );
-          const processedUrl = URL.createObjectURL(blob);
-          onConfirm(processedFile, processedUrl);
-        }
-      },
-      'image/jpeg',
-      0.95
-    );
+  /**
+   * Continua: salva il libro direttamente nella libreria in PDF
+   */
+  const handleContinueSavePdf = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    const result = await getProcessedResult();
+    setIsProcessing(false);
+    if (result) {
+      if (onContinueSavePdf) {
+        onContinueSavePdf(result.file, result.url);
+      } else {
+        onConfirm(result.file, result.url);
+      }
+    }
   };
 
   return (
@@ -366,25 +438,42 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       aria-label="Editor CamScanner - Pulizia e Ritaglio Documento"
       className="fixed inset-0 z-50 bg-[#0A0B10] text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
-      {/* Header compatto ed essenziale */}
-      <header className="bg-[#12141D] border-b border-[#232736] px-4 py-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-2">
-          <Wand2 size={18} className="text-white" />
+      {/* Header compatto ed essenziale con indicatore di pagina */}
+      <header className="bg-[#12141D] border-b border-[#232736] px-3 sm:px-4 py-3 flex items-center justify-between shrink-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <Wand2 size={18} className="text-white shrink-0" />
           <h2 className="text-sm font-bold text-white tracking-wide">
             CamScanner
           </h2>
+          <span className="text-[11px] font-bold bg-white/15 px-2.5 py-0.5 rounded-full text-white border border-white/20 whitespace-nowrap">
+            Pagina {pageIndex + 1} {totalPages > 1 ? `di ${totalPages}` : ''}
+          </span>
         </div>
 
-        {onCancel && (
+        <div className="flex items-center gap-2">
+          {/* Pulsante rapido Continua in alto */}
           <button
             type="button"
-            onClick={onCancel}
-            className="w-9 h-9 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-colors border border-white/20"
-            aria-label="Chiudi"
+            onClick={handleContinueSavePdf}
+            disabled={isProcessing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-black font-extrabold text-xs shadow-md hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50"
+            title="Salva il libro nella libreria in PDF"
           >
-            <X size={18} className="text-white" />
+            <Check size={14} className="text-black stroke-[3]" />
+            <span>Continua</span>
           </button>
-        )}
+
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="w-9 h-9 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-colors border border-white/20 shrink-0"
+              aria-label="Chiudi"
+            >
+              <X size={18} className="text-white" />
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Main Viewport: Anteprima Documento Pulito o Modalità Ritaglio */}
@@ -486,21 +575,21 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         <canvas ref={previewCanvasRef} className="hidden" aria-hidden="true" />
       )}
 
-      {/* Barra inferiore: opzioni con icone e nome sotto */}
-      <footer className="bg-[#0B0C12] border-t border-[#232738] px-2 sm:px-4 py-2.5 pb-6 sm:pb-3 shrink-0 z-20 shadow-2xl">
+      {/* Barra inferiore: opzioni con icone e nome sotto, con Scatti Multipli (+ Pagina) e Continua */}
+      <footer className="bg-[#0B0C12] border-t border-[#232738] px-1.5 sm:px-4 py-2.5 pb-6 sm:pb-3 shrink-0 z-20 shadow-2xl">
         <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1">
           {/* 1. Icona Rifai */}
           <button
             type="button"
             onClick={onRetake}
-            className="flex flex-col items-center justify-center gap-1 p-1.5 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
-            title="Scatta di nuovo"
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
+            title="Scatta di nuovo questa pagina"
             aria-label="Rifai"
           >
             <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
-              <RefreshCw size={20} className="text-white" />
+              <RefreshCw size={19} className="text-white" />
             </div>
-            <span className="text-[11px] font-bold text-white tracking-tight truncate">Rifai</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Rifai</span>
           </button>
 
           {/* 2. Icona Pulizia Automatica */}
@@ -510,7 +599,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               setSelectedFilter('magic_color');
               setShowCropMode(false);
             }}
-            className="flex flex-col items-center justify-center gap-1 p-1.5 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
             title="Pulizia automatica documento"
             aria-label="Pulisci"
           >
@@ -521,9 +610,9 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
                   : 'bg-white/10 border border-white/20'
               }`}
             >
-              <Wand2 size={20} className="text-white" />
+              <Wand2 size={19} className="text-white" />
             </div>
-            <span className="text-[11px] font-bold text-white tracking-tight truncate">Pulisci</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Pulisci</span>
           </button>
 
           {/* 3. Icona Bianco e Nero */}
@@ -533,7 +622,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               setSelectedFilter('bw');
               setShowCropMode(false);
             }}
-            className="flex flex-col items-center justify-center gap-1 p-1.5 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
             title="Filtro bianco e nero"
             aria-label="B/N"
           >
@@ -544,16 +633,16 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
                   : 'bg-white/10 border border-white/20'
               }`}
             >
-              <Contrast size={20} className="text-white" />
+              <Contrast size={19} className="text-white" />
             </div>
-            <span className="text-[11px] font-bold text-white tracking-tight truncate">B/N</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">B/N</span>
           </button>
 
           {/* 4. Icona Ritaglia */}
           <button
             type="button"
             onClick={() => setShowCropMode((prev) => !prev)}
-            className="flex flex-col items-center justify-center gap-1 p-1.5 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
             title="Ritaglia bordi documento"
             aria-label="Ritaglia"
           >
@@ -564,38 +653,53 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
                   : 'bg-white/10 border border-white/20'
               }`}
             >
-              <Crop size={20} className="text-white" />
+              <Crop size={19} className="text-white" />
             </div>
-            <span className="text-[11px] font-bold text-white tracking-tight truncate">Ritaglia</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ritaglia</span>
           </button>
 
           {/* 5. Icona Ruota */}
           <button
             type="button"
             onClick={() => handleRotate('cw')}
-            className="flex flex-col items-center justify-center gap-1 p-1.5 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
             title="Ruota immagine (90°)"
             aria-label="Ruota"
           >
             <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
-              <RotateCw size={20} className="text-white" />
+              <RotateCw size={19} className="text-white" />
             </div>
-            <span className="text-[11px] font-bold text-white tracking-tight truncate">Ruota</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ruota</span>
           </button>
 
-          {/* 6. Icona Conferma */}
+          {/* 6. SCATTI MULTIPLI: + Pagina */}
           <button
             type="button"
-            onClick={handleConfirmAndProcess}
+            onClick={handleAddPage}
             disabled={isProcessing}
-            className="flex flex-col items-center justify-center gap-1 p-1.5 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0 disabled:opacity-50"
-            title="Conferma ed estrai testo"
-            aria-label="Conferma"
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0 disabled:opacity-50"
+            title="Aggiungi questa pagina ed esegui un altro scatto (Scatti Multipli)"
+            aria-label="+ Pagina"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/20 border-2 border-white flex items-center justify-center text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]">
-              <Check size={22} className="text-white stroke-[3]" />
+            <div className="w-10 h-10 rounded-2xl bg-white/15 border-2 border-dashed border-white flex items-center justify-center text-white hover:bg-white/25 transition-colors">
+              <Plus size={20} className="text-white stroke-[2.5]" />
             </div>
-            <span className="text-[11px] font-black text-white tracking-tight truncate">Conferma</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">+ Pagina</span>
+          </button>
+
+          {/* 7. CONTINUA: Salva libro nella libreria in PDF */}
+          <button
+            type="button"
+            onClick={handleContinueSavePdf}
+            disabled={isProcessing}
+            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0 disabled:opacity-50"
+            title="Salva il libro nella libreria in PDF"
+            aria-label="Continua"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-white text-black border-2 border-white flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.45)] hover:bg-gray-100 transition-colors">
+              <Check size={22} className="text-black stroke-[3]" />
+            </div>
+            <span className="text-[10px] sm:text-[11px] font-black text-white tracking-tight truncate">Continua</span>
           </button>
         </div>
       </footer>

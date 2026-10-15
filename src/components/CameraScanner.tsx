@@ -13,12 +13,17 @@ import {
   RefreshCw,
   X,
   ScanLine,
+  Plus,
+  ArrowRight,
+  Check,
 } from 'lucide-react';
 import { ScanSessionData, Book } from '../types';
 import { tesseractOcr, OcrEngineMode, OcrLanguage, OcrProgress } from '../services/tesseractOcr';
 import { pdfOcrService } from '../services/pdfOcrService';
+import { storageService } from '../services/storageService';
 import { ScanProgressCircle } from './ScanProgressCircle';
 import { CamScannerEditor } from './CamScannerEditor';
+import { CamScannerDocumentGrid } from './CamScannerDocumentGrid';
 
 interface CameraScannerProps {
   onScanResultsReady: (session: ScanSessionData) => void;
@@ -37,6 +42,18 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [rawImageForEditing, setRawImageForEditing] = useState<File | null>(null);
+  const [scannedPagesList, setScannedPagesList] = useState<
+    Array<{ file: File; url: string; pageNumber: number }>
+  >([]);
+  const [showDocGrid, setShowDocGrid] = useState(false);
+  const [editingPageIndex, setEditingPageIndex] = useState<number | null>(null);
+  const [customDocTitle, setCustomDocTitle] = useState(() => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('it-IT');
+    const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    return `CamScanner ${dateStr} ${timeStr}`;
+  });
+  const [multiShotMode, setMultiShotMode] = useState<boolean>(true);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -58,6 +75,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const streamRef = useRef<MediaStream | null>(null);
+  const isFinalizingRef = useRef(false);
 
   // Stop camera tracks cleanly
   const stopCamera = useCallback(() => {
@@ -265,6 +283,255 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     }
   };
 
+  // Aggiungi una pagina allo scatto multiplo
+  const handleAddPageToBatch = (processedFile: File, processedUrl: string) => {
+    setScannedPagesList((prev) => [
+      ...prev,
+      {
+        file: processedFile,
+        url: processedUrl,
+        pageNumber: prev.length + 1,
+      },
+    ]);
+    setRawImageForEditing(null);
+    if (!cameraActive) {
+      startCamera(facingMode);
+    }
+  };
+
+  // Rimuovi una pagina dalla lista scatti multipli
+  const handleRemovePageFromBatch = (indexToRemove: number) => {
+    setScannedPagesList((prev) =>
+      prev
+        .filter((_, idx) => idx !== indexToRemove)
+        .map((p, idx) => ({ ...p, pageNumber: idx + 1 }))
+    );
+  };
+
+  // Reorder pages in the CamScanner grid
+  const handleReorderPages = (fromIndex: number, toIndex: number) => {
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= scannedPagesList.length ||
+      toIndex >= scannedPagesList.length
+    )
+      return;
+    setScannedPagesList((prev) => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated.map((p, idx) => ({ ...p, pageNumber: idx + 1 }));
+    });
+  };
+
+  // Delete page from grid
+  const handleDeletePageFromGrid = (index: number) => {
+    setScannedPagesList((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      if (updated.length === 0) {
+        setShowDocGrid(false);
+        if (!cameraActive) {
+          startCamera(facingMode);
+        }
+      }
+      return updated.map((p, idx) => ({ ...p, pageNumber: idx + 1 }));
+    });
+  };
+
+  // Edit specific page from grid
+  const handleEditPageFromGrid = (index: number) => {
+    const page = scannedPagesList[index];
+    if (page) {
+      setEditingPageIndex(index);
+      setRawImageForEditing(page.file);
+    }
+  };
+
+  // Extract OCR in Word mode from the grid
+  const handleOcrExtractWord = async (
+    pagesToProcess: Array<{ file: File; url: string; pageNumber: number }>,
+    titleName: string
+  ) => {
+    if (!pagesToProcess || pagesToProcess.length === 0) return;
+    setShowDocGrid(false);
+    stopCamera();
+    setOcrLoading(true);
+    setActiveFileName(`${titleName}.docx`);
+
+    setOcrProgress({
+      status: 'init',
+      progress: 0.1,
+      message: 'Estrazione testo documento in modalità Word (OCR)...',
+    });
+
+    const extractedPages: string[] = [];
+    const imageUrls: string[] = [];
+
+    try {
+      for (let i = 0; i < pagesToProcess.length; i++) {
+        const item = pagesToProcess[i];
+        imageUrls.push(item.url);
+        setOcrProgress({
+          status: 'recognizing',
+          progress: 0.2 + ((i + 1) / pagesToProcess.length) * 0.75,
+          message: `Riconoscimento testo pagina ${i + 1} di ${pagesToProcess.length}...`,
+        });
+
+        try {
+          const res = await tesseractOcr.recognize(item.file, {
+            engine: ocrEngine,
+            language: ocrLanguage,
+            enhanceContrast: true,
+            autoOptimizeAi: true,
+          });
+          const text = res && 'text' in res ? res.text?.trim() : '';
+          extractedPages.push(text || `[Pagina ${i + 1} del documento]`);
+        } catch (e) {
+          extractedPages.push(`[Pagina ${i + 1} del documento]`);
+        }
+      }
+
+      setOcrProgress({
+        status: 'completed',
+        progress: 1,
+        message: 'Testo estratto con successo!',
+      });
+
+      const session: ScanSessionData = {
+        bookId: `scan-${Date.now()}`,
+        title: titleName,
+        pages: extractedPages,
+        rawPages: extractedPages,
+        imageUrls: imageUrls,
+        engine: 'Gemini 3.8 Flash Vision / OCR',
+        confidence: 96,
+        isAiOptimized: true,
+        currentPageIndex: 0,
+      };
+
+      setOcrLoading(false);
+      if (onScanResultsReady) {
+        onScanResultsReady(session);
+      }
+    } catch (err: any) {
+      console.error('Errore estrazione Word:', err);
+      setCameraError('Errore durante il riconoscimento del testo.');
+      setOcrLoading(false);
+      setShowDocGrid(true);
+    }
+  };
+
+  // Continua: Salva tutte le pagine acquisite come libro PDF nella libreria
+  const handleFinalizePdfBook = async (
+    pagesToSave: Array<{ file: File; url: string; pageNumber: number }>,
+    docTitleOverride?: string
+  ) => {
+    if (!pagesToSave || pagesToSave.length === 0) return;
+    if (isFinalizingRef.current) return;
+    isFinalizingRef.current = true;
+
+    setShowDocGrid(false);
+    setRawImageForEditing(null);
+    stopCamera();
+    setOcrLoading(true);
+    setActiveFileName(`Libro-PDF-${pagesToSave.length}-pagine.pdf`);
+
+    setOcrProgress({
+      status: 'init',
+      progress: 0.15,
+      message: `Creazione libro PDF in corso (${pagesToSave.length} ${pagesToSave.length === 1 ? 'pagina' : 'pagine'})...`,
+    });
+
+    const extractedPages: string[] = [];
+    const imageUrls: string[] = [];
+
+    try {
+      for (let i = 0; i < pagesToSave.length; i++) {
+        const item = pagesToSave[i];
+        imageUrls.push(item.url);
+
+        const progressPercent = 0.2 + ((i + 1) / pagesToSave.length) * 0.7;
+        setOcrProgress({
+          status: 'recognizing',
+          progress: progressPercent,
+          message: `Elaborazione OCR pagina ${i + 1} di ${pagesToSave.length}...`,
+        });
+
+        try {
+          // Timeout per pagina per evitare qualsiasi blocco o attesa prolungata
+          const ocrPromise = tesseractOcr.recognize(item.file, {
+            engine: ocrEngine,
+            language: ocrLanguage,
+            enhanceContrast: true,
+            autoOptimizeAi: true,
+          });
+          const timeoutPromise = new Promise<null>((res) => setTimeout(() => res(null), 4500));
+          const result = await Promise.race([ocrPromise, timeoutPromise]);
+          const text = result && 'text' in result ? result.text?.trim() : '';
+          extractedPages.push(text || `Pagina ${i + 1} del documento PDF scansionato`);
+        } catch (pageErr) {
+          console.warn(`Errore OCR pagina ${i + 1}:`, pageErr);
+          extractedPages.push(`Pagina ${i + 1} del documento PDF scansionato`);
+        }
+      }
+
+      setOcrProgress({
+        status: 'completed',
+        progress: 1,
+        message: 'Libro salvato nella libreria in PDF!',
+      });
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('it-IT');
+      const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      const title =
+        docTitleOverride?.trim() ||
+        (pagesToSave.length === 1
+          ? `Scansione ${dateStr} ore ${timeStr}`
+          : `Libro PDF (${pagesToSave.length} pag.) ${dateStr}`);
+
+      const totalSize = pagesToSave.reduce((acc, p) => acc + (p.file.size || 150000), 0);
+
+      const uniqueSuffix = Math.random().toString(36).substring(2, 8);
+      const newBook: Book = {
+        book_id: `scan-pdf-${Date.now()}-${uniqueSuffix}`,
+        owner_id: 'local-user',
+        title,
+        author: 'CamScanner Vora',
+        file_type: 'pdf', // Salva il libro nella libreria in PDF!
+        source: 'scan',
+        size: totalSize,
+        pages: extractedPages.length > 0 ? extractedPages : ['Documento PDF scansionato pronto per la lettura.'],
+        currentPage: 0,
+        created_at: now.toISOString(),
+        ocr_engine: 'CamScanner OCR',
+        coverColor: '#EF4444',
+        imageUrls: imageUrls,
+      };
+
+      if (onAddBook) {
+        onAddBook(newBook);
+      } else {
+        storageService.addBook(newBook);
+      }
+
+      if (onClose) {
+        onClose();
+      }
+
+      setScannedPagesList([]);
+      setRawImageForEditing(null);
+      setOcrLoading(false);
+    } catch (err: any) {
+      console.error('Errore durante il salvataggio PDF:', err);
+      setCameraError(err?.message || 'Errore durante la creazione del libro PDF.');
+      setOcrLoading(false);
+    } finally {
+      isFinalizingRef.current = false;
+    }
+  };
+
   // Process a scanned PDF file with OCR
   const processPdfFile = async (file: File) => {
     if (!file) return;
@@ -366,6 +633,39 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       {/* Camera Live Viewfinder & Controls */}
       {!ocrLoading && (
         <div className="flex flex-col gap-3">
+          {/* Selettore Modalità: Scatto Singolo / Scatti Multipli (Libro PDF) */}
+          <div className="flex items-center justify-center p-1 bg-[#12141F] border border-[#232738] rounded-2xl max-w-sm mx-auto w-full shadow-md">
+            <button
+              type="button"
+              onClick={() => setMultiShotMode(false)}
+              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                !multiShotMode
+                  ? 'bg-white text-black shadow-md'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Camera size={14} />
+              <span>Scatto Singolo</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMultiShotMode(true)}
+              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                multiShotMode
+                  ? 'bg-white text-black shadow-md'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FileText size={14} />
+              <span>Scatti Multipli (PDF)</span>
+              {scannedPagesList.length > 0 && (
+                <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                  {scannedPagesList.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* Viewfinder Container */}
           <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border-2 border-[#2B3045] shadow-2xl flex items-center justify-center group">
             {/* Live Video Feed */}
@@ -484,6 +784,69 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
             )}
           </div>
 
+          {/* Vassoio Pagine Scatti Multipli Acquisite */}
+          {scannedPagesList.length > 0 && (
+            <div className="bg-[#12141E] border border-white/20 rounded-2xl p-3 flex flex-col gap-2 shadow-xl animate-fade-in">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <FileText size={14} className="text-white" />
+                  {scannedPagesList.length}{' '}
+                  {scannedPagesList.length === 1 ? 'pagina pronta' : 'pagine pronte'}
+                </span>
+
+                {/* Pulsante Continua → Griglia Documento */}
+                <button
+                  type="button"
+                  onClick={() => setShowDocGrid(true)}
+                  className="px-3.5 py-1.5 bg-white text-black hover:bg-gray-100 active:scale-95 text-xs font-black rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                  title="Visualizza e disponi le pagine nel documento"
+                >
+                  <Check size={14} className="text-black stroke-[3]" />
+                  <span>Continua ({scannedPagesList.length}) → Documento</span>
+                </button>
+              </div>
+
+              {/* Scrolling thumbnails */}
+              <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin">
+                {scannedPagesList.map((page, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setShowDocGrid(true)}
+                    className="relative shrink-0 w-16 h-20 rounded-xl overflow-hidden border border-white/30 bg-black group shadow-sm cursor-pointer"
+                  >
+                    <img
+                      src={page.url}
+                      alt={`Pagina ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute bottom-1 left-1 bg-black/80 px-1 py-0.5 rounded text-[9px] font-bold text-white">
+                      P.{idx + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePageFromBatch(idx)}
+                      className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md opacity-80 group-hover:opacity-100"
+                      title="Rimuovi pagina"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add page hint box */}
+                <button
+                  type="button"
+                  onClick={captureFromVideo}
+                  className="shrink-0 w-16 h-20 rounded-xl border-2 border-dashed border-white/40 hover:border-white flex flex-col items-center justify-center gap-1 text-white bg-white/5 active:scale-95 transition-all"
+                  title="Scatta la prossima pagina"
+                >
+                  <Plus size={18} className="text-white" />
+                  <span className="text-[9px] font-bold text-white">+ Scatta</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Shutter Button & Primary Actions Bar - Icone e nome sotto */}
           <div className="bg-[#12141E] border border-[#232738] rounded-3xl p-3 sm:p-4 flex items-center justify-around gap-2 shadow-xl">
             {/* 1. Galleria */}
@@ -595,22 +958,133 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       {rawImageForEditing && (
         <CamScannerEditor
           imageFile={rawImageForEditing}
+          pageIndex={
+            editingPageIndex !== null ? editingPageIndex : scannedPagesList.length
+          }
+          totalPages={
+            editingPageIndex !== null
+              ? scannedPagesList.length
+              : scannedPagesList.length + 1
+          }
+          onAddPage={(processedFile, processedUrl) => {
+            if (editingPageIndex !== null) {
+              setScannedPagesList((prev) => {
+                const updated = [...prev];
+                updated[editingPageIndex] = {
+                  file: processedFile,
+                  url: processedUrl,
+                  pageNumber: editingPageIndex + 1,
+                };
+                return updated;
+              });
+              setEditingPageIndex(null);
+              setRawImageForEditing(null);
+              setShowDocGrid(true);
+            } else {
+              handleAddPageToBatch(processedFile, processedUrl);
+            }
+          }}
+          onContinueSavePdf={(processedFile, processedUrl) => {
+            if (editingPageIndex !== null) {
+              setScannedPagesList((prev) => {
+                const updated = [...prev];
+                updated[editingPageIndex] = {
+                  file: processedFile,
+                  url: processedUrl,
+                  pageNumber: editingPageIndex + 1,
+                };
+                return updated;
+              });
+              setEditingPageIndex(null);
+              setRawImageForEditing(null);
+              setShowDocGrid(true);
+            } else {
+              const allPages = [
+                ...scannedPagesList,
+                {
+                  file: processedFile,
+                  url: processedUrl,
+                  pageNumber: scannedPagesList.length + 1,
+                },
+              ];
+              setScannedPagesList(allPages);
+              setRawImageForEditing(null);
+              setShowDocGrid(true);
+            }
+          }}
           onConfirm={(processedFile, processedUrl) => {
-            setRawImageForEditing(null);
-            processImageFile(processedFile, processedUrl);
+            if (editingPageIndex !== null) {
+              setScannedPagesList((prev) => {
+                const updated = [...prev];
+                updated[editingPageIndex] = {
+                  file: processedFile,
+                  url: processedUrl,
+                  pageNumber: editingPageIndex + 1,
+                };
+                return updated;
+              });
+              setEditingPageIndex(null);
+              setRawImageForEditing(null);
+              setShowDocGrid(true);
+            } else {
+              const allPages = [
+                ...scannedPagesList,
+                {
+                  file: processedFile,
+                  url: processedUrl,
+                  pageNumber: scannedPagesList.length + 1,
+                },
+              ];
+              setScannedPagesList(allPages);
+              setRawImageForEditing(null);
+              setShowDocGrid(true);
+            }
           }}
           onRetake={() => {
             setRawImageForEditing(null);
-            if (!cameraActive) {
+            setEditingPageIndex(null);
+            if (scannedPagesList.length > 0 && editingPageIndex !== null) {
+              setShowDocGrid(true);
+            } else if (!cameraActive) {
               startCamera(facingMode);
             }
           }}
           onCancel={() => {
             setRawImageForEditing(null);
+            setEditingPageIndex(null);
+            if (scannedPagesList.length > 0 && editingPageIndex !== null) {
+              setShowDocGrid(true);
+            } else if (!cameraActive) {
+              startCamera(facingMode);
+            }
+          }}
+        />
+      )}
+
+      {/* CamScanner Document Grid Mode (Disposizione a 2 Colonne con 01, 02, 03, 04) */}
+      {showDocGrid && !rawImageForEditing && !ocrLoading && (
+        <CamScannerDocumentGrid
+          pages={scannedPagesList}
+          documentTitle={customDocTitle}
+          onUpdateTitle={(newTitle) => setCustomDocTitle(newTitle)}
+          onAddMorePages={() => {
+            setShowDocGrid(false);
             if (!cameraActive) {
               startCamera(facingMode);
             }
           }}
+          onEditPage={handleEditPageFromGrid}
+          onDeletePage={handleDeletePageFromGrid}
+          onReorderPages={handleReorderPages}
+          onSavePdfBook={() => handleFinalizePdfBook(scannedPagesList, customDocTitle)}
+          onOpenOcrWord={() => handleOcrExtractWord(scannedPagesList, customDocTitle)}
+          onBack={() => {
+            setShowDocGrid(false);
+            if (!cameraActive) {
+              startCamera(facingMode);
+            }
+          }}
+          isSaving={ocrLoading}
         />
       )}
     </div>

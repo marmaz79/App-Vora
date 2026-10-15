@@ -319,17 +319,18 @@ export const ScanModal: React.FC<ScanModalProps> = ({
       scanTitle.trim() ||
       `Scansione ${currentEngineLabel || 'OCR'} ${new Date().toLocaleDateString('it-IT')}`;
     const newBook: Book = {
-      book_id: `scan-${Date.now()}`,
+      book_id: `scan-pdf-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       owner_id: 'user-default-1',
       title,
-      file_type: 'scan',
+      file_type: 'pdf',
       size: finalPages.join(' ').length,
       pages: finalPages,
       source: 'scan',
       ocr_engine: currentEngineLabel || 'OCR Ottimizzato',
       created_at: new Date().toISOString(),
-      coverColor: '#0284C7',
+      coverColor: '#EF4444',
       currentPage: 0,
+      imageUrls: previewImageUrl ? [previewImageUrl] : [],
     };
 
     onBookAdded(newBook);
@@ -587,6 +588,11 @@ export const ScanModal: React.FC<ScanModalProps> = ({
             </div>
             <CameraScanner
               autoStart={true}
+              onAddBook={(book) => {
+                setShowLiveCamera(false);
+                onBookAdded(book);
+                onClose();
+              }}
               onScanResultsReady={(session) => {
                 setShowLiveCamera(false);
                 if (onScanResultsReady) {
@@ -903,9 +909,77 @@ export const ScanModal: React.FC<ScanModalProps> = ({
       {rawImageForEditing && (
         <CamScannerEditor
           imageFile={rawImageForEditing}
-          onConfirm={(processedFile, processedUrl) => {
+          pageIndex={scannedPages.length}
+          totalPages={scannedPages.length + 1}
+          onAddPage={(processedFile, processedUrl) => {
             setRawImageForEditing(null);
             handleImageFile(processedFile, processedUrl);
+          }}
+          onContinueSavePdf={(processedFile, processedUrl) => {
+            setRawImageForEditing(null);
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT');
+            const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const title =
+              scanTitle.trim() ||
+              (scannedPages.length > 0
+                ? `Libro PDF (${scannedPages.length + 1} pag.) ${dateStr}`
+                : `Scansione ${dateStr} ore ${timeStr}`);
+
+            const finalPages = [...scannedPages, currentText.trim() || 'Scansione documento PDF completata.'];
+
+            const uniqueSuffix = Math.random().toString(36).substring(2, 8);
+            const newBook: Book = {
+              book_id: `scan-pdf-${Date.now()}-${uniqueSuffix}`,
+              owner_id: 'user-default-1',
+              title,
+              author: 'CamScanner Vora',
+              file_type: 'pdf', // Salva il libro nella libreria in PDF!
+              source: 'scan',
+              size: processedFile.size || 180000,
+              pages: finalPages,
+              currentPage: 0,
+              created_at: now.toISOString(),
+              ocr_engine: 'CamScanner Vision',
+              coverColor: '#EF4444',
+              imageUrls: [processedUrl],
+            };
+
+            onBookAdded(newBook);
+            onClose();
+          }}
+          onConfirm={(processedFile, processedUrl) => {
+            setRawImageForEditing(null);
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT');
+            const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const title =
+              scanTitle.trim() ||
+              (scannedPages.length > 0
+                ? `Libro PDF (${scannedPages.length + 1} pag.) ${dateStr}`
+                : `Scansione ${dateStr} ore ${timeStr}`);
+
+            const finalPages = [...scannedPages, currentText.trim() || 'Scansione documento PDF completata.'];
+
+            const uniqueSuffix = Math.random().toString(36).substring(2, 8);
+            const newBook: Book = {
+              book_id: `scan-pdf-${Date.now()}-${uniqueSuffix}`,
+              owner_id: 'user-default-1',
+              title,
+              author: 'CamScanner Vora',
+              file_type: 'pdf', // Salva il libro nella libreria in PDF!
+              source: 'scan',
+              size: processedFile.size || 180000,
+              pages: finalPages,
+              currentPage: 0,
+              created_at: now.toISOString(),
+              ocr_engine: 'CamScanner Vision',
+              coverColor: '#EF4444',
+              imageUrls: [processedUrl],
+            };
+
+            onBookAdded(newBook);
+            onClose();
           }}
           onRetake={() => {
             setRawImageForEditing(null);

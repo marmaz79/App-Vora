@@ -27,18 +27,24 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
   const [selectedFormat, setSelectedFormat] = useState<string>('all');
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
 
-  const filtered = books.filter((b) => {
-    const matchesQuery =
-      !searchQuery.trim() ||
-      b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (b.author && b.author.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filtered = React.useMemo(() => {
+    const seen = new Set<string>();
+    return books.filter((b) => {
+      if (!b || !b.book_id || seen.has(b.book_id)) return false;
+      seen.add(b.book_id);
 
-    const matchesFormat =
-      selectedFormat === 'all' ||
-      (selectedFormat === 'scan' ? b.file_type === 'scan' : b.file_type === selectedFormat);
+      const matchesQuery =
+        !searchQuery.trim() ||
+        b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.author && b.author.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchesQuery && matchesFormat;
-  });
+      const matchesFormat =
+        selectedFormat === 'all' ||
+        (selectedFormat === 'scan' ? b.file_type === 'scan' : b.file_type === selectedFormat);
+
+      return matchesQuery && matchesFormat;
+    });
+  }, [books, searchQuery, selectedFormat]);
 
   const formats = [
     { id: 'all', label: 'Tutti' },

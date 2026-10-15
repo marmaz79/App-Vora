@@ -54,21 +54,27 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [activeTabFilter, setActiveTabFilter] = useState<'recenti' | 'stella' | 'dispositivo'>('recenti');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Filter books based on search query and active tab
-  const filteredBooks = books.filter((b) => {
-    const matchesQuery =
-      !searchQuery.trim() ||
-      b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (b.author && b.author.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Filter and deduplicate books based on search query and active tab
+  const filteredBooks = React.useMemo(() => {
+    const seen = new Set<string>();
+    return books.filter((b) => {
+      if (!b || !b.book_id || seen.has(b.book_id)) return false;
+      seen.add(b.book_id);
 
-    if (!matchesQuery) return false;
+      const matchesQuery =
+        !searchQuery.trim() ||
+        b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.author && b.author.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    if (activeTabFilter === 'stella') {
-      return (b.size || 0) > 100000 || b.title.toLowerCase().includes('rep') || b.file_type === 'scan';
-    }
+      if (!matchesQuery) return false;
 
-    return true;
-  });
+      if (activeTabFilter === 'stella') {
+        return (b.size || 0) > 100000 || b.title.toLowerCase().includes('rep') || b.file_type === 'scan';
+      }
+
+      return true;
+    });
+  }, [books, searchQuery, activeTabFilter]);
 
   return (
     <div className="flex flex-col text-white select-none animate-fade-in pb-28">

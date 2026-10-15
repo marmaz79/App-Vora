@@ -161,8 +161,21 @@ export const storageService = {
 
       let needsSave = false;
 
+      // Deduplicate by book_id to fix any existing corrupt or duplicate keys in storage
+      const seenRawIds = new Set<string>();
+      const dedupedRaw: Book[] = [];
+      for (const b of rawBooks) {
+        if (!b || !b.book_id) continue;
+        if (!seenRawIds.has(b.book_id)) {
+          seenRawIds.add(b.book_id);
+          dedupedRaw.push(b);
+        } else {
+          needsSave = true;
+        }
+      }
+
       // Ensure that all sample books are present and fully populated with clean text
-      const sanitized = rawBooks.map((b) => {
+      const sanitized = dedupedRaw.map((b) => {
         const isSample = b.source === 'sample' || SAMPLE_BOOKS.some((s) => s.book_id === b.book_id || s.title.toLowerCase() === b.title.toLowerCase());
         const hasCorruptedPages = !b.pages || b.pages.length === 0 || b.pages.some((p) => isCorruptedPage(p));
 
@@ -179,7 +192,7 @@ export const storageService = {
 
       // Ensure default sample books exist if the library doesn't have them
       SAMPLE_BOOKS.forEach((sample) => {
-        const exists = sanitized.some((b) => b.title.toLowerCase() === sample.title.toLowerCase());
+        const exists = sanitized.some((b) => b.title.toLowerCase() === sample.title.toLowerCase() || b.book_id === sample.book_id);
         if (!exists) {
           sanitized.push(sample);
           needsSave = true;
@@ -210,18 +223,29 @@ export const storageService = {
   },
 
   saveBooks(books: Book[]) {
+    // Deduplicate books by book_id to ensure clean storage
+    const seen = new Set<string>();
+    const deduped: Book[] = [];
+    for (const b of books) {
+      if (!b || !b.book_id) continue;
+      if (!seen.has(b.book_id)) {
+        seen.add(b.book_id);
+        deduped.push(b);
+      }
+    }
+
     try {
-      localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+      localStorage.setItem(BOOKS_KEY, JSON.stringify(deduped));
     } catch (e: any) {
       console.warn('LocalStorage quota warning, attempting storage optimization', e);
       try {
         // Remove sample books from persistent storage to make room for user content
-        const userBooks = books.filter((b) => b.source !== 'sample');
+        const userBooks = deduped.filter((b) => b.source !== 'sample');
         localStorage.setItem(BOOKS_KEY, JSON.stringify(userBooks));
       } catch {
         try {
           // If still full, retain the latest 10 books
-          const trimmed = books.slice(0, 10);
+          const trimmed = deduped.slice(0, 10);
           localStorage.setItem(BOOKS_KEY, JSON.stringify(trimmed));
         } catch (finalErr) {
           console.error('LocalStorage quota exceeded completely:', finalErr);
@@ -232,9 +256,25 @@ export const storageService = {
 
   addBook(book: Book) {
     const books = this.getBooks();
-    const updated = [book, ...books];
-    this.saveBooks(updated);
-    return updated;
+    const existingIndex = books.findIndex((b) => b.book_id === book.book_id);
+    let updated: Book[];
+    if (existingIndex >= 0) {
+      updated = [...books];
+      updated[existingIndex] = book;
+    } else {
+      updated = [book, ...books];
+    }
+    const seen = new Set<string>();
+    const deduped: Book[] = [];
+    for (const b of updated) {
+      if (!b || !b.book_id) continue;
+      if (!seen.has(b.book_id)) {
+        seen.add(b.book_id);
+        deduped.push(b);
+      }
+    }
+    this.saveBooks(deduped);
+    return deduped;
   },
 
   deleteBook(bookId: string) {

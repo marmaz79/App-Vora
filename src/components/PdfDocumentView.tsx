@@ -362,8 +362,25 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 </div>
 
                 {/* PDF Page Body Content */}
-                <div className="flex-1 py-6 sm:py-8 font-serif leading-relaxed text-zinc-900 text-sm sm:text-base whitespace-pre-wrap select-text">
-                  {renderHighlightedContent(pageText)}
+                <div className="flex-1 py-4 sm:py-6 flex flex-col justify-center items-center font-serif leading-relaxed text-zinc-900 text-sm sm:text-base select-text">
+                  {book.imageUrls && book.imageUrls[index] ? (
+                    <div className="w-full flex flex-col items-center gap-3">
+                      <img
+                        src={book.imageUrls[index]}
+                        alt={`Scansione pagina ${index + 1}`}
+                        className="max-h-[640px] sm:max-h-[760px] w-auto max-w-full object-contain rounded-lg shadow-sm border border-zinc-200 select-none pointer-events-none"
+                      />
+                      {pageText && pageText.trim() && !pageText.startsWith('[Pagina') && (
+                        <div className="w-full mt-3 p-3 bg-zinc-50 rounded-lg border border-zinc-200 text-xs text-zinc-700 whitespace-pre-wrap select-text">
+                          {renderHighlightedContent(pageText)}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full whitespace-pre-wrap">
+                      {renderHighlightedContent(pageText)}
+                    </div>
+                  )}
                 </div>
 
                 {/* PDF Footer with Page Number */}
@@ -394,8 +411,25 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               </div>
 
               {/* PDF Page Body Content */}
-              <div className="flex-1 py-6 sm:py-8 font-serif leading-relaxed text-zinc-900 text-sm sm:text-base whitespace-pre-wrap select-text">
-                {renderHighlightedContent(sanitizedPages[currentPage] || '')}
+              <div className="flex-1 py-4 sm:py-6 flex flex-col justify-center items-center font-serif leading-relaxed text-zinc-900 text-sm sm:text-base select-text">
+                {book.imageUrls && book.imageUrls[currentPage] ? (
+                  <div className="w-full flex flex-col items-center gap-3">
+                    <img
+                      src={book.imageUrls[currentPage]}
+                      alt={`Scansione pagina ${currentPage + 1}`}
+                      className="max-h-[640px] sm:max-h-[760px] w-auto max-w-full object-contain rounded-lg shadow-sm border border-zinc-200 select-none pointer-events-none"
+                    />
+                    {sanitizedPages[currentPage] && sanitizedPages[currentPage].trim() && !sanitizedPages[currentPage].startsWith('[Pagina') && (
+                      <div className="w-full mt-3 p-3 bg-zinc-50 rounded-lg border border-zinc-200 text-xs text-zinc-700 whitespace-pre-wrap select-text">
+                        {renderHighlightedContent(sanitizedPages[currentPage])}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full whitespace-pre-wrap">
+                    {renderHighlightedContent(sanitizedPages[currentPage] || '')}
+                  </div>
+                )}
               </div>
 
               {/* PDF Footer with Page Number */}
