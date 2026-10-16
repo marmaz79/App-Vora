@@ -10,7 +10,7 @@ export const SAMPLE_BOOKS: Book[] = [
     size: 245000,
     created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
     source: 'sample',
-    coverColor: '#FFD600',
+    coverColor: '#FFFFFF',
     currentPage: 0,
     pages: [
       `Capitolo I. Come andò che maestro Ciliegia, falegname, trovò un pezzo di legno, che piangeva e rideva come un bambino.
@@ -69,7 +69,7 @@ Geppetto era bizzoso assai. Guai a chiamarlo Polendina! Diventava subito una bes
     size: 480000,
     created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
     source: 'sample',
-    coverColor: '#00E676',
+    coverColor: '#FFFFFF',
     currentPage: 0,
     pages: [
       `Capitolo I
@@ -98,7 +98,7 @@ Il curato, voltata la stradetta, e dirizzando, com'era solito, lo sguardo al tab
     size: 154000,
     created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
     source: 'sample',
-    coverColor: '#00B0FF',
+    coverColor: '#FFFFFF',
     currentPage: 0,
     pages: [
       `La passeggiata di un distratto

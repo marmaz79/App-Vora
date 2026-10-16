@@ -243,7 +243,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0B10] text-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
       {/* Splash Screen with Logo and Title */}
       {showSplash && (
         <SplashScreen onDismiss={() => setShowSplash(false)} />
@@ -263,7 +263,7 @@ export function App() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#161824] text-white font-bold px-6 py-3 rounded-2xl shadow-2xl border border-[#2B3042] text-sm animate-bounce"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white text-black font-black px-6 py-3 rounded-2xl shadow-2xl border border-white text-sm animate-bounce"
         >
           {toastMessage}
         </div>
@@ -275,7 +275,7 @@ export function App() {
           role="status"
           aria-live="polite"
           aria-label="Caricamento..."
-          className="fixed inset-0 z-50 bg-[#0A0B10]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
         >
           <div className="relative flex items-center justify-center mb-4">
             <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin" />

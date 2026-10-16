@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, [searchQuery]);
 
   return (
-    <header className="sticky top-0 z-30 bg-black border-b border-[#181A22] px-4 py-3 select-none">
+    <header className="sticky top-0 z-30 bg-black border-b border-zinc-800 px-4 py-3 select-none">
       <div className="max-w-2xl mx-auto flex flex-col gap-2.5">
         {/* Top bar: Red Acrobat logo on left, Search / Bell / User on right */}
         <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Bell size={22} />
               {unreadNotificationsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white ring-2 ring-black">
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-black text-black ring-2 ring-black">
                   {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                 </span>
               )}
@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Cerca in tutti i file..."
-              className="w-full bg-[#16181F] border border-[#2B2E38] focus:border-white rounded-xl pl-10 pr-10 py-2.5 text-white placeholder-gray-400 font-medium text-sm focus:outline-none"
+              className="w-full bg-black border border-white/20 focus:border-white rounded-xl pl-10 pr-10 py-2.5 text-white placeholder-zinc-400 font-medium text-sm focus:outline-none"
             />
             {searchQuery && (
               <button

@@ -142,7 +142,7 @@ export const DEFAULT_SETTINGS: TtsSettings = {
   volume: 1.0,
   autoAdvance: true,
   fontSize: 'normal',
-  highContrastMode: 'black-yellow',
+  highContrastMode: 'black-white',
 };
 
 export const storageService = {
@@ -349,7 +349,13 @@ export const storageService = {
   getSettings(): TtsSettings {
     try {
       const data = localStorage.getItem(SETTINGS_KEY);
-      return data ? { ...DEFAULT_SETTINGS, ...JSON.parse(data) } : DEFAULT_SETTINGS;
+      if (!data) return DEFAULT_SETTINGS;
+      const parsed = JSON.parse(data);
+      if (parsed.highContrastMode === 'black-yellow') {
+        parsed.highContrastMode = 'black-white';
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(parsed));
+      }
+      return { ...DEFAULT_SETTINGS, ...parsed };
     } catch {
       return DEFAULT_SETTINGS;
     }

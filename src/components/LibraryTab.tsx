@@ -61,15 +61,15 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
             <button
               onClick={onBack}
               aria-label="Torna indietro"
-              className="w-11 h-11 rounded-xl border border-[#262A38] bg-[#141622] flex items-center justify-center shrink-0 text-gray-200 hover:bg-[#1E2235] hover:border-gray-500 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shadow-xs"
+              className="w-11 h-11 rounded-xl border border-white/20 bg-black flex items-center justify-center shrink-0 text-white hover:bg-zinc-900 hover:border-white active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shadow-xs"
               title="Torna indietro"
             >
-              <ArrowLeft size={22} className="text-gray-200" />
+              <ArrowLeft size={22} className="text-white" />
             </button>
           )}
           <div className="min-w-0">
             <h2 className="text-xl font-black text-white flex items-center gap-2 truncate">
-              <Library size={24} className="text-red-500 shrink-0" aria-hidden="true" />
+              <Library size={24} className="text-white shrink-0" aria-hidden="true" />
               Libreria
             </h2>
           </div>
@@ -81,12 +81,12 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
             aria-label="Cerca nei libri della libreria"
             className={`min-h-[44px] px-3.5 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
               isSearchOpen || searchQuery
-                ? 'bg-[#1E2333] text-white border-[#3B4460]'
-                : 'bg-[#141622] text-gray-300 border-[#262A38] hover:border-gray-500 hover:bg-[#1C2030]'
+                ? 'bg-white text-black border-white'
+                : 'bg-black text-zinc-300 border-white/20 hover:border-white hover:bg-zinc-900'
             }`}
           >
-            <Search size={16} className="text-red-500" aria-hidden="true" />
-            <span className="text-gray-200">Cerca</span>
+            <Search size={16} className={isSearchOpen || searchQuery ? 'text-black' : 'text-white'} aria-hidden="true" />
+            <span>Cerca</span>
           </button>
         )}
       </div>
@@ -94,18 +94,18 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
       {/* Input di ricerca espandibile nella libreria */}
       {isSearchOpen && onSearchChange && (
         <div className="relative animate-fade-in pt-0.5">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Cerca libro per titolo o autore..."
-            className="w-full bg-[#141622] border border-[#262A38] focus:border-red-500 rounded-xl pl-10 pr-10 py-2.5 text-white placeholder-gray-500 font-semibold text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+            className="w-full bg-black border border-white/20 focus:border-white rounded-xl pl-10 pr-10 py-2.5 text-white placeholder-zinc-500 font-semibold text-sm focus:outline-none focus:ring-1 focus:ring-white"
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded bg-[#262B3D] text-gray-300 flex items-center justify-center text-xs hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded bg-zinc-800 text-zinc-300 flex items-center justify-center text-xs hover:text-white"
             >
               <X size={14} />
             </button>
@@ -115,7 +115,7 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
 
       {/* Filter pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-0.5" role="group" aria-label="Filtra per formato">
-        <Filter size={18} className="text-gray-400 shrink-0 mr-1" aria-hidden="true" />
+        <Filter size={18} className="text-zinc-400 shrink-0 mr-1" aria-hidden="true" />
         {formats.map((f) => {
           const isSelected = selectedFormat === f.id;
           return (
@@ -126,7 +126,7 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
               className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors border shrink-0 min-h-[42px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                 isSelected
                   ? 'bg-white text-black border-white shadow-xs font-black'
-                  : 'bg-[#141622] text-gray-300 border-[#262A38] hover:border-gray-500 hover:bg-[#1C2030]'
+                  : 'bg-black text-zinc-300 border-white/20 hover:border-white hover:bg-zinc-900'
               }`}
             >
               <span>{f.label}</span>
@@ -137,11 +137,11 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
 
       {/* Books listing */}
       {filtered.length === 0 ? (
-        <div className="bg-[#12141C] border border-[#232736] rounded-2xl p-8 text-center flex flex-col items-center gap-1.5 shadow-sm">
+        <div className="bg-black border border-white/20 rounded-2xl p-8 text-center flex flex-col items-center gap-1.5 shadow-sm">
           <p className="text-base font-bold text-white">Nessun libro trovato per questo filtro</p>
         </div>
       ) : (
-        <div className="bg-[#12141C] border border-[#232736] rounded-2xl overflow-hidden divide-y divide-[#1D212F] shadow-sm">
+        <div className="bg-black border border-white/20 rounded-2xl overflow-hidden divide-y divide-zinc-850 shadow-sm">
           {filtered.map((book) => (
             <BookCard
               key={book.book_id}

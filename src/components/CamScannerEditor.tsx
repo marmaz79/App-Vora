@@ -436,10 +436,10 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Editor CamScanner - Pulizia e Ritaglio Documento"
-      className="fixed inset-0 z-50 bg-[#0A0B10] text-white flex flex-col justify-between overflow-hidden select-none font-sans"
+      className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
       {/* Header compatto ed essenziale con indicatore di pagina */}
-      <header className="bg-[#12141D] border-b border-[#232736] px-3 sm:px-4 py-3 flex items-center justify-between shrink-0 z-20">
+      <header className="bg-black border-b border-zinc-800 px-3 sm:px-4 py-3 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-2 sm:gap-2.5">
           <Wand2 size={18} className="text-white shrink-0" />
           <h2 className="text-sm font-bold text-white tracking-wide">
@@ -576,7 +576,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       )}
 
       {/* Barra inferiore: opzioni con icone e nome sotto, con Scatti Multipli (+ Pagina) e Continua */}
-      <footer className="bg-[#0B0C12] border-t border-[#232738] px-1.5 sm:px-4 py-2.5 pb-6 sm:pb-3 shrink-0 z-20 shadow-2xl">
+      <footer className="bg-black border-t border-zinc-800 px-1.5 sm:px-4 py-2.5 pb-6 sm:pb-3 shrink-0 z-20 shadow-2xl">
         <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1">
           {/* 1. Icona Rifai */}
           <button

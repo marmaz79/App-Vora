@@ -506,7 +506,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         currentPage: 0,
         created_at: now.toISOString(),
         ocr_engine: 'CamScanner OCR',
-        coverColor: '#EF4444',
+        coverColor: '#FFFFFF',
         imageUrls: imageUrls,
       };
 
@@ -617,7 +617,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     <div className="flex flex-col gap-3 w-full animate-fade-in select-none">
       {/* Loading state with ScanProgressCircle */}
       {ocrLoading && (
-        <div className="bg-[#12141F] border border-purple-500/40 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center min-h-[380px]">
+        <div className="bg-black border border-white/20 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center min-h-[380px]">
           <ScanProgressCircle
             progress={ocrProgress.progress}
             status={ocrProgress.status}
@@ -634,14 +634,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       {!ocrLoading && (
         <div className="flex flex-col gap-3">
           {/* Selettore Modalità: Scatto Singolo / Scatti Multipli (Libro PDF) */}
-          <div className="flex items-center justify-center p-1 bg-[#12141F] border border-[#232738] rounded-2xl max-w-sm mx-auto w-full shadow-md">
+          <div className="flex items-center justify-center p-1 bg-black border border-zinc-800 rounded-2xl max-w-sm mx-auto w-full shadow-md">
             <button
               type="button"
               onClick={() => setMultiShotMode(false)}
               className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                 !multiShotMode
                   ? 'bg-white text-black shadow-md'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Camera size={14} />
@@ -653,13 +653,13 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                 multiShotMode
                   ? 'bg-white text-black shadow-md'
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <FileText size={14} />
               <span>Scatti Multipli (PDF)</span>
               {scannedPagesList.length > 0 && (
-                <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                <span className="bg-white text-black text-[10px] px-1.5 py-0.2 rounded-full font-black">
                   {scannedPagesList.length}
                 </span>
               )}
@@ -667,7 +667,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
           </div>
 
           {/* Viewfinder Container */}
-          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border-2 border-[#2B3045] shadow-2xl flex items-center justify-center group">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border-2 border-zinc-800 shadow-2xl flex items-center justify-center group">
             {/* Live Video Feed */}
             <video
               ref={videoRef}
@@ -685,19 +685,19 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 {/* Document Viewfinder Target Frame */}
                 <div className="relative w-full h-full max-w-sm max-h-72 border-2 border-white/30 rounded-2xl">
                   {/* Top-Left Corner */}
-                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-red-500 rounded-tl-lg" />
+                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-lg" />
                   {/* Top-Right Corner */}
-                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-red-500 rounded-tr-lg" />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-lg" />
                   {/* Bottom-Left Corner */}
-                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-red-500 rounded-bl-lg" />
+                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-lg" />
                   {/* Bottom-Right Corner */}
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-red-500 rounded-br-lg" />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-lg" />
 
                   {/* Animated Laser Scanning Line */}
-                  <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_12px_#EF4444] animate-pulse top-1/2 -translate-y-1/2" />
+                  <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_12px_#FFFFFF] animate-pulse top-1/2 -translate-y-1/2" />
 
                   {/* Center hint badge */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-md">
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-md">
                     Inquadra la pagina del libro
                   </div>
                 </div>
@@ -706,10 +706,10 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
 
             {/* Top Bar inside Viewfinder */}
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-auto z-10">
-              <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-md">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+              <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-md">
+                <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
                 <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Camera size={13} className="text-red-400" />
+                  <Camera size={13} className="text-white" />
                   {cameraActive ? 'Fotocamera Live' : 'Fotocamera Pronta'}
                 </span>
               </div>
@@ -723,7 +723,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                     aria-label="Attiva o disattiva torcia"
                     className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       torchOn
-                        ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/50'
+                        ? 'bg-white text-black shadow-lg shadow-white/30'
                         : 'bg-black/60 text-white border border-white/20 hover:bg-black/80'
                     }`}
                   >
@@ -761,21 +761,21 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
 
             {/* Error or Inactive Camera Fallback message */}
             {!cameraActive && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#0E1017]/95 backdrop-blur-sm z-20">
-                <div className="w-16 h-16 rounded-2xl bg-red-600/20 text-red-400 border border-red-500/30 flex items-center justify-center mb-3">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/95 backdrop-blur-sm z-20">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-900 text-white border border-zinc-700 flex items-center justify-center mb-3">
                   <Camera size={32} />
                 </div>
                 <h3 className="text-base font-bold text-white mb-1">
                   Fotocamera del Dispositivo
                 </h3>
-                <p className="text-xs text-gray-400 max-w-xs mb-4 leading-relaxed">
+                <p className="text-xs text-zinc-400 max-w-xs mb-4 leading-relaxed">
                   {cameraError ||
                     'Tocca il pulsante per scattare una foto direttamente con la fotocamera del tuo telefono o tablet.'}
                 </p>
                 <button
                   type="button"
                   onClick={() => nativeCameraInputRef.current?.click()}
-                  className="min-h-[46px] px-6 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-sm rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-red-950/50"
+                  className="min-h-[46px] px-6 bg-white hover:bg-zinc-200 active:scale-95 text-black font-black text-sm rounded-2xl transition-all flex items-center gap-2 shadow-lg"
                 >
                   <Camera size={18} />
                   <span>Apri Fotocamera di Sistema</span>
@@ -786,7 +786,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
 
           {/* Vassoio Pagine Scatti Multipli Acquisite */}
           {scannedPagesList.length > 0 && (
-            <div className="bg-[#12141E] border border-white/20 rounded-2xl p-3 flex flex-col gap-2 shadow-xl animate-fade-in">
+            <div className="bg-black border border-zinc-800 rounded-2xl p-3 flex flex-col gap-2 shadow-xl animate-fade-in">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-white flex items-center gap-1.5">
                   <FileText size={14} className="text-white" />
@@ -798,7 +798,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowDocGrid(true)}
-                  className="px-3.5 py-1.5 bg-white text-black hover:bg-gray-100 active:scale-95 text-xs font-black rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 bg-white text-black hover:bg-zinc-200 active:scale-95 text-xs font-black rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
                   title="Visualizza e disponi le pagine nel documento"
                 >
                   <Check size={14} className="text-black stroke-[3]" />
@@ -812,20 +812,20 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                   <div
                     key={idx}
                     onClick={() => setShowDocGrid(true)}
-                    className="relative shrink-0 w-16 h-20 rounded-xl overflow-hidden border border-white/30 bg-black group shadow-sm cursor-pointer"
+                    className="relative shrink-0 w-16 h-20 rounded-xl overflow-hidden border border-zinc-700 bg-black group shadow-sm cursor-pointer"
                   >
                     <img
                       src={page.url}
                       alt={`Pagina ${idx + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute bottom-1 left-1 bg-black/80 px-1 py-0.5 rounded text-[9px] font-bold text-white">
+                    <span className="absolute bottom-1 left-1 bg-black/90 px-1 py-0.5 rounded text-[9px] font-bold text-white">
                       P.{idx + 1}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleRemovePageFromBatch(idx)}
-                      className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md opacity-80 group-hover:opacity-100"
+                      className="absolute top-1 right-1 w-4 h-4 rounded-full bg-white text-black hover:bg-zinc-200 flex items-center justify-center shadow-md opacity-80 group-hover:opacity-100"
                       title="Rimuovi pagina"
                     >
                       <X size={10} />
@@ -837,7 +837,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 <button
                   type="button"
                   onClick={captureFromVideo}
-                  className="shrink-0 w-16 h-20 rounded-xl border-2 border-dashed border-white/40 hover:border-white flex flex-col items-center justify-center gap-1 text-white bg-white/5 active:scale-95 transition-all"
+                  className="shrink-0 w-16 h-20 rounded-xl border-2 border-dashed border-zinc-700 hover:border-white flex flex-col items-center justify-center gap-1 text-white bg-white/5 active:scale-95 transition-all"
                   title="Scatta la prossima pagina"
                 >
                   <Plus size={18} className="text-white" />
@@ -848,22 +848,22 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
           )}
 
           {/* Shutter Button & Primary Actions Bar - Icone e nome sotto */}
-          <div className="bg-[#12141E] border border-[#232738] rounded-3xl p-3 sm:p-4 flex items-center justify-around gap-2 shadow-xl">
+          <div className="bg-black border border-zinc-800 rounded-3xl p-3 sm:p-4 flex items-center justify-around gap-2 shadow-xl">
             {/* 1. Galleria */}
             <button
               type="button"
               onClick={() => galleryInputRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-1.5 p-1.5 sm:p-2 rounded-2xl hover:bg-white/10 active:scale-90 transition-all text-white min-w-[64px]"
+              className="flex flex-col items-center justify-center gap-1.5 p-1.5 sm:p-2 rounded-2xl hover:bg-zinc-900 active:scale-90 transition-all text-white min-w-[64px]"
               title="Scegli dalla galleria"
               aria-label="Galleria"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white">
                 <ImageIcon size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Galleria</span>
             </button>
 
-            {/* 2. Centro: Scatto Fotocamera */}
+            {/* 2. Centro: Scatto Fotocamera Bianco su Nero */}
             <button
               type="button"
               onClick={captureFromVideo}
@@ -872,11 +872,11 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Scatta foto"
               className="flex flex-col items-center justify-center gap-1 active:scale-90 transition-all group cursor-pointer"
             >
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/10 p-1.5 border-4 border-red-500 flex items-center justify-center hover:scale-105 transition-all shadow-xl shadow-red-900/40 relative">
-                <div className="w-full h-full rounded-full bg-red-600 group-hover:bg-red-500 flex items-center justify-center transition-colors shadow-inner">
-                  <Camera size={26} className="text-white drop-shadow-sm" />
+              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/20 p-1.5 border-4 border-white flex items-center justify-center hover:scale-105 transition-all shadow-xl shadow-white/20 relative">
+                <div className="w-full h-full rounded-full bg-white group-hover:bg-zinc-200 flex items-center justify-center transition-colors shadow-inner">
+                  <Camera size={26} className="text-black drop-shadow-sm" />
                 </div>
-                <span className="absolute inset-0 rounded-full border-2 border-red-400/40 animate-ping pointer-events-none" />
+                <span className="absolute inset-0 rounded-full border-2 border-white/50 animate-ping pointer-events-none" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Scatta</span>
             </button>

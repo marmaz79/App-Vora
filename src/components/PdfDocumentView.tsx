@@ -143,7 +143,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
 
     return parts.map((part, i) =>
       part.toLowerCase() === searchQuery.toLowerCase() ? (
-        <mark key={i} className="bg-yellow-300 text-black font-semibold rounded-xs px-0.5">
+        <mark key={i} className="bg-white text-black font-bold rounded-xs px-0.5">
           {part}
         </mark>
       ) : (
@@ -156,31 +156,31 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
     <div
       role="region"
       aria-label={`Visualizzatore PDF del libro ${book.title}`}
-      className="fixed inset-0 h-[100dvh] z-50 bg-[#0C0E14] text-gray-100 flex flex-col justify-between overflow-hidden select-text font-sans"
+      className="fixed inset-0 h-[100dvh] z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-text font-sans"
     >
       {/* ===================== PDF VIEWER HEADER TOOLBAR ===================== */}
-      <header className="bg-[#12141D] border-b border-[#232736] px-3 py-2.5 flex items-center justify-between gap-2 shrink-0 z-20 shadow-md">
+      <header className="bg-black border-b border-zinc-800 px-3 py-2.5 flex items-center justify-between gap-2 shrink-0 z-20 shadow-md">
         {/* Left: Back button & Title */}
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
             onClick={onBack}
             aria-label="Torna indietro"
-            className="w-10 h-10 rounded-xl bg-[#1C2030] hover:bg-[#252B42] border border-[#2B3147] flex items-center justify-center text-gray-200 hover:text-white transition-all shrink-0 active:scale-95"
+            className="w-10 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white transition-all shrink-0 active:scale-95"
             title="Torna indietro"
           >
             <ArrowLeft size={20} />
           </button>
 
           <div className="min-w-0 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-red-950/60 border border-red-600/40 text-red-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0">
               <FileText size={17} />
             </div>
             <div className="min-w-0">
               <h2 className="text-xs sm:text-sm font-bold text-white truncate max-w-[180px] sm:max-w-xs md:max-w-md">
                 {book.title}
               </h2>
-              <span className="text-[10px] text-gray-400 font-semibold block truncate">
+              <span className="text-[10px] text-zinc-400 font-semibold block truncate">
                 Documento PDF · Pagina {currentPage + 1} di {totalPages}
               </span>
             </div>
@@ -189,18 +189,18 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
 
         {/* Center: Search toggle */}
         {showSearch && (
-          <div className="hidden md:flex items-center gap-2 bg-[#181B28] border border-[#2B3147] rounded-xl px-2.5 py-1 min-w-[200px]">
-            <Search size={14} className="text-gray-400 shrink-0" />
+          <div className="hidden md:flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1 min-w-[200px]">
+            <Search size={14} className="text-zinc-400 shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cerca nel PDF..."
-              className="bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none w-full"
+              className="bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none w-full"
               autoFocus
             />
             {searchQuery && (
-              <span className="text-[10px] text-yellow-400 font-bold shrink-0">
+              <span className="text-[10px] text-white font-bold shrink-0">
                 {searchMatchesCount} ris.
               </span>
             )}
@@ -222,12 +222,12 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           <button
             type="button"
             onClick={() => onSwitchToReader(book)}
-            className="bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-600/50 hover:border-emerald-500 text-emerald-300 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+            className="bg-white hover:bg-zinc-200 text-black font-black text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
             title="Passa al lettore eBook con voce AI"
           >
             <BookOpen size={16} />
             <span className="hidden sm:inline">Leggi libro</span>
-            <Volume2 size={13} className="hidden sm:inline text-emerald-400" />
+            <Volume2 size={13} className="hidden sm:inline text-black" />
           </button>
 
           {/* Search toggle (Mobile / Tablet) */}
@@ -237,8 +237,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
             aria-label="Cerca testo nel PDF"
             className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all ${
               showSearch
-                ? 'bg-red-950/50 border-red-500 text-red-300'
-                : 'bg-[#1C2030] hover:bg-[#252B42] border-[#2B3147] text-gray-300 hover:text-white'
+                ? 'bg-white text-black border-white'
+                : 'bg-black hover:bg-zinc-900 border-white/20 text-white'
             }`}
             title="Cerca nel testo"
           >
@@ -246,11 +246,11 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           </button>
 
           {/* Zoom Controls */}
-          <div className="hidden sm:flex items-center bg-[#181B28] border border-[#2B3147] rounded-xl p-0.5">
+          <div className="hidden sm:flex items-center bg-black border border-white/20 rounded-xl p-0.5">
             <button
               type="button"
               onClick={() => handleZoom(-15)}
-              className="w-7 h-7 flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#252B42] rounded-lg"
+              className="w-7 h-7 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"
               title="Riduci zoom"
               aria-label="Riduci zoom"
             >
@@ -259,7 +259,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
             <button
               type="button"
               onClick={handleResetZoom}
-              className="px-2 text-[11px] font-bold text-gray-300 hover:text-white"
+              className="px-2 text-[11px] font-bold text-zinc-300 hover:text-white"
               title="Reimposta zoom 100%"
             >
               {zoomLevel}%
@@ -267,7 +267,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
             <button
               type="button"
               onClick={() => handleZoom(15)}
-              className="w-7 h-7 flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#252B42] rounded-lg"
+              className="w-7 h-7 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg"
               title="Aumenta zoom"
               aria-label="Aumenta zoom"
             >
@@ -279,7 +279,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           <button
             type="button"
             onClick={() => setViewMode((prev) => (prev === 'continuous' ? 'single' : 'continuous'))}
-            className="w-9 h-9 rounded-xl bg-[#1C2030] hover:bg-[#252B42] border border-[#2B3147] text-gray-300 hover:text-white flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-xl bg-black hover:bg-zinc-900 border border-white/20 text-zinc-300 hover:text-white flex items-center justify-center transition-all"
             title={viewMode === 'continuous' ? 'Modalità: Scorrimento continuo (clicca per pagina singola)' : 'Modalità: Pagina singola (clicca per continuo)'}
             aria-label="Cambia visualizzazione pagine"
           >
@@ -290,7 +290,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           <button
             type="button"
             onClick={handlePrintPdf}
-            className="w-9 h-9 rounded-xl bg-[#1C2030] hover:bg-[#252B42] border border-[#2B3147] text-gray-300 hover:text-white flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-xl bg-black hover:bg-zinc-900 border border-white/20 text-zinc-300 hover:text-white flex items-center justify-center transition-all"
             title="Stampa o Salva documento in PDF"
             aria-label="Stampa o Salva PDF"
           >
@@ -301,18 +301,18 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
 
       {/* Search Input Bar (when toggled on mobile) */}
       {showSearch && (
-        <div className="md:hidden bg-[#181B28] border-b border-[#2B3147] p-2.5 flex items-center gap-2 z-10 animate-fade-in">
-          <Search size={16} className="text-gray-400 shrink-0" />
+        <div className="md:hidden bg-zinc-950 border-b border-zinc-800 p-2.5 flex items-center gap-2 z-10 animate-fade-in">
+          <Search size={16} className="text-zinc-400 shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cerca nel documento PDF..."
-            className="bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none flex-1"
+            className="bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none flex-1"
             autoFocus
           />
           {searchQuery && (
-            <span className="text-xs text-yellow-400 font-bold shrink-0">
+            <span className="text-xs text-white font-bold shrink-0">
               {searchMatchesCount} trovati
             </span>
           )}
@@ -321,7 +321,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               setShowSearch(false);
               setSearchQuery('');
             }}
-            className="text-gray-400 hover:text-white p-1"
+            className="text-zinc-400 hover:text-white p-1"
           >
             <X size={16} />
           </button>
@@ -332,7 +332,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
       <main
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-8 flex flex-col items-center bg-[#0B0D13] print:bg-white print:p-0"
+        className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-8 flex flex-col items-center bg-black print:bg-white print:p-0"
       >
         <div
           style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
@@ -355,7 +355,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                   <span className="truncate max-w-[280px]">
                     {book.title} {book.author ? `— ${book.author}` : ''}
                   </span>
-                  <span className="shrink-0 text-red-600 font-bold flex items-center gap-1">
+                  <span className="shrink-0 text-black font-bold flex items-center gap-1">
                     <FileText size={12} />
                     Documento PDF
                   </span>
@@ -404,7 +404,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 <span className="truncate max-w-[280px]">
                   {book.title} {book.author ? `— ${book.author}` : ''}
                 </span>
-                <span className="shrink-0 text-red-600 font-bold flex items-center gap-1">
+                <span className="shrink-0 text-zinc-400 font-bold flex items-center gap-1">
                   <FileText size={12} />
                   Documento PDF
                 </span>
@@ -446,13 +446,13 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
       </main>
 
       {/* ===================== FLOATING BOTTOM NAVIGATION BAR ===================== */}
-      <footer className="bg-[#12141D]/95 backdrop-blur-md border-t border-[#232736] px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-20 print:hidden">
+      <footer className="bg-black/95 backdrop-blur-md border-t border-zinc-800 px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-20 print:hidden">
         {/* Previous page button */}
         <button
           type="button"
           disabled={currentPage <= 0}
           onClick={() => scrollToPage(currentPage - 1)}
-          className="min-h-[42px] px-3 sm:px-4 rounded-xl bg-[#1C2030] hover:bg-[#252B42] disabled:opacity-40 disabled:pointer-events-none border border-[#2B3147] text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
+          className="min-h-[42px] px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none border border-zinc-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
           aria-label="Pagina precedente"
         >
           <ChevronLeft size={18} />
@@ -460,12 +460,12 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
         </button>
 
         {/* Page selector and quick jump */}
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-300">
+        <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
           <span>Pagina</span>
           <select
             value={currentPage}
             onChange={(e) => scrollToPage(Number(e.target.value))}
-            className="bg-[#181C2B] border border-[#2D344B] text-white rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-red-500 cursor-pointer"
+            className="bg-zinc-900 border border-zinc-700 text-white rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-white cursor-pointer"
             aria-label="Seleziona pagina del PDF"
           >
             {Array.from({ length: totalPages }).map((_, idx) => (
@@ -474,7 +474,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               </option>
             ))}
           </select>
-          <span className="text-gray-400">di {totalPages}</span>
+          <span className="text-zinc-400">di {totalPages}</span>
         </div>
 
         {/* Copy current page text & Next button */}
@@ -482,10 +482,10 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           <button
             type="button"
             onClick={handleCopyCurrentPage}
-            className="hidden sm:flex min-h-[42px] px-3 rounded-xl bg-[#1C2030] hover:bg-[#252B42] border border-[#2B3147] text-gray-300 hover:text-white font-bold text-xs items-center gap-1.5 transition-all"
+            className="hidden sm:flex min-h-[42px] px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white font-bold text-xs items-center gap-1.5 transition-all"
             title="Copia testo della pagina"
           >
-            {isCopied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+            {isCopied ? <Check size={16} className="text-white" /> : <Copy size={16} />}
             <span>{isCopied ? 'Copiato!' : 'Copia'}</span>
           </button>
 
@@ -493,7 +493,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
             type="button"
             disabled={currentPage >= totalPages - 1}
             onClick={() => scrollToPage(currentPage + 1)}
-            className="min-h-[42px] px-3 sm:px-4 rounded-xl bg-[#1C2030] hover:bg-[#252B42] disabled:opacity-40 disabled:pointer-events-none border border-[#2B3147] text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
+            className="min-h-[42px] px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none border border-zinc-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
             aria-label="Pagina successiva"
           >
             <span className="hidden sm:inline">Successiva</span>

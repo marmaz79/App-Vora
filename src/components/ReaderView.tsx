@@ -36,7 +36,7 @@ interface ReaderViewProps {
   onSwitchToPdf?: (book: Book) => void;
 }
 
-type KindleTheme = 'black-yellow' | 'cream-black' | 'dark' | 'white' | 'sepia' | 'paperwhite';
+type KindleTheme = 'black-white' | 'dark' | 'white' | 'cream-black' | 'black-yellow' | 'sepia' | 'paperwhite';
 type SleepTimerOption = 'off' | '15' | '30' | '45' | 'end-of-page';
 
 export const ReaderView: React.FC<ReaderViewProps> = ({
@@ -56,24 +56,24 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   // Kindle Display Settings (synced with settings.highContrastMode)
   const getInitialTheme = (): KindleTheme => {
     if (settings?.highContrastMode) {
-      if (settings.highContrastMode === 'black-yellow') return 'black-yellow';
+      if (settings.highContrastMode === 'black-white' || settings.highContrastMode === 'black-yellow') return 'black-white';
+      if (settings.highContrastMode === 'dark') return 'dark';
       if (settings.highContrastMode === 'cream-black') return 'cream-black';
       if (settings.highContrastMode === 'sepia') return 'sepia';
-      if (settings.highContrastMode === 'white' || settings.highContrastMode === 'black-white') return 'white';
-      if (settings.highContrastMode === 'dark') return 'dark';
+      if (settings.highContrastMode === 'white') return 'white';
     }
-    return 'dark';
+    return 'black-white';
   };
 
   const [kindleTheme, setKindleTheme] = useState<KindleTheme>(getInitialTheme);
 
   useEffect(() => {
     if (settings?.highContrastMode) {
-      if (settings.highContrastMode === 'black-yellow') setKindleTheme('black-yellow');
+      if (settings.highContrastMode === 'black-white' || settings.highContrastMode === 'black-yellow') setKindleTheme('black-white');
+      else if (settings.highContrastMode === 'dark') setKindleTheme('dark');
       else if (settings.highContrastMode === 'cream-black') setKindleTheme('cream-black');
       else if (settings.highContrastMode === 'sepia') setKindleTheme('sepia');
-      else if (settings.highContrastMode === 'white' || settings.highContrastMode === 'black-white') setKindleTheme('white');
-      else if (settings.highContrastMode === 'dark') setKindleTheme('dark');
+      else if (settings.highContrastMode === 'white') setKindleTheme('white');
     }
   }, [settings?.highContrastMode]);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'huge'>(settings.fontSize || 'normal');
@@ -399,112 +399,127 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const remainingMinutes = Math.max(1, Math.round(wordsRemaining / (140 * settings.rate)));
   const progressPercent = Math.round(((currentPage + 1) / totalPages) * 100);
 
-  // Theme styles (including high contrast black-yellow and cream-black)
+  // Theme styles (including high contrast black-white and dark)
   const themeClasses = {
-    'black-yellow': {
-      bg: 'bg-black text-[#FFE600]',
-      card: 'bg-[#080808] border-[#333333] text-[#FFE600] shadow-md',
-      pageItemActive: 'border-[#FFE600] bg-[#141400] shadow-xl ring-2 ring-[#FFE600]',
-      pageItemInactive: 'border-[#262626] bg-[#050505] hover:border-[#FFE600]/70 text-[#FFE600]',
-      header: 'bg-black/95 border-[#2A2A2A] text-[#FFE600] shadow-md backdrop-blur-md',
-      player: 'bg-[#080808] border-[#333333] text-[#FFE600] shadow-xl',
-      sliderTrack: 'bg-[#262626]',
-      accentText: 'text-[#FFE600]',
-      titleText: 'text-[#FFE600]',
-      metaText: 'text-[#E6CF00]',
-      playBtn: 'bg-[#FFE600] text-black border-4 border-[#FFE600] hover:bg-[#FFD600]',
-      btnSecondary: 'bg-[#141414] border-[#333333] hover:border-[#FFE600] text-[#FFE600] shadow-xs',
-      highlight: 'bg-[#FFE600]/25 border-l-4 border-[#FFE600] pl-3 py-1 my-2 rounded-r text-[#FFE600]',
-    },
-    'cream-black': {
-      bg: 'bg-[#FAF7EE] text-[#111111]',
-      card: 'bg-[#FFFDF9] border-[#E5DEC9] text-[#111111] shadow-sm',
-      pageItemActive: 'border-[#B45309] bg-[#F5EEDB] shadow-md ring-2 ring-[#B45309]/30',
-      pageItemInactive: 'border-[#E5DEC9] bg-[#FFFDF9] hover:border-[#C5BBA4] shadow-xs text-[#111111]',
-      header: 'bg-[#FAF7EE]/95 border-[#E5DEC9] text-[#111111] shadow-xs backdrop-blur-md',
-      player: 'bg-[#FAF7EE] border-[#E5DEC9] text-[#111111] shadow-lg',
-      sliderTrack: 'bg-[#E5DEC9]',
-      accentText: 'text-[#B45309]',
-      titleText: 'text-[#111111]',
-      metaText: 'text-[#5C5346]',
-      playBtn: 'bg-[#111111] text-[#FAF7EE] border-4 border-[#111111] hover:bg-black',
-      btnSecondary: 'bg-[#FFFDF9] border-[#E5DEC9] hover:bg-[#F2ECE1] text-[#111111] shadow-xs',
-      highlight: 'bg-[#F59E0B]/20 border-l-4 border-[#D97706] pl-3 py-1 my-2 rounded-r text-[#111111]',
-    },
-    paperwhite: {
-      bg: 'bg-[#FAF7EE] text-[#111111]',
-      card: 'bg-[#FFFDF9] border-[#E5DEC9] text-[#111111] shadow-sm',
-      pageItemActive: 'border-[#B45309] bg-[#F5EEDB] shadow-md ring-2 ring-[#B45309]/30',
-      pageItemInactive: 'border-[#E5DEC9] bg-[#FFFDF9] hover:border-[#C5BBA4] shadow-xs text-[#111111]',
-      header: 'bg-[#FAF7EE]/95 border-[#E5DEC9] text-[#111111] shadow-xs backdrop-blur-md',
-      player: 'bg-[#FAF7EE] border-[#E5DEC9] text-[#111111] shadow-lg',
-      sliderTrack: 'bg-[#E5DEC9]',
-      accentText: 'text-[#B45309]',
-      titleText: 'text-[#111111]',
-      metaText: 'text-[#5C5346]',
-      playBtn: 'bg-[#111111] text-[#FAF7EE] border-4 border-[#111111] hover:bg-black',
-      btnSecondary: 'bg-[#FFFDF9] border-[#E5DEC9] hover:bg-[#F2ECE1] text-[#111111] shadow-xs',
-      highlight: 'bg-[#F59E0B]/20 border-l-4 border-[#D97706] pl-3 py-1 my-2 rounded-r text-[#111111]',
-    },
-    white: {
-      bg: 'bg-white text-gray-900',
-      card: 'bg-white border-gray-200 text-gray-900 shadow-sm',
-      pageItemActive: 'border-red-600 bg-red-50/30 shadow-md ring-2 ring-red-500/20',
-      pageItemInactive: 'border-gray-200 bg-white hover:border-gray-300 shadow-xs',
-      header: 'bg-white/95 border-gray-200 text-gray-900 shadow-xs backdrop-blur-md',
-      player: 'bg-white border-gray-200 text-gray-900 shadow-lg',
-      sliderTrack: 'bg-gray-200',
-      accentText: 'text-red-600',
-      titleText: 'text-gray-900',
-      metaText: 'text-gray-500',
-      playBtn: 'bg-gray-900 text-white border-4 border-gray-900 hover:bg-black',
-      btnSecondary: 'bg-white border-gray-200 hover:bg-gray-50 text-gray-800 shadow-xs',
-      highlight: 'bg-amber-100 border-l-4 border-amber-500 pl-3 py-1 my-2 rounded-r text-gray-900',
-    },
-    sepia: {
-      bg: 'bg-[#FBF0D9] text-[#2C2416]',
-      card: 'bg-[#F4E6C7] border-[#DFCFAB] text-[#2C2416] shadow-sm',
-      pageItemActive: 'border-amber-700 bg-amber-100/50 shadow-md ring-2 ring-amber-600/30',
-      pageItemInactive: 'border-[#DFCFAB] bg-[#F4E6C7] hover:border-[#CDB88E] shadow-xs',
-      header: 'bg-[#FBF0D9]/95 border-[#DFCFAB] text-[#2C2416] shadow-xs backdrop-blur-md',
-      player: 'bg-[#FBF0D9] border-[#DFCFAB] text-[#2C2416] shadow-lg',
-      sliderTrack: 'bg-[#DFCFAB]',
-      accentText: 'text-amber-800',
-      titleText: 'text-[#2C2416]',
-      metaText: 'text-[#6D5A3C]',
-      playBtn: 'bg-[#3E2723] text-white border-4 border-[#3E2723] hover:bg-[#271815]',
-      btnSecondary: 'bg-[#F4E6C7] border-[#DFCFAB] hover:bg-[#EBDAB7] text-[#2C2416] shadow-xs',
-      highlight: 'bg-amber-200/70 border-l-4 border-amber-700 pl-3 py-1 my-2 rounded-r text-[#2C2416]',
+    'black-white': {
+      bg: 'bg-black text-white',
+      card: 'bg-black border-zinc-800 text-white shadow-md',
+      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
+      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
+      player: 'bg-black border-zinc-850 text-white shadow-xl',
+      sliderTrack: 'bg-zinc-800',
+      accentText: 'text-white',
+      titleText: 'text-white',
+      metaText: 'text-zinc-400',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
+      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
     },
     dark: {
       bg: 'bg-[#121212] text-white',
-      card: 'bg-[#1A1A1A] border-[#2A2A2A] text-white',
-      pageItemActive: 'border-[#FFD600] bg-[#161616] shadow-lg ring-2 ring-[#FFD600]/30',
-      pageItemInactive: 'border-[#262626] bg-[#101010] hover:border-[#444444]',
-      header: 'bg-[#121212] border-[#2A2A2A] text-white',
-      player: 'bg-[#1A1A1A] border-[#2A2A2A] text-white',
-      sliderTrack: 'bg-[#2A2A2A]',
-      accentText: 'text-[#FFD600]',
+      card: 'bg-[#1A1A1A] border-zinc-800 text-white',
+      pageItemActive: 'border-white bg-[#222222] shadow-lg ring-2 ring-white/30 text-white',
+      pageItemInactive: 'border-zinc-850 bg-[#101010] hover:border-zinc-700 text-zinc-300',
+      header: 'bg-[#121212] border-zinc-800 text-white',
+      player: 'bg-[#1A1A1A] border-zinc-800 text-white',
+      sliderTrack: 'bg-zinc-800',
+      accentText: 'text-white',
       titleText: 'text-white',
-      metaText: 'text-white/90',
-      playBtn: 'bg-white text-black border-4 border-white hover:bg-neutral-200',
-      btnSecondary: 'bg-[#222222] border-[#333333] hover:border-white text-white',
-      highlight: 'bg-[#FFD600]/20 border-l-4 border-[#FFD600] pl-3 py-1 my-2 rounded-r text-white',
+      metaText: 'text-zinc-400',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+      btnSecondary: 'bg-zinc-900 border-zinc-700 hover:border-white text-white',
+      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+    },
+    'black-yellow': {
+      bg: 'bg-black text-white',
+      card: 'bg-black border-zinc-800 text-white shadow-md',
+      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
+      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
+      player: 'bg-black border-zinc-850 text-white shadow-xl',
+      sliderTrack: 'bg-zinc-800',
+      accentText: 'text-white',
+      titleText: 'text-white',
+      metaText: 'text-zinc-400',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
+      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+    },
+    'cream-black': {
+      bg: 'bg-black text-white',
+      card: 'bg-black border-zinc-800 text-white shadow-md',
+      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
+      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
+      player: 'bg-black border-zinc-850 text-white shadow-xl',
+      sliderTrack: 'bg-zinc-800',
+      accentText: 'text-white',
+      titleText: 'text-white',
+      metaText: 'text-zinc-400',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
+      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+    },
+    paperwhite: {
+      bg: 'bg-black text-white',
+      card: 'bg-black border-zinc-800 text-white shadow-md',
+      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
+      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
+      player: 'bg-black border-zinc-850 text-white shadow-xl',
+      sliderTrack: 'bg-zinc-800',
+      accentText: 'text-white',
+      titleText: 'text-white',
+      metaText: 'text-zinc-400',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
+      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+    },
+    white: {
+      bg: 'bg-white text-black',
+      card: 'bg-white border-zinc-300 text-black shadow-sm',
+      pageItemActive: 'border-black bg-zinc-200 shadow-md ring-2 ring-black/20 text-black',
+      pageItemInactive: 'border-zinc-200 bg-white hover:border-zinc-400 shadow-xs text-zinc-800',
+      header: 'bg-white/95 border-zinc-200 text-black shadow-xs backdrop-blur-md',
+      player: 'bg-white border-zinc-200 text-black shadow-lg',
+      sliderTrack: 'bg-zinc-200',
+      accentText: 'text-black',
+      titleText: 'text-black',
+      metaText: 'text-zinc-600',
+      playBtn: 'bg-black text-white border-4 border-black hover:bg-zinc-800',
+      btnSecondary: 'bg-white border-zinc-300 hover:bg-zinc-100 text-black shadow-xs',
+      highlight: 'bg-black/10 border-l-4 border-black pl-3 py-1 my-2 rounded-r text-black',
+    },
+    sepia: {
+      bg: 'bg-black text-white',
+      card: 'bg-black border-zinc-800 text-white shadow-md',
+      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
+      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
+      player: 'bg-black border-zinc-850 text-white shadow-xl',
+      sliderTrack: 'bg-zinc-800',
+      accentText: 'text-white',
+      titleText: 'text-white',
+      metaText: 'text-zinc-400',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
+      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
     },
   }[kindleTheme] || {
-    bg: 'bg-[#121212] text-white',
-    card: 'bg-[#1A1A1A] border-[#2A2A2A] text-white',
-    pageItemActive: 'border-[#FFD600] bg-[#161616] shadow-lg ring-2 ring-[#FFD600]/30',
-    pageItemInactive: 'border-[#262626] bg-[#101010] hover:border-[#444444]',
-    header: 'bg-[#121212] border-[#2A2A2A] text-white',
-    player: 'bg-[#1A1A1A] border-[#2A2A2A] text-white',
-    sliderTrack: 'bg-[#2A2A2A]',
-    accentText: 'text-[#FFD600]',
+    bg: 'bg-black text-white',
+    card: 'bg-black border-zinc-800 text-white shadow-md',
+    pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+    pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
+    header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
+    player: 'bg-black border-zinc-850 text-white shadow-xl',
+    sliderTrack: 'bg-zinc-800',
+    accentText: 'text-white',
     titleText: 'text-white',
-    metaText: 'text-white/90',
-    playBtn: 'bg-white text-black border-4 border-white hover:bg-neutral-200',
-    btnSecondary: 'bg-[#222222] border-[#333333] hover:border-white text-white',
-    highlight: 'bg-[#FFD600]/20 border-l-4 border-[#FFD600] pl-3 py-1 my-2 rounded-r text-white',
+    metaText: 'text-zinc-400',
+    playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
+    btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
+    highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
   };
 
   const fontSizeClass = {
@@ -584,7 +599,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               aria-label="Passa alla visualizzazione PDF"
               title="Apri in PDF"
             >
-              <FileText size={17} className="text-red-400" />
+              <FileText size={17} className="text-white" />
               <span className="hidden sm:inline">Apri in PDF</span>
             </button>
           )}
@@ -637,7 +652,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         <div
           role="status"
           aria-live="polite"
-          className="bg-[#00E676]/20 border-b border-[#00E676] text-current text-xs font-bold py-1.5 px-4 text-center shrink-0"
+          className="bg-black border-b border-white text-white text-xs font-bold py-1.5 px-4 text-center shrink-0"
         >
           {enhanceNotice}
         </div>
@@ -649,7 +664,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         onScroll={handleScroll}
         tabIndex={0}
         aria-label={viewMode === 'full' ? 'Tutto il contenuto del libro' : `Contenuto di pagina ${currentPage + 1}`}
-        className="flex-1 min-h-0 overflow-y-auto w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD600] [-webkit-overflow-scrolling:touch]"
+        className="flex-1 min-h-0 overflow-y-auto w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white [-webkit-overflow-scrolling:touch]"
       >
         <div className="max-w-3xl w-full mx-auto px-4 sm:px-8 py-6 pb-36">
           {viewMode === 'full' ? (
@@ -685,16 +700,16 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     {/* Page Divider / Header */}
                     <div className="border-b pb-2 mb-4 flex justify-between items-center text-xs font-bold border-current/15">
                       <span className="uppercase tracking-wider flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${isThisPage ? 'bg-red-600' : 'bg-gray-400'}`} />
+                        <span className={`w-2.5 h-2.5 rounded-full ${isThisPage ? 'bg-white' : 'bg-zinc-600'}`} />
                         Pagina {pIdx + 1} di {totalPages}
                       </span>
                       {isThisPage && isPlaying ? (
-                        <span className="bg-red-50 border border-red-300 text-red-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 animate-pulse">
-                          <span className="w-2 h-2 rounded-full bg-red-600" />
+                        <span className="bg-white text-black text-[11px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-black animate-ping" />
                           In ascolto
                         </span>
                       ) : isThisPage ? (
-                        <span className="bg-gray-100 border border-gray-300 text-gray-800 text-[11px] font-semibold px-2 py-0.5 rounded-full">
+                        <span className="bg-zinc-900 border border-white/30 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
                           Pagina attiva
                         </span>
                       ) : (
@@ -758,7 +773,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               >
                 {isPlaying ? (
                   <div className={themeClasses.highlight}>
-                    <span className="inline-block animate-pulse mr-2 font-sans font-bold text-xs uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-700">
+                    <span className="inline-block mr-2 font-sans font-black text-xs uppercase px-1.5 py-0.5 rounded bg-white text-black">
                       In ascolto
                     </span>
                     {currentText}
@@ -797,7 +812,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 max={totalPages - 1}
                 value={currentPage}
                 onChange={(e) => changePage(parseInt(e.target.value, 10), isPlaying)}
-                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-red-600 bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-white bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 aria-label="Barra di avanzamento pagine Kindle"
                 aria-valuemin={1}
                 aria-valuemax={totalPages}
@@ -885,19 +900,19 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="toc-modal-title"
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-gray-100">
-            <div className="p-5 border-b border-[#232736] flex items-center justify-between shrink-0">
+          <div className="bg-black border border-zinc-800 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-white">
+            <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
-                <BookOpen size={22} className="text-red-500" />
+                <BookOpen size={22} className="text-white" />
                 <h3 id="toc-modal-title" className="text-lg font-bold text-white">
                   Indice Pagine ({totalPages})
                 </h3>
               </div>
               <button
                 onClick={() => setShowTocModal(false)}
-                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi indice"
               >
                 <X size={20} />
@@ -917,8 +932,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     }}
                     className={`p-3.5 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 min-h-[64px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                       isCurrent
-                        ? 'border-red-500 bg-red-950/40 shadow-xs'
-                        : 'border-[#252A3C] bg-[#161824] hover:border-gray-500 hover:bg-[#1E2235]'
+                        ? 'border-white bg-zinc-900 shadow-xs'
+                        : 'border-zinc-850 bg-black hover:border-zinc-600 hover:bg-zinc-950'
                     }`}
                   >
                     <div className="flex-1 min-w-0">
@@ -927,12 +942,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           Pagina {idx + 1}
                         </span>
                         {isCurrent && (
-                          <span className="text-[10px] font-bold uppercase bg-red-900/60 border border-red-700/60 text-red-300 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-black uppercase bg-white text-black px-2 py-0.5 rounded-full">
                             In lettura
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400 font-medium line-clamp-2 mt-1">
+                      <p className="text-xs text-zinc-400 font-medium line-clamp-2 mt-1">
                         {snippet}...
                       </p>
                     </div>
@@ -950,77 +965,61 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="display-modal-title"
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-5 text-gray-100">
-            <div className="flex items-center justify-between border-b border-[#232736] pb-4">
+          <div className="bg-black border border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col gap-5 text-white">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
               <div className="flex items-center gap-2">
-                <Type size={22} className="text-red-500" />
+                <Type size={22} className="text-white" />
                 <h3 id="display-modal-title" className="text-lg font-bold text-white">
                   Impostazioni di Lettura (Aa)
                 </h3>
               </div>
               <button
                 onClick={() => setShowDisplayModal(false)}
-                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi impostazioni schermo"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Tema di contrasto e sfondo stile Kindle */}
+            {/* Tema di contrasto e sfondo */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase text-gray-400 block">
+                <label className="text-xs font-bold uppercase text-zinc-400 block">
                   Tema di Lettura & Contrasto
                 </label>
-                <span className="text-[11px] font-bold text-gray-400">
-                  {kindleTheme === 'black-yellow'
-                    ? 'Giallo su Nero'
-                    : kindleTheme === 'cream-black' || kindleTheme === 'paperwhite'
-                    ? 'Nero su Crema'
-                    : kindleTheme === 'dark'
-                    ? 'Notte'
-                    : kindleTheme === 'sepia'
-                    ? 'Seppia'
-                    : 'Bianco'}
+                <span className="text-[11px] font-bold text-white">
+                  {kindleTheme === 'black-white' || kindleTheme === 'black-yellow'
+                    ? 'Bianco su Nero'
+                    : kindleTheme === 'white'
+                    ? 'Inverso'
+                    : 'Notte Soft'}
                 </span>
               </div>
-              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {[
                   {
-                    id: 'black-yellow' as KindleTheme,
-                    label: 'Giallo/Nero',
-                    bg: 'bg-black text-[#FFE600] border-[#333333]',
-                    checkColor: 'text-[#FFE600]',
-                  },
-                  {
-                    id: 'cream-black' as KindleTheme,
-                    label: 'Crema',
-                    bg: 'bg-[#FAF7EE] text-[#111111] border-[#E5DEC9]',
-                    checkColor: 'text-[#111111]',
+                    id: 'black-white' as KindleTheme,
+                    label: 'Bianco/Nero',
+                    bg: 'bg-black text-white border-zinc-700',
+                    checkColor: 'text-white',
                   },
                   {
                     id: 'dark' as KindleTheme,
-                    label: 'Notte',
-                    bg: 'bg-[#18181B] text-white border-neutral-700',
+                    label: 'Notte Soft',
+                    bg: 'bg-[#18181B] text-white border-zinc-700',
                     checkColor: 'text-white',
                   },
                   {
                     id: 'white' as KindleTheme,
-                    label: 'Bianco',
-                    bg: 'bg-white text-gray-900 border-gray-300',
-                    checkColor: 'text-gray-900',
-                  },
-                  {
-                    id: 'sepia' as KindleTheme,
-                    label: 'Seppia',
-                    bg: 'bg-[#FBF0D9] text-[#2C2416] border-[#DFCFAB]',
-                    checkColor: 'text-[#2C2416]',
+                    label: 'Inverso',
+                    bg: 'bg-white text-black border-zinc-300',
+                    checkColor: 'text-black',
                   },
                 ].map((th) => {
-                  const isSelected = kindleTheme === th.id || (th.id === 'cream-black' && kindleTheme === 'paperwhite');
+                  const isSelected = kindleTheme === th.id || (th.id === 'black-white' && kindleTheme === 'black-yellow');
                   return (
                     <button
                       key={th.id}
@@ -1031,7 +1030,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                         }
                       }}
                       className={`min-h-[52px] p-1.5 rounded-xl border font-bold text-[11px] flex flex-col items-center justify-center gap-1 transition-transform active:scale-95 ${th.bg} ${
-                        isSelected ? 'ring-2 ring-red-500 shadow-md font-extrabold' : 'opacity-80 hover:opacity-100'
+                        isSelected ? 'ring-2 ring-white shadow-md font-extrabold' : 'opacity-80 hover:opacity-100'
                       }`}
                       title={th.label}
                     >
@@ -1045,7 +1044,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
             {/* Dimensione Carattere */}
             <div>
-              <label className="text-xs font-bold uppercase text-gray-400 block mb-2">
+              <label className="text-xs font-bold uppercase text-zinc-400 block mb-2">
                 Dimensione Carattere
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -1063,7 +1062,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     className={`min-h-[44px] rounded-xl border font-bold text-xs transition-colors ${
                       fontSize === fs.id
                         ? 'bg-white text-black border-white shadow-xs'
-                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
+                        : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
                     <span>{fs.label}</span>
@@ -1074,7 +1073,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
             {/* Interlinea */}
             <div>
-              <label className="text-xs font-bold uppercase text-gray-400 block mb-2">
+              <label className="text-xs font-bold uppercase text-zinc-400 block mb-2">
                 Interlinea Paragrafi
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -1089,7 +1088,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     className={`min-h-[44px] rounded-xl border font-bold text-xs transition-colors ${
                       lineHeight === lh.id
                         ? 'bg-white text-black border-white shadow-xs'
-                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
+                        : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
                     <span>{lh.label}</span>
@@ -1107,26 +1106,26 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="speed-modal-title"
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-gray-100">
-            <div className="flex items-center justify-between border-b border-[#232736] pb-3">
+          <div className="bg-black border border-zinc-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-white">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
-                <Gauge size={22} className="text-red-500" />
+                <Gauge size={22} className="text-white" />
                 <h3 id="speed-modal-title" className="text-lg font-bold text-white">
                   Velocità di Narrazione
                 </h3>
               </div>
               <button
                 onClick={() => setShowSpeedModal(false)}
-                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi velocità"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 font-medium">
+            <p className="text-xs text-zinc-400 font-medium">
               Seleziona la velocità di riproduzione vocale:
             </p>
 
@@ -1140,7 +1139,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     className={`min-h-[50px] rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 ${
                       isSelected
                         ? 'bg-white text-black border-white shadow-xs'
-                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
+                        : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
                     <span>{rate}x</span>
@@ -1159,26 +1158,26 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="sleep-modal-title"
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-gray-100">
-            <div className="flex items-center justify-between border-b border-[#232736] pb-3">
+          <div className="bg-black border border-zinc-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl flex flex-col gap-4 text-white">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
-                <Moon size={22} className="text-red-500" />
+                <Moon size={22} className="text-white" />
                 <h3 id="sleep-modal-title" className="text-lg font-bold text-white">
                   Timer di Sospensione
                 </h3>
               </div>
               <button
                 onClick={() => setShowSleepModal(false)}
-                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi timer"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 font-medium">
+            <p className="text-xs text-zinc-400 font-medium">
               Ferma automaticamente la lettura dopo l'intervallo scelto:
             </p>
 
@@ -1198,7 +1197,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     className={`min-h-[48px] px-4 rounded-xl border font-bold text-xs flex items-center justify-between transition-all ${
                       isSelected
                         ? 'bg-white text-black border-white shadow-xs'
-                        : 'bg-[#161824] text-gray-300 border-[#252A3C] hover:border-gray-500 hover:bg-[#1E2235]'
+                        : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
                     <span>{opt.label}</span>
@@ -1219,10 +1218,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           aria-labelledby="voice-modal-title"
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-[#141624] border border-[#232736] rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-gray-100">
-            <div className="p-5 border-b border-[#232736] flex items-center justify-between shrink-0">
+          <div className="bg-black border border-zinc-800 rounded-3xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl text-white">
+            <div className="p-5 border-b border-zinc-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles size={22} className="text-red-500" />
+                <Sparkles size={22} className="text-white" />
                 <h3 id="voice-modal-title" className="text-lg font-bold text-white">
                   Seleziona Voce di Lettura
                 </h3>
@@ -1233,7 +1232,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   setPreviewVoiceUri(null);
                   setShowVoiceModal(false);
                 }}
-                className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
                 aria-label="Chiudi selezione voce"
               >
                 <X size={20} />
@@ -1241,8 +1240,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             </div>
 
             <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-400">
-                <Sparkles size={14} />
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-300">
+                <Sparkles size={14} className="text-white" />
                 <span>Voci AI Neurali in Italiano</span>
               </div>
 
@@ -1264,28 +1263,28 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                       }}
                       className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                         isSelected
-                          ? 'border-red-500 bg-red-950/40 shadow-xs'
-                          : 'border-[#252A3C] bg-[#161824] hover:border-gray-500 hover:bg-[#1E2235]'
+                          ? 'border-white bg-zinc-900 shadow-xs'
+                          : 'border-zinc-850 bg-black hover:border-zinc-600 hover:bg-zinc-950'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {isSelected ? (
-                          <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-xs shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0">
                             <Check size={13} className="stroke-[3]" />
                           </span>
                         ) : (
-                          <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
+                          <span className="w-5 h-5 rounded-full border border-zinc-700 shrink-0" />
                         )}
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-white truncate">
                               {v.name.split(' - ')[0]}
                             </span>
-                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#1C2030] border border-[#2B3042] text-gray-300 shrink-0">
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-300 shrink-0">
                               {v.gender}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
+                          <p className="text-xs text-zinc-400 font-medium truncate mt-0.5">
                             {v.description}
                           </p>
                         </div>
@@ -1307,8 +1306,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                         }}
                         className={`min-h-[38px] px-3 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                           isPlayingThis
-                            ? 'bg-red-600 text-white border-red-600 animate-pulse'
-                            : 'bg-[#1C2030] text-gray-200 border-[#2B3042] hover:bg-[#252B3E]'
+                            ? 'bg-white text-black border-white animate-pulse'
+                            : 'bg-zinc-900 text-white border-zinc-700 hover:bg-zinc-800'
                         }`}
                         aria-label={`Ascolta anteprima ${v.name}`}
                       >
@@ -1323,8 +1322,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               {/* System voices accordion / section */}
               {ttsService.getSystemVoices().length > 0 && (
                 <>
-                  <div className="pt-2 border-t border-[#232736] flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                    <Volume2 size={14} />
+                  <div className="pt-2 border-t border-zinc-800 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    <Volume2 size={14} className="text-white" />
                     <span>Voci di Sistema (Browser Offline)</span>
                   </div>
                   <div className="grid grid-cols-1 gap-2">
@@ -1338,17 +1337,17 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           tabIndex={0}
                           className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
                             isSelected
-                              ? 'border-red-500 bg-red-950/40 shadow-xs'
-                              : 'border-[#252A3C] bg-[#161824] hover:border-gray-500 hover:bg-[#1E2235]'
+                              ? 'border-white bg-zinc-900 shadow-xs'
+                              : 'border-zinc-850 bg-black hover:border-zinc-600 hover:bg-zinc-950'
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {isSelected ? (
-                              <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-xs shrink-0">
+                              <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0">
                                 <Check size={13} className="stroke-[3]" />
                               </span>
                             ) : (
-                              <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
+                              <span className="w-5 h-5 rounded-full border border-zinc-700 shrink-0" />
                             )}
                             <span className="text-xs font-semibold text-white truncate">
                               {v.name}

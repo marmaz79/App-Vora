@@ -51,15 +51,15 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#12141D] border border-[#232736] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-5 text-gray-100 animate-slide-up"
+        className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-5 text-white animate-slide-up"
       >
         {/* Header with Book preview */}
-        <div className="flex items-start justify-between gap-3 border-b border-[#232736] pb-4">
+        <div className="flex items-start justify-between gap-3 border-b border-zinc-800 pb-4">
           <div className="flex items-center gap-3.5 min-w-0">
             {/* Acrobat style badge */}
-            <div className="w-12 h-12 rounded-2xl bg-[#1C1418] border border-red-500/40 text-red-500 flex flex-col items-center justify-center shrink-0 shadow-md">
-              <VoraLogo size={22} variant="white" showCircle={false} className="w-5 h-5 text-red-400" />
-              <span className="text-[7.5px] font-black uppercase text-red-300 mt-0.5 tracking-wider">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-700 text-white flex flex-col items-center justify-center shrink-0 shadow-md">
+              <VoraLogo size={22} variant="white" showCircle={false} className="w-5 h-5 text-white" />
+              <span className="text-[7.5px] font-black uppercase text-white mt-0.5 tracking-wider">
                 {getFormatBadge()}
               </span>
             </div>
@@ -84,7 +84,7 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Chiudi opzioni apertura libro"
-            className="w-9 h-9 rounded-full bg-[#1C202F] text-gray-400 hover:text-white hover:bg-[#252B3E] flex items-center justify-center transition-colors shrink-0"
+            className="w-9 h-9 rounded-full bg-zinc-900 text-gray-300 hover:text-white border border-zinc-800 flex items-center justify-center transition-colors shrink-0"
           >
             <X size={18} />
           </button>
@@ -96,12 +96,12 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
           <button
             type="button"
             onClick={() => onOpenPdf(book)}
-            className="bg-[#161926] hover:bg-[#1E2338] border border-[#2B3147] hover:border-red-500/80 p-4 sm:p-5 rounded-2xl flex flex-col items-center justify-center gap-2.5 sm:gap-3 text-center transition-all active:scale-[0.97] group shadow-sm"
+            className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white p-4 sm:p-5 rounded-2xl flex flex-col items-center justify-center gap-2.5 sm:gap-3 text-center transition-all active:scale-[0.97] group shadow-sm"
           >
-            <div className="w-14 h-14 rounded-2xl bg-red-950/40 border border-red-600/40 text-red-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-red-900/50 group-hover:text-red-300 transition-all shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center group-hover:scale-105 group-hover:border-white transition-all shadow-inner">
               <FileText size={28} />
             </div>
-            <span className="text-sm sm:text-base font-bold text-white group-hover:text-red-300 transition-colors">
+            <span className="text-sm sm:text-base font-bold text-white transition-colors">
               Apri in PDF
             </span>
           </button>
@@ -110,23 +110,23 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
           <button
             type="button"
             onClick={() => onOpenReader(book)}
-            className="bg-[#161926] hover:bg-[#1E2338] border border-[#2B3147] hover:border-emerald-500/80 p-4 sm:p-5 rounded-2xl flex flex-col items-center justify-center gap-2.5 sm:gap-3 text-center transition-all active:scale-[0.97] group shadow-sm"
+            className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white p-4 sm:p-5 rounded-2xl flex flex-col items-center justify-center gap-2.5 sm:gap-3 text-center transition-all active:scale-[0.97] group shadow-sm"
           >
-            <div className="w-14 h-14 rounded-2xl bg-emerald-950/40 border border-emerald-600/40 text-emerald-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-emerald-900/50 group-hover:text-emerald-300 transition-all shadow-inner">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center group-hover:scale-105 group-hover:border-white transition-all shadow-inner">
               <BookOpen size={28} />
             </div>
-            <span className="text-sm sm:text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+            <span className="text-sm sm:text-base font-bold text-white transition-colors">
               Leggi libro
             </span>
           </button>
         </div>
 
         {/* Footer info & close */}
-        <div className="flex items-center justify-end pt-1 border-t border-[#1F2436] text-xs text-gray-400">
+        <div className="flex items-center justify-end pt-1 border-t border-zinc-800 text-xs text-gray-400">
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto text-xs font-bold text-gray-300 hover:text-white px-4 py-2 rounded-xl bg-[#1C202F] hover:bg-[#252B3E] transition-colors text-center"
+            className="w-full sm:w-auto text-xs font-bold text-black bg-white hover:bg-zinc-200 px-4 py-2 rounded-xl transition-colors text-center"
           >
             Annulla
           </button>

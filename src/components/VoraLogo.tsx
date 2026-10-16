@@ -67,7 +67,7 @@ export const VoraLogo: React.FC<VoraLogoProps> = ({
       />
       <path
         d="M32 44V50"
-        stroke="#12141C"
+        stroke="#000000"
         strokeWidth="1.5"
         strokeLinecap="round"
       />

@@ -312,7 +312,7 @@ class TtsService {
       volume: 1.0,
       autoAdvance: true,
       fontSize: 'normal',
-      highContrastMode: 'black-yellow',
+      highContrastMode: 'black-white',
     };
 
     const utterance = new SpeechSynthesisUtterance(sentenceText);

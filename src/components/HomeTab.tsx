@@ -86,7 +86,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       </div>
 
       {/* 2. TABS BAR (Recenti, Con stella, Sul dispositivo + menu ⋮) */}
-      <div className="flex items-center justify-between border-b border-[#181B22] px-2 pt-2 pb-1 relative">
+      <div className="flex items-center justify-between border-b border-zinc-800 px-2 pt-2 pb-1 relative">
         <div className="flex items-center gap-6 text-sm font-bold">
           {/* Tab Recenti */}
           <button
@@ -142,7 +142,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
               showSortMenu
                 ? 'bg-zinc-800 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-[#1E2338] active:scale-95'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95'
             }`}
           >
             <MoreVertical size={18} />
@@ -156,9 +156,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 onClick={() => setShowSortMenu(false)}
               />
 
-              <div className="absolute right-0 top-11 bg-[#12141D] border border-[#232736] rounded-2xl p-2 z-30 shadow-2xl flex flex-col gap-1 min-w-[210px] animate-fade-in select-none">
-                <div className="px-2.5 py-1.5 border-b border-[#1E2232] mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+              <div className="absolute right-0 top-11 bg-black border border-white/20 rounded-2xl p-2 z-30 shadow-2xl flex flex-col gap-1 min-w-[210px] animate-fade-in select-none">
+                <div className="px-2.5 py-1.5 border-b border-zinc-800 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white">
                     Opzioni visualizzazione
                   </span>
                 </div>
@@ -168,7 +168,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setActiveTabFilter('recenti');
                     setShowSortMenu(false);
                   }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-[#1C2030] rounded-xl transition-colors group"
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-zinc-900 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center gap-2.5">
                     <Clock size={15} className="text-white" />
@@ -184,7 +184,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setActiveTabFilter('stella');
                     setShowSortMenu(false);
                   }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-[#1C2030] rounded-xl transition-colors group"
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-zinc-900 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center gap-2.5">
                     <Star size={15} className="text-white" />
@@ -200,7 +200,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setActiveTabFilter('dispositivo');
                     setShowSortMenu(false);
                   }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-[#1C2030] rounded-xl transition-colors group"
+                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-zinc-900 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center gap-2.5">
                     <Smartphone size={15} className="text-white" />
@@ -217,7 +217,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       </div>
 
       {/* 4. DOCUMENT LIST (Stile Adobe Acrobat) */}
-      <div className="flex flex-col divide-y divide-[#181B22] mt-1">
+      <div className="flex flex-col divide-y divide-zinc-800 mt-1">
         {filteredBooks.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center gap-2 text-gray-400">
             <FileText size={38} className="text-zinc-600 mb-2" />
@@ -237,14 +237,14 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         )}
       </div>
 
-      {/* 5. FLOATING ACTION BUTTON (FAB) - Stile Azzurro con + che apre tutte le voci sotto Benvenuto */}
+      {/* 5. FLOATING ACTION BUTTON (FAB) - Stile Bianco su Nero con + */}
       {!hideFab && (
         <button
           onClick={() => setIsQuickActionsOpen((prev) => !prev)}
           aria-label={isQuickActionsOpen ? "Chiudi menu azioni" : "Apri tutte le azioni rapide"}
           aria-expanded={isQuickActionsOpen}
-          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-[#4BA3E3] hover:bg-[#3993D6] active:scale-95 text-black flex items-center justify-center shadow-2xl transition-all duration-300 ${
-            isQuickActionsOpen ? 'rotate-45 bg-red-500 hover:bg-red-600 text-white z-50' : ''
+          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-white hover:bg-zinc-200 active:scale-95 text-black flex items-center justify-center shadow-2xl transition-all duration-300 border-2 border-white ${
+            isQuickActionsOpen ? 'rotate-45 bg-white text-black z-50' : ''
           }`}
           title={isQuickActionsOpen ? "Chiudi" : "Tutte le azioni rapide (Voci sotto Benvenuto)"}
         >
@@ -258,18 +258,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-actions-title"
-          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in"
+          className="fixed inset-0 z-40 bg-black/85 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in"
           onClick={() => setIsQuickActionsOpen(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#12141C] border border-[#232736] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto"
+            className="bg-black border border-zinc-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto"
           >
             {/* Header del modale Azioni Rapide */}
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#14233D] border border-[#2684FC] flex items-center justify-center shrink-0">
-                  <Sparkles size={22} className="text-[#2684FC]" />
+                <div className="w-11 h-11 rounded-2xl bg-zinc-900 border border-white flex items-center justify-center shrink-0">
+                  <Sparkles size={22} className="text-white" />
                 </div>
                 <div>
                   <h3 id="quick-actions-title" className="text-lg font-black text-white leading-snug">
@@ -279,7 +279,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </div>
               <button
                 onClick={() => setIsQuickActionsOpen(false)}
-                className="w-9 h-9 rounded-xl bg-zinc-800 text-gray-400 flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-colors"
+                className="w-9 h-9 rounded-xl bg-zinc-900 text-gray-300 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 hover:text-white transition-colors"
                 aria-label="Chiudi azioni"
               >
                 <X size={18} />
@@ -295,24 +295,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsUploadOpen(true);
                 }}
-                className="bg-[#171B32] hover:bg-[#1E2342] border border-[#2B325B] hover:border-[#4B5699] rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#242C56] text-[#6E87FF] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <Upload size={22} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white group-hover:text-[#6E87FF] transition-colors">
+                      <span className="text-sm font-bold text-white transition-colors">
                         Carica file
                       </span>
-                      <span className="w-4 h-4 rounded-full bg-[#8E44AD] text-white flex items-center justify-center text-[9px] shadow-xs">
+                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                         👑
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#6E87FF] shrink-0 ml-2">
+                <span className="text-xs font-bold text-white shrink-0 ml-2">
                   Apri →
                 </span>
               </button>
@@ -328,24 +328,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setIsScanOpen(true);
                   }
                 }}
-                className="bg-[#09241B] hover:bg-[#0E3528] border border-[#164836] hover:border-[#226B50] rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#143B2D] text-[#2ECC71] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <Camera size={22} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white group-hover:text-[#2ECC71] transition-colors">
+                      <span className="text-sm font-bold text-white transition-colors">
                         Scansiona OCR
                       </span>
-                      <span className="w-4 h-4 rounded-full bg-[#8E44AD] text-white flex items-center justify-center text-[9px] shadow-xs">
+                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                         👑
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#2ECC71] shrink-0 ml-2">
+                <span className="text-xs font-bold text-white shrink-0 ml-2">
                   Scansiona →
                 </span>
               </button>
@@ -357,24 +357,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsScanOpen(true);
                 }}
-                className="bg-[#280D14] hover:bg-[#38131D] border border-[#4E1A27] hover:border-[#73273A] rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#401420] text-[#FF4757] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <FileText size={22} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white group-hover:text-[#FF4757] transition-colors">
+                      <span className="text-sm font-bold text-white transition-colors">
                         Crea con AI
                       </span>
-                      <span className="w-4 h-4 rounded-full bg-[#8E44AD] text-white flex items-center justify-center text-[9px] shadow-xs">
+                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                         👑
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#FF4757] shrink-0 ml-2">
+                <span className="text-xs font-bold text-white shrink-0 ml-2">
                   Crea →
                 </span>
               </button>
@@ -388,21 +388,21 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     onOpenBook(books[0]);
                   }
                 }}
-                className="bg-[#28180A] hover:bg-[#38220E] border border-[#522F13] hover:border-[#7A451C] rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#442810] text-[#FFA502] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <Volume2 size={22} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white group-hover:text-[#FFA502] transition-colors">
+                      <span className="text-sm font-bold text-white transition-colors">
                         Ascolta audio
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#FFA502] shrink-0 ml-2">
+                <span className="text-xs font-bold text-white shrink-0 ml-2">
                   Ascolta →
                 </span>
               </button>
@@ -414,24 +414,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsUploadOpen(true);
                 }}
-                className="bg-[#1C1232] hover:bg-[#271946] border border-[#3A2466] hover:border-[#543594] rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#2E1D52] text-[#9B59B6] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                     <Layers size={22} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white group-hover:text-[#9B59B6] transition-colors">
+                      <span className="text-sm font-bold text-white transition-colors">
                         Combina file
                       </span>
-                      <span className="w-4 h-4 rounded-full bg-[#8E44AD] text-white flex items-center justify-center text-[9px] shadow-xs">
+                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                         👑
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#9B59B6] shrink-0 ml-2">
+                <span className="text-xs font-bold text-white shrink-0 ml-2">
                   Combina →
                 </span>
               </button>
@@ -441,7 +441,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <button
               type="button"
               onClick={() => setIsQuickActionsOpen(false)}
-              className="w-full py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs transition-colors active:scale-98 mt-1"
+              className="w-full py-3 rounded-2xl bg-white hover:bg-zinc-200 text-black font-black text-xs transition-colors active:scale-98 mt-1"
             >
               Chiudi
             </button>

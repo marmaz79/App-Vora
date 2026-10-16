@@ -144,7 +144,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         book_id: `book-${Date.now()}`,
         owner_id: 'user-default-1',
         created_at: new Date().toISOString(),
-        coverColor: parsed.file_type === 'pdf' ? '#FFD600' : '#00E676',
+        coverColor: '#FFFFFF',
         currentPage: 0,
       };
 
@@ -189,13 +189,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="upload-modal-title"
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
     >
-      <div className="bg-[#12141C] border border-[#232736] rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-white">
+      <div className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-white">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#232736] pb-3.5">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-[#260E12] text-red-500 flex items-center justify-center border border-red-900/60 shadow-xs">
+            <div className="w-11 h-11 rounded-xl bg-zinc-900 text-white flex items-center justify-center border border-white/20 shadow-xs">
               <Upload size={24} />
             </div>
             <div>
@@ -208,7 +208,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             <button
               onClick={onClose}
               aria-label="Chiudi finestra di caricamento"
-              className="w-10 h-10 rounded-xl bg-[#1C202F] text-gray-400 flex items-center justify-center hover:bg-[#252B3E] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+              className="w-10 h-10 rounded-xl bg-zinc-900 text-zinc-400 flex items-center justify-center hover:bg-zinc-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors border border-zinc-800"
             >
               <X size={20} />
             </button>
@@ -216,8 +216,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         </div>
 
         {error && (
-          <div className="bg-[#260E12] border border-red-900/70 p-3.5 rounded-xl flex items-center gap-3 text-red-300">
-            <AlertCircle className="text-red-500 shrink-0" size={22} />
+          <div className="bg-black border border-white/40 p-3.5 rounded-xl flex items-center gap-3 text-white">
+            <AlertCircle className="text-white shrink-0" size={22} />
             <p className="text-xs font-semibold leading-relaxed">{error}</p>
           </div>
         )}
@@ -243,18 +243,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               aria-live="polite"
             >
               <div className="relative flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full border-4 border-zinc-800 border-t-red-600 animate-spin" />
-                <Loader2 className="absolute text-red-600 animate-spin" size={36} />
+                <div className="w-24 h-24 rounded-full border-4 border-zinc-800 border-t-white animate-spin" />
+                <Loader2 className="absolute text-white animate-spin" size={36} />
               </div>
 
               <div className="flex flex-col gap-2 max-w-sm">
                 <h3 className="text-2xl font-black text-white">
                   Caricamento in corso...
                 </h3>
-                <p className="text-base font-bold text-gray-200 truncate">
+                <p className="text-base font-bold text-zinc-200 truncate">
                   {loadingFileName}
                 </p>
-                <p className="text-sm font-medium text-gray-400 leading-relaxed">
+                <p className="text-sm font-medium text-zinc-400 leading-relaxed">
                   Stiamo leggendo ed estraendo le pagine del libro per la sintesi vocale.
                 </p>
               </div>
@@ -264,9 +264,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           /* Normal Controls */
           <div className="flex flex-col gap-4">
             {/* Quick Option for Scanned PDF */}
-            <div className="bg-[#161824] border border-[#2B3042] rounded-2xl p-3.5 flex items-center justify-between gap-3">
+            <div className="bg-black border border-white/20 rounded-2xl p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-[#24153B] border border-purple-500/40 text-purple-400 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/20 text-white flex items-center justify-center shrink-0">
                   <Sparkles size={20} />
                 </div>
                 <div className="min-w-0">
@@ -274,7 +274,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     <span className="text-xs font-black text-white truncate">
                       Libro PDF Scansionato?
                     </span>
-                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-purple-900/80 text-purple-200 border border-purple-500/40">
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-white border border-white/30">
                       OCR AI
                     </span>
                   </div>
@@ -284,7 +284,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <button
                 type="button"
                 onClick={() => scannedPdfInputRef.current?.click()}
-                className="bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shrink-0 flex items-center gap-1.5 shadow-md shadow-purple-950/40"
+                className="bg-white hover:bg-zinc-200 active:scale-95 text-black font-black text-xs px-3.5 py-2 rounded-xl transition-all shrink-0 flex items-center gap-1.5 shadow-md"
               >
                 <Sparkles size={14} />
                 <span>Carica PDF OCR</span>
@@ -305,7 +305,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-[#2B3042] hover:border-red-500 bg-[#161824]/60 rounded-2xl p-7 flex flex-col items-center justify-center gap-3.5 cursor-pointer transition-colors text-center group min-h-[170px]"
+              className="border-2 border-dashed border-zinc-700 hover:border-white bg-black rounded-2xl p-7 flex flex-col items-center justify-center gap-3.5 cursor-pointer transition-colors text-center group min-h-[170px]"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -325,16 +325,16 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
               <FileText
                 size={46}
-                className="text-gray-500 group-hover:text-red-500 transition-colors"
+                className="text-zinc-500 group-hover:text-white transition-colors"
               />
 
               <div>
-                <p className="text-base font-bold text-white group-hover:text-red-400">
+                <p className="text-base font-bold text-white">
                   Tocca o trascina qui il tuo file
                 </p>
               </div>
 
-              <div className="mt-1 bg-red-600 hover:bg-red-500 text-white font-bold px-5 py-2.5 rounded-xl active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-md shadow-red-900/30">
+              <div className="mt-1 bg-white hover:bg-zinc-200 text-black font-black px-5 py-2.5 rounded-xl active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-md">
                 <span>Scegli file dal dispositivo</span>
               </div>
             </div>

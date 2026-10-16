@@ -100,10 +100,10 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Modalità Griglia Documento CamScanner"
-      className="fixed inset-0 z-50 bg-[#0A0B10] text-white flex flex-col justify-between overflow-hidden select-none font-sans"
+      className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
       {/* 1. TOP BAR (Stile Esatto CamScanner) */}
-      <header className="bg-[#12141D] border-b border-[#232736] px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20 shadow-md">
+      <header className="bg-black border-b border-zinc-800 px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20 shadow-md">
         {/* Sinistra: Freccia Indietro + Titolo modificabile */}
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <button
@@ -124,7 +124,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
                 onChange={(e) => setTitleInput(e.target.value)}
                 autoFocus
                 onBlur={() => handleTitleSubmit()}
-                className="bg-[#1C202F] text-white text-xs sm:text-sm font-bold px-2 py-1 rounded-lg border border-red-500/60 focus:outline-none w-full max-w-xs"
+                className="bg-black text-white text-xs sm:text-sm font-bold px-2 py-1 rounded-lg border border-white/60 focus:outline-none w-full max-w-xs"
               />
               <button
                 type="submit"
@@ -142,10 +142,10 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
               className="flex items-center gap-1.5 cursor-pointer group min-w-0 flex-1"
               title="Tocca per rinominare il documento"
             >
-              <h2 className="text-sm sm:text-base font-bold text-white truncate max-w-[200px] sm:max-w-xs tracking-tight group-hover:text-red-400 transition-colors">
+              <h2 className="text-sm sm:text-base font-bold text-white truncate max-w-[200px] sm:max-w-xs tracking-tight group-hover:text-zinc-300 transition-colors">
                 {documentTitle}
               </h2>
-              <Pencil size={14} className="text-gray-400 group-hover:text-red-400 shrink-0 transition-colors" />
+              <Pencil size={14} className="text-zinc-400 group-hover:text-white shrink-0 transition-colors" />
             </div>
           )}
         </div>
@@ -157,14 +157,14 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             <button
               type="button"
               onClick={() => setShowTagMenu((prev) => !prev)}
-              className="px-2 sm:px-2.5 py-1 rounded-full bg-[#1C2030] hover:bg-[#252B40] border border-white/20 text-[11px] font-bold text-gray-300 hover:text-white flex items-center gap-1 transition-colors"
+              className="px-2 sm:px-2.5 py-1 rounded-full bg-black hover:bg-zinc-900 border border-white/20 text-[11px] font-bold text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
             >
-              <TagIcon size={11} className="text-gray-400" />
+              <TagIcon size={11} className="text-zinc-400" />
               <span>{selectedTag}</span>
             </button>
 
             {showTagMenu && (
-              <div className="absolute right-0 top-full mt-1.5 w-36 bg-[#161926] border border-[#2B3147] rounded-xl shadow-2xl py-1 z-30 animate-fade-in">
+              <div className="absolute right-0 top-full mt-1.5 w-36 bg-black border border-white/20 rounded-xl shadow-2xl py-1 z-30 animate-fade-in">
                 {tagsList.map((tag) => (
                   <button
                     key={tag}
@@ -187,7 +187,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             type="button"
             onClick={() => setReorderMode((prev) => !prev)}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-              reorderMode ? 'bg-red-500 text-white' : 'bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white'
+              reorderMode ? 'bg-white text-black' : 'bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white'
             }`}
             title="Riordina pagine"
             aria-label="Riordina pagine"
@@ -203,7 +203,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             className="px-2.5 py-1 bg-white hover:bg-gray-100 active:scale-95 text-black font-black text-xs rounded-full flex items-center gap-1 shadow-md transition-all disabled:opacity-50"
             title="Salva subito come PDF nella libreria"
           >
-            <span className="text-[10px] bg-red-600 text-white px-1 py-0.2 rounded font-black tracking-tight">PDF</span>
+            <span className="text-[10px] bg-black text-white border border-black px-1 py-0.2 rounded font-black tracking-tight">PDF</span>
             <span className="hidden sm:inline">Salva</span>
           </button>
 
@@ -220,7 +220,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             </button>
 
             {showMoreMenu && (
-              <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#161926] border border-[#2B3147] rounded-xl shadow-2xl py-1.5 z-30 animate-fade-in divide-y divide-white/10">
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-black border border-white/20 rounded-xl shadow-2xl py-1.5 z-30 animate-fade-in divide-y divide-white/10">
                 <div className="py-1">
                   <button
                     type="button"
@@ -267,7 +267,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
                       }
                       setShowMoreMenu(false);
                     }}
-                    className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                    className="w-full text-left px-3.5 py-2 text-xs font-bold text-white hover:bg-white/10 flex items-center gap-2"
                   >
                     <Trash2 size={14} />
                     <span>Elimina tutte le pagine</span>
@@ -281,16 +281,16 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
 
       {/* Share Toast Banner */}
       {shareSuccess && (
-        <div className="bg-emerald-600 text-white text-xs font-bold px-4 py-2 text-center shadow-lg animate-fade-in z-30">
+        <div className="bg-black text-white border-b border-white text-xs font-bold px-4 py-2 text-center shadow-lg animate-fade-in z-30">
           Documento pronto per la condivisione / esportazione!
         </div>
       )}
 
       {/* 2. BODY: GRIGLIA A 2 COLONNE (Stile Esatto Screenshot 01, 02, 03, 04) */}
-      <main className="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 bg-[#0A0B10]">
+      <main className="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 bg-black">
         <div className="max-w-2xl mx-auto w-full">
           {pages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[350px] text-center gap-4 text-gray-400 p-6 border-2 border-dashed border-[#232736] rounded-3xl">
+            <div className="flex flex-col items-center justify-center min-h-[350px] text-center gap-4 text-zinc-400 p-6 border-2 border-dashed border-zinc-800 rounded-3xl">
               <Camera size={48} className="text-gray-500 stroke-[1.5]" />
               <div>
                 <p className="text-base font-bold text-white">Nessuna pagina scansionata</p>
@@ -359,7 +359,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
                           e.stopPropagation();
                           onDeletePage(idx);
                         }}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center border border-white/40 shadow-md transition-colors"
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/85 hover:bg-zinc-800 text-white flex items-center justify-center border border-white/40 shadow-md transition-colors"
                         title="Elimina questa pagina"
                         aria-label="Elimina pagina"
                       >
@@ -410,7 +410,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
               <button
                 type="button"
                 onClick={onAddMorePages}
-                className="w-full aspect-[3/4] rounded-lg sm:rounded-xl border-2 border-dashed border-white/20 hover:border-white bg-[#12141F] hover:bg-[#1A1E2E] flex flex-col items-center justify-center gap-2.5 text-white active:scale-95 transition-all group shadow-sm"
+                className="w-full aspect-[3/4] rounded-lg sm:rounded-xl border-2 border-dashed border-white/20 hover:border-white bg-black hover:bg-zinc-950 flex flex-col items-center justify-center gap-2.5 text-white active:scale-95 transition-all group shadow-sm"
                 title="Scatta o aggiungi un'altra pagina"
               >
                 <div className="w-12 h-12 rounded-2xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center text-white border border-white/20 transition-all">
@@ -496,7 +496,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
       )}
 
       {/* 4. BOTTOM BAR CON LE 5 ICONE E NOME SOTTO (Stile Esatto Screenshot) */}
-      <footer className="bg-[#12141D] border-t border-[#232736] px-2 sm:px-4 py-2 shrink-0 z-20">
+      <footer className="bg-black border-t border-zinc-800 px-2 sm:px-4 py-2 shrink-0 z-20">
         <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1">
           {/* 1. AGGIUNGI (Fotocamera con +) */}
           <button
@@ -557,7 +557,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
           >
             <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white relative">
               <FileText size={19} className="text-white" />
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-[8px] font-black px-1 rounded text-white">W</span>
+              <span className="absolute -top-1 -right-1 bg-white text-[8px] font-black px-1 rounded text-black">W</span>
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">In Word</span>
           </button>
