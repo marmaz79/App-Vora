@@ -1,4 +1,8 @@
-import { requestGoogleDriveAccess, getGoogleAccessToken } from './firebase';
+import {
+  requestGoogleDriveAccess,
+  getGoogleDriveAccessToken,
+  clearGoogleDriveAccessToken,
+} from './firebase';
 
 export interface DriveFile {
   id: string;
@@ -14,23 +18,26 @@ export interface ListDriveFilesOptions {
   searchTerm?: string;
   folderId?: string;
   pageToken?: string;
+  forceRefresh?: boolean;
 }
 
 export const googleDriveService = {
   /**
    * Ensure user is authenticated with Google and has valid Drive access token
    */
-  async getAccessToken(): Promise<string> {
-    const existing = getGoogleAccessToken();
-    if (existing) return existing;
-    return await requestGoogleDriveAccess();
+  async getAccessToken(forceRefresh = false): Promise<string> {
+    if (!forceRefresh) {
+      const existing = getGoogleDriveAccessToken();
+      if (existing) return existing;
+    }
+    return await requestGoogleDriveAccess(forceRefresh);
   },
 
   /**
    * List files and folders from Google Drive
    */
   async listFiles(options: ListDriveFilesOptions = {}): Promise<{ files: DriveFile[]; nextPageToken?: string }> {
-    const token = await this.getAccessToken();
+    const token = await this.getAccessToken(options.forceRefresh);
 
     // Query for supported book and document files: PDF, EPUB, TXT, Google Docs, Images (OCR), and Folders
     const mimeQuery = [
@@ -71,9 +78,11 @@ export const googleDriveService = {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        // Token might have expired, request re-auth
-        throw new Error('Sessione Google Drive scaduta. Effettua nuovamente l\'accesso.');
+      if (response.status === 401 || response.status === 403) {
+        clearGoogleDriveAccessToken();
+        const errJson = await response.json().catch(() => null);
+        const detail = errJson?.error?.message || `Codice ${response.status}`;
+        throw new Error(`Permessi Google Drive non concessi (${detail}). Premi "Connetti Cloud Drive" per autorizzare.`);
       }
       const errJson = await response.json().catch(() => null);
       throw new Error(errJson?.error?.message || `Errore caricamento file Google Drive (${response.status})`);
@@ -106,6 +115,9 @@ export const googleDriveService = {
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          clearGoogleDriveAccessToken();
+        }
         throw new Error(`Impossibile esportare il documento Google Doc (${response.status})`);
       }
 
@@ -123,6 +135,9 @@ export const googleDriveService = {
     });
 
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        clearGoogleDriveAccessToken();
+      }
       throw new Error(`Impossibile scaricare il file da Google Drive (${response.status})`);
     }
 

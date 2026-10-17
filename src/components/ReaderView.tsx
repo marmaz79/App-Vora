@@ -21,6 +21,7 @@ import {
   FileText,
   Camera,
   Loader2,
+  ClipboardPaste,
 } from 'lucide-react';
 import { Book, TtsSettings } from '../types';
 import { ttsService } from '../services/ttsService';
@@ -85,6 +86,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const [showSpeedModal, setShowSpeedModal] = useState(false);
   const [showSleepModal, setShowSleepModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pasteInputText, setPasteInputText] = useState('');
+  const [pasteModalNotice, setPasteModalNotice] = useState<string | null>(null);
   const [previewVoiceUri, setPreviewVoiceUri] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
@@ -661,6 +665,23 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             <Type size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
             <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
               Caratteri
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setPasteInputText('');
+              setPasteModalNotice(null);
+              setShowPasteModal(true);
+            }}
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            aria-label="Incolla un testo copiato nel lettore"
+            title="Incolla Testo Copiato"
+          >
+            <ClipboardPaste size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
+            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+              Incolla
             </span>
           </button>
         </div>
@@ -1378,6 +1399,144 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL: INCOLLA TESTO NEL LETTORE ===================== */}
+      {showPasteModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reader-paste-title"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in select-none"
+        >
+          <div className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white max-h-[90vh] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-black border border-white/20 text-white flex items-center justify-center shrink-0">
+                  <ClipboardPaste size={20} />
+                </div>
+                <div>
+                  <h3 id="reader-paste-title" className="text-base sm:text-lg font-black text-white">
+                    Incolla Testo nel Lettore
+                  </h3>
+                  <p className="text-xs text-zinc-400 font-medium">
+                    Incolla un testo copiato per leggerlo e ascoltarlo
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasteModal(false)}
+                className="w-9 h-9 rounded-xl bg-black border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Notice */}
+            {pasteModalNotice && (
+              <div className="bg-black border border-white p-3 rounded-xl flex items-center gap-2 text-xs font-bold text-white shrink-0 animate-fade-in">
+                <Check size={16} />
+                <span>{pasteModalNotice}</span>
+              </div>
+            )}
+
+            {/* Body */}
+            <div className="flex-1 min-h-0 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      if (navigator.clipboard?.readText) {
+                        const txt = await navigator.clipboard.readText();
+                        if (txt?.trim()) {
+                          setPasteInputText(txt.trim());
+                          setPasteModalNotice('Testo dagli appunti incollato!');
+                          setTimeout(() => setPasteModalNotice(null), 3000);
+                          return;
+                        }
+                      }
+                      setPasteModalNotice('Tieni premuto nel riquadro e seleziona "Incolla"');
+                      setTimeout(() => setPasteModalNotice(null), 3500);
+                    } catch {
+                      setPasteModalNotice('Tieni premuto nel riquadro e seleziona "Incolla"');
+                      setTimeout(() => setPasteModalNotice(null), 3500);
+                    }
+                  }}
+                  className="py-2 px-3.5 rounded-xl bg-white text-black font-black text-xs hover:bg-zinc-200 active:scale-95 transition-all shadow-md flex items-center gap-1.5"
+                >
+                  <ClipboardPaste size={14} />
+                  <span>Incolla dagli appunti</span>
+                </button>
+
+                {pasteInputText && (
+                  <button
+                    type="button"
+                    onClick={() => setPasteInputText('')}
+                    className="text-xs text-zinc-400 hover:text-white underline font-semibold"
+                  >
+                    Cancella
+                  </button>
+                )}
+              </div>
+
+              <textarea
+                value={pasteInputText}
+                onChange={(e) => setPasteInputText(e.target.value)}
+                placeholder="Incolla qui il testo copiato..."
+                className="w-full flex-1 min-h-[160px] bg-black border border-white/20 focus:border-white rounded-2xl p-3.5 text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none resize-none leading-relaxed"
+              />
+
+              <div className="text-[11px] text-zinc-400 flex items-center justify-between px-1 shrink-0">
+                <span>{pasteInputText.trim() ? pasteInputText.trim().split(/\s+/).filter(Boolean).length : 0} parole</span>
+                <span>{pasteInputText.length} caratteri</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-3 border-t border-zinc-800 flex flex-col sm:flex-row items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={!pasteInputText.trim()}
+                onClick={() => {
+                  const trimmed = pasteInputText.trim();
+                  if (!trimmed) return;
+                  const newPages = [...book.pages];
+                  newPages[currentPage] = trimmed;
+                  onUpdateContent(newPages);
+                  setShowPasteModal(false);
+                  setEnhanceNotice('Testo della pagina aggiornato!');
+                  setTimeout(() => setEnhanceNotice(null), 3500);
+                }}
+                className="w-full sm:flex-1 py-2.5 rounded-xl bg-white text-black font-black text-xs hover:bg-zinc-200 active:scale-95 transition-all shadow-md disabled:opacity-40"
+              >
+                Sostituisci Pagina Attuale
+              </button>
+
+              <button
+                type="button"
+                disabled={!pasteInputText.trim()}
+                onClick={() => {
+                  const trimmed = pasteInputText.trim();
+                  if (!trimmed) return;
+                  const newSplits = fileParser.splitIntoPages(trimmed, 260);
+                  const newPages = [...book.pages, ...newSplits];
+                  onUpdateContent(newPages);
+                  setCurrentPage(book.pages.length);
+                  onPageChange(book.pages.length);
+                  setShowPasteModal(false);
+                  setEnhanceNotice('Aggiunta nuova pagina con il testo incollato!');
+                  setTimeout(() => setEnhanceNotice(null), 3500);
+                }}
+                className="w-full sm:flex-1 py-2.5 rounded-xl bg-black border border-white/30 text-white font-bold text-xs hover:bg-zinc-900 active:scale-95 transition-all disabled:opacity-40"
+              >
+                Aggiungi come Nuova Pagina
+              </button>
             </div>
           </div>
         </div>

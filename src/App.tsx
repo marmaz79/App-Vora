@@ -59,6 +59,21 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
+  // Global clipboard cache for text copied within app or web view
+  useEffect(() => {
+    const handleCopy = () => {
+      try {
+        const sel = window.getSelection()?.toString();
+        if (sel && sel.trim()) {
+          sessionStorage.setItem('vora_last_copied_text', sel.trim());
+          localStorage.setItem('vora_last_copied_text', sel.trim());
+        }
+      } catch {}
+    };
+    document.addEventListener('copy', handleCopy);
+    return () => document.removeEventListener('copy', handleCopy);
+  }, []);
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);

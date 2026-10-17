@@ -4,6 +4,7 @@ import { BookCard } from './BookCard';
 import { UploadModal } from './UploadModal';
 import { ScanModal } from './ScanModal';
 import { GoogleDriveModal } from './GoogleDriveModal';
+import { PasteAudioModal } from './PasteAudioModal';
 import { fileParser } from '../services/fileParser';
 import { pdfOcrService } from '../services/pdfOcrService';
 import {
@@ -22,6 +23,8 @@ import {
   Clock,
   Star,
   Smartphone,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 
 interface HomeTabProps {
@@ -54,12 +57,17 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isDriveOpen, setIsDriveOpen] = useState(false);
+  const [isPasteAudioOpen, setIsPasteAudioOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [activeTabFilter, setActiveTabFilter] = useState<'recenti' | 'stella' | 'dispositivo'>('recenti');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   const handleDriveFileDownloaded = async (file: File) => {
     try {
+      setImportStatus(`Importazione di "${file.name}" in corso...`);
+      setImportError(null);
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext === 'pdf') {
         const inspection = await pdfOcrService.inspectPdf(file);
@@ -70,6 +78,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             autoOptimizeAi: true,
           });
           onScanResultsReady(scanSession);
+          setImportStatus(null);
           return;
         }
       }
@@ -83,8 +92,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         currentPage: 0,
       };
       onAddBook(newBook);
+      setImportStatus(null);
     } catch (err: any) {
       console.error('Error importing from Drive in HomeTab:', err);
+      setImportError(err?.message || 'Errore durante l\'importazione del file');
+      setImportStatus(null);
     }
   };
 
@@ -112,6 +124,27 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
   return (
     <div className="flex flex-col text-white select-none animate-fade-in pb-28">
+      {/* Import status toast */}
+      {importStatus && (
+        <div className="mb-2 mx-2 p-3 rounded-xl bg-black border border-white flex items-center gap-2.5 text-xs font-bold text-white shadow-lg animate-pulse">
+          <Loader2 size={16} className="animate-spin shrink-0 text-white" />
+          <span>{importStatus}</span>
+        </div>
+      )}
+      {importError && (
+        <div className="mb-2 mx-2 p-3 rounded-xl bg-black border border-white/50 flex items-center justify-between gap-2.5 text-xs font-semibold text-white shadow-lg">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertCircle size={16} className="shrink-0 text-white" />
+            <span className="truncate">{importError}</span>
+          </div>
+          <button
+            onClick={() => setImportError(null)}
+            className="text-zinc-400 hover:text-white shrink-0 p-1"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       {/* 1. HERO GREETING (Stile Adobe Acrobat) */}
       <div className="pt-2 pb-1.5 px-2">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -320,8 +353,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </button>
             </div>
 
-            {/* Griglia di tutte le voci presenti sotto Benvenuto */}
-            <div className="flex flex-col gap-2.5">
+            {/* Griglia delle azioni rapide come icone */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 py-1">
               {/* Voce 1: Carica File */}
               <button
                 type="button"
@@ -329,25 +362,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsUploadOpen(true);
                 }}
-                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <Upload size={22} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white transition-colors">
-                        Carica file
-                      </span>
-                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                        👑
-                      </span>
-                    </div>
-                  </div>
+                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <Upload size={24} />
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
+                    👑
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-white shrink-0 ml-2">
-                  Apri →
+                <span className="text-xs font-bold text-white leading-tight">
+                  Carica file
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  PDF / Libri
                 </span>
               </button>
 
@@ -362,25 +389,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setIsScanOpen(true);
                   }
                 }}
-                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <Camera size={22} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white transition-colors">
-                        Scansiona OCR
-                      </span>
-                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                        👑
-                      </span>
-                    </div>
-                  </div>
+                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <Camera size={24} />
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
+                    👑
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-white shrink-0 ml-2">
-                  Scansiona →
+                <span className="text-xs font-bold text-white leading-tight">
+                  Scansiona OCR
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  Fotocamera
                 </span>
               </button>
 
@@ -391,25 +412,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsScanOpen(true);
                 }}
-                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <FileText size={22} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white transition-colors">
-                        Crea con AI
-                      </span>
-                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                        👑
-                      </span>
-                    </div>
-                  </div>
+                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <FileText size={24} />
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
+                    👑
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-white shrink-0 ml-2">
-                  Crea →
+                <span className="text-xs font-bold text-white leading-tight">
+                  Crea con AI
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  Genera testo
                 </span>
               </button>
 
@@ -418,26 +433,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 type="button"
                 onClick={() => {
                   setIsQuickActionsOpen(false);
-                  if (books.length > 0 && onOpenBook) {
-                    onOpenBook(books[0]);
-                  }
+                  setIsPasteAudioOpen(true);
                 }}
-                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <Volume2 size={22} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white transition-colors">
-                        Ascolta audio
-                      </span>
-                    </div>
-                  </div>
+                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <Volume2 size={24} />
                 </div>
-                <span className="text-xs font-bold text-white shrink-0 ml-2">
-                  Ascolta →
+                <span className="text-xs font-bold text-white leading-tight">
+                  Ascolta audio
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  Incolla testo
                 </span>
               </button>
 
@@ -448,25 +455,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsUploadOpen(true);
                 }}
-                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <Layers size={22} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white transition-colors">
-                        Combina file
-                      </span>
-                      <span className="w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                        👑
-                      </span>
-                    </div>
-                  </div>
+                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <Layers size={24} />
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
+                    👑
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-white shrink-0 ml-2">
-                  Combina →
+                <span className="text-xs font-bold text-white leading-tight">
+                  Combina file
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  Unisci pagine
                 </span>
               </button>
 
@@ -477,35 +478,26 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsDriveOpen(true);
                 }}
-                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 87.3 78" fill="none">
-                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
-                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
-                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
-                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
-                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
-                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
-                    </svg>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white transition-colors">
-                        Google Drive
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-zinc-900 border border-white/30 text-white font-extrabold text-[9px] uppercase">
-                        Cloud
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-400 truncate">
-                      Sfoglia e carica file PDF e libri da Drive
-                    </p>
-                  </div>
+                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 87.3 78" fill="none">
+                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
+                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
+                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
+                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
+                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
+                    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
+                  </svg>
+                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full bg-white text-black font-extrabold text-[8px] uppercase">
+                    ☁
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-white shrink-0 ml-2">
-                  Sfoglia →
+                <span className="text-xs font-bold text-white leading-tight">
+                  Google Drive
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  Cloud storage
                 </span>
               </button>
             </div>
@@ -540,6 +532,19 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         isOpen={isDriveOpen}
         onClose={() => setIsDriveOpen(false)}
         onFileDownloaded={handleDriveFileDownloaded}
+      />
+      <PasteAudioModal
+        isOpen={isPasteAudioOpen}
+        onClose={() => setIsPasteAudioOpen(false)}
+        onOpenReader={(book) => {
+          if (onOpenReader) {
+            onOpenReader(book);
+          } else if (onOpenBook) {
+            onOpenBook(book);
+          }
+        }}
+        onAddBook={onAddBook}
+        existingBooks={books}
       />
     </div>
   );

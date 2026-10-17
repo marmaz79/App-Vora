@@ -29,15 +29,23 @@ export const db = (firebaseConfig as any).firestoreDatabaseId
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 
-// Google Auth Provider configured for Firebase Google Sign-In & Google Drive integration
+// Standard Google Auth Provider for Firebase Google Sign-In with Drive read access
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-// Cache the Google OAuth access token in memory (never store in localStorage)
+// Dedicated Google Drive Provider
+export const driveProvider = new GoogleAuthProvider();
+driveProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
+driveProvider.setCustomParameters({
+  prompt: 'select_account',
+});
+
+// Cache tokens in memory (never store in localStorage)
 let cachedAccessToken: string | null = null;
+let cachedDriveAccessToken: string | null = null;
 
 export const getGoogleAccessToken = (): string | null => {
   return cachedAccessToken;
@@ -45,6 +53,18 @@ export const getGoogleAccessToken = (): string | null => {
 
 export const setGoogleAccessToken = (token: string | null) => {
   cachedAccessToken = token;
+};
+
+export const getGoogleDriveAccessToken = (): string | null => {
+  return cachedDriveAccessToken;
+};
+
+export const setGoogleDriveAccessToken = (token: string | null) => {
+  cachedDriveAccessToken = token;
+};
+
+export const clearGoogleDriveAccessToken = () => {
+  cachedDriveAccessToken = null;
 };
 
 // Standardized Firestore Error Logging and Handling
@@ -179,6 +199,7 @@ export async function signInWithGoogleFirebase(): Promise<User> {
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (credential?.accessToken) {
       cachedAccessToken = credential.accessToken;
+      cachedDriveAccessToken = credential.accessToken;
     }
     const fbUser = result.user;
     const appUser = mapFirebaseUserToAppUser(fbUser);
@@ -200,19 +221,40 @@ export async function signInWithGoogleFirebase(): Promise<User> {
 }
 
 // Request or ensure Google Drive OAuth access token
-export async function requestGoogleDriveAccess(): Promise<string> {
-  if (cachedAccessToken) {
-    return cachedAccessToken;
+export async function requestGoogleDriveAccess(forceRefresh: boolean = false): Promise<string> {
+  if (cachedDriveAccessToken && !forceRefresh) {
+    return cachedDriveAccessToken;
   }
-  const result = await signInWithPopup(auth, googleProvider);
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  if (!credential?.accessToken) {
-    throw new Error('Autorizzazione Google Drive non riuscita. Token di accesso mancante.');
+  try {
+    const result = await signInWithPopup(auth, driveProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (!credential?.accessToken) {
+      throw new Error('Autorizzazione Google Drive non riuscita: token di accesso non restituito.');
+    }
+    cachedDriveAccessToken = credential.accessToken;
+    cachedAccessToken = credential.accessToken;
+    const appUser = mapFirebaseUserToAppUser(result.user);
+    await syncUserProfile(appUser);
+    return cachedDriveAccessToken;
+  } catch (error: any) {
+    console.warn('Google Drive access error:', error);
+    clearGoogleDriveAccessToken();
+    if (error?.code === 'auth/popup-closed-by-user') {
+      throw new Error('Accesso con Google annullato. Riprova quando desideri connettere Google Drive.');
+    }
+    if (error?.code === 'auth/popup-blocked') {
+      throw new Error('Il popup di Google è stato bloccato dal browser. Consenti i popup oppure usa "Scegli da Drive sul telefono".');
+    }
+    if (
+      error?.code === 'auth/access_denied' ||
+      error?.message?.includes('access_denied') ||
+      error?.message?.includes('403') ||
+      String(error).includes('403')
+    ) {
+      throw new Error('Accesso non autorizzato. Usa "Connetti Cloud Drive" per consentire l\'accesso ai file di Google Drive o seleziona direttamente i file dal tuo dispositivo.');
+    }
+    throw error;
   }
-  cachedAccessToken = credential.accessToken;
-  const appUser = mapFirebaseUserToAppUser(result.user);
-  await syncUserProfile(appUser);
-  return cachedAccessToken;
 }
 
 // Sign out from Firebase
@@ -220,6 +262,7 @@ export async function signOutFirebase(): Promise<void> {
   try {
     await signOut(auth);
     cachedAccessToken = null;
+    cachedDriveAccessToken = null;
   } catch (error) {
     console.error('Firebase sign out error:', error);
   }
