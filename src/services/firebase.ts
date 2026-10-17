@@ -21,17 +21,31 @@ import { User } from '../types';
 // Initialize Firebase App
 export const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with specific database ID (MANDATORY in skill guidelines)
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Initialize Firestore with specific database ID (if configured)
+export const db = (firebaseConfig as any).firestoreDatabaseId
+  ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId)
+  : getFirestore(app);
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 
-// Google Auth Provider configured for Firebase Google Sign-In
+// Google Auth Provider configured for Firebase Google Sign-In & Google Drive integration
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
+
+// Cache the Google OAuth access token in memory (never store in localStorage)
+let cachedAccessToken: string | null = null;
+
+export const getGoogleAccessToken = (): string | null => {
+  return cachedAccessToken;
+};
+
+export const setGoogleAccessToken = (token: string | null) => {
+  cachedAccessToken = token;
+};
 
 // Standardized Firestore Error Logging and Handling
 export enum OperationType {
@@ -162,13 +176,16 @@ export async function syncUserProfile(user: User): Promise<void> {
 export async function signInWithGoogleFirebase(): Promise<User> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (credential?.accessToken) {
+      cachedAccessToken = credential.accessToken;
+    }
     const fbUser = result.user;
     const appUser = mapFirebaseUserToAppUser(fbUser);
     await syncUserProfile(appUser);
     return appUser;
   } catch (error: any) {
     console.error('Firebase Google Sign-In error:', error);
-    // If popup was closed by user or blocked, propagate clean error
     if (error?.code === 'auth/popup-closed-by-user') {
       throw new Error('Accesso con Google annullato.');
     }
@@ -182,10 +199,27 @@ export async function signInWithGoogleFirebase(): Promise<User> {
   }
 }
 
+// Request or ensure Google Drive OAuth access token
+export async function requestGoogleDriveAccess(): Promise<string> {
+  if (cachedAccessToken) {
+    return cachedAccessToken;
+  }
+  const result = await signInWithPopup(auth, googleProvider);
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  if (!credential?.accessToken) {
+    throw new Error('Autorizzazione Google Drive non riuscita. Token di accesso mancante.');
+  }
+  cachedAccessToken = credential.accessToken;
+  const appUser = mapFirebaseUserToAppUser(result.user);
+  await syncUserProfile(appUser);
+  return cachedAccessToken;
+}
+
 // Sign out from Firebase
 export async function signOutFirebase(): Promise<void> {
   try {
     await signOut(auth);
+    cachedAccessToken = null;
   } catch (error) {
     console.error('Firebase sign out error:', error);
   }
@@ -198,6 +232,7 @@ export function subscribeToAuthState(callback: (user: User | null) => void): () 
       const appUser = mapFirebaseUserToAppUser(fbUser);
       callback(appUser);
     } else {
+      cachedAccessToken = null;
       callback(null);
     }
   });

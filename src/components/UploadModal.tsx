@@ -5,6 +5,7 @@ import { Book, ScanSessionData } from '../types';
 import { ScanProgressCircle } from './ScanProgressCircle';
 import { OcrProgress } from '../services/tesseractOcr';
 import { pdfOcrService } from '../services/pdfOcrService';
+import { GoogleDriveModal } from './GoogleDriveModal';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const [loadingFileName, setLoadingFileName] = useState<string>('');
   const [isOcrLoading, setIsOcrLoading] = useState<boolean>(false);
   const [uploadMode, setUploadMode] = useState<'all' | 'scanned_pdf'>('all');
+  const [isDriveOpen, setIsDriveOpen] = useState<boolean>(false);
   const [ocrProgress, setOcrProgress] = useState<OcrProgress>({
     status: 'init',
     progress: 0.1,
@@ -263,6 +265,43 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         ) : (
           /* Normal Controls */
           <div className="flex flex-col gap-4">
+            {/* Google Drive Upload Option */}
+            <div className="bg-black border border-white/20 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
+                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
+                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
+                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
+                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
+                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
+                    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-black text-white truncate">
+                      Carica da Google Drive
+                    </span>
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-white border border-white/30">
+                      Drive
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-medium truncate">
+                    Sfoglia e scarica file PDF, documenti e libri dal tuo cloud
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsDriveOpen(true)}
+                className="bg-white hover:bg-zinc-200 active:scale-95 text-black font-black text-xs px-3.5 py-2 rounded-xl transition-all shrink-0 flex items-center gap-1.5 shadow-md"
+              >
+                <span>Scegli da Drive</span>
+              </button>
+            </div>
+
             {/* Quick Option for Scanned PDF */}
             <div className="bg-black border border-white/20 rounded-2xl p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -341,6 +380,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Google Drive File Explorer Modal */}
+      <GoogleDriveModal
+        isOpen={isDriveOpen}
+        onClose={() => setIsDriveOpen(false)}
+        onFileDownloaded={(file) => {
+          handleFile(file);
+        }}
+      />
     </div>
   );
 };

@@ -3,6 +3,9 @@ import { Book, ScanSessionData } from '../types';
 import { BookCard } from './BookCard';
 import { UploadModal } from './UploadModal';
 import { ScanModal } from './ScanModal';
+import { GoogleDriveModal } from './GoogleDriveModal';
+import { fileParser } from '../services/fileParser';
+import { pdfOcrService } from '../services/pdfOcrService';
 import {
   Upload,
   Camera,
@@ -50,9 +53,40 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 }) => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
+  const [isDriveOpen, setIsDriveOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [activeTabFilter, setActiveTabFilter] = useState<'recenti' | 'stella' | 'dispositivo'>('recenti');
   const [showSortMenu, setShowSortMenu] = useState(false);
+
+  const handleDriveFileDownloaded = async (file: File) => {
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext === 'pdf') {
+        const inspection = await pdfOcrService.inspectPdf(file);
+        if (inspection.isScanned && onScanResultsReady) {
+          const scanSession = await pdfOcrService.convertScannedPdf(file, {
+            engine: 'ai-vision',
+            language: 'ita',
+            autoOptimizeAi: true,
+          });
+          onScanResultsReady(scanSession);
+          return;
+        }
+      }
+      const parsed = await fileParser.parseFile(file);
+      const newBook: Book = {
+        ...parsed,
+        book_id: `book-${Date.now()}`,
+        owner_id: 'user-default-1',
+        created_at: new Date().toISOString(),
+        coverColor: '#FFFFFF',
+        currentPage: 0,
+      };
+      onAddBook(newBook);
+    } catch (err: any) {
+      console.error('Error importing from Drive in HomeTab:', err);
+    }
+  };
 
   // Filter and deduplicate books based on search query and active tab
   const filteredBooks = React.useMemo(() => {
@@ -435,6 +469,45 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   Combina →
                 </span>
               </button>
+
+              {/* Voce 6: Google Drive */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickActionsOpen(false);
+                  setIsDriveOpen(true);
+                }}
+                className="bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-white rounded-2xl p-3.5 flex items-center justify-between text-left transition-all active:scale-[0.98] group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 87.3 78" fill="none">
+                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
+                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
+                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
+                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
+                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
+                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white transition-colors">
+                        Google Drive
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded bg-zinc-900 border border-white/30 text-white font-extrabold text-[9px] uppercase">
+                        Cloud
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400 truncate">
+                      Sfoglia e carica file PDF e libri da Drive
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-white shrink-0 ml-2">
+                  Sfoglia →
+                </span>
+              </button>
             </div>
 
             {/* Pulsante Chiudi */}
@@ -462,6 +535,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         onClose={() => setIsScanOpen(false)}
         onBookAdded={onAddBook}
         onScanResultsReady={onScanResultsReady}
+      />
+      <GoogleDriveModal
+        isOpen={isDriveOpen}
+        onClose={() => setIsDriveOpen(false)}
+        onFileDownloaded={handleDriveFileDownloaded}
       />
     </div>
   );

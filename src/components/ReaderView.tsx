@@ -549,36 +549,39 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     >
       {/* ===================== KINDLE TOP BAR ===================== */}
       <header
-        className={`border-b px-3 py-2.5 flex items-center justify-between gap-2 shrink-0 z-10 transition-colors shadow-xs ${themeClasses.header}`}
+        className="border-b border-zinc-800 px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-20 bg-black text-white shadow-xs"
       >
         <button
           onClick={() => {
             ttsService.stop();
             onBack();
           }}
-          className={`min-h-[50px] min-w-[50px] rounded-xl border flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+          className="min-h-[44px] px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-white hover:text-black text-white flex items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shrink-0 active:scale-95"
           aria-label="Torna alla libreria"
+          title="Torna alla libreria"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={20} className="shrink-0" />
+          <span className="hidden sm:inline font-bold text-xs">Indietro</span>
         </button>
 
-        <div className="flex-1 min-w-0 text-center px-2">
-          <h2 className={`text-sm sm:text-base font-bold truncate flex items-center justify-center gap-1.5 ${themeClasses.titleText}`}>
+        {/* Titolo e Dettagli del Libro nel Header pulito e leggibile */}
+        <div className="flex-1 min-w-0 text-left sm:text-center px-1">
+          <h2 className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-1.5 sm:justify-center">
             <span
-              className={`${themeClasses.accentText} shrink-0 inline-flex items-center`}
+              className="text-white shrink-0 inline-flex items-center"
               title={`Tipo file: ${book.file_type.toUpperCase()}`}
             >
               {book.file_type === 'pdf' ? (
-                <FileText size={18} aria-hidden="true" />
+                <FileText size={16} aria-hidden="true" />
               ) : book.file_type === 'scan' ? (
-                <Camera size={18} aria-hidden="true" />
+                <Camera size={16} aria-hidden="true" />
               ) : (
-                <BookOpen size={18} aria-hidden="true" />
+                <BookOpen size={16} aria-hidden="true" />
               )}
             </span>
             <span className="truncate">{book.title}</span>
           </h2>
-          <p className={`text-xs font-semibold truncate ${themeClasses.metaText}`}>
+          <p className="text-xs font-semibold text-zinc-400 truncate">
             {book.author ? `${book.author} · ` : ''}
             <span>
               Pagina {currentPage + 1} di {totalPages}
@@ -586,66 +589,82 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             {book.ocr_engine ? ` · ${book.ocr_engine}` : ''}
           </p>
         </div>
+      </header>
 
-        {/* Right Kindle Tools: PDF Mode, View Mode Toggle, Indice, Audio & Aa Display */}
-        <div className="flex items-center gap-1.5 shrink-0">
+      {/* ===================== PULSANTI SOTTO LA HEADER CON TESTO BIANCO ===================== */}
+      <div className="bg-black border-b border-zinc-800 px-2 sm:px-4 py-2 shrink-0 z-10 select-none">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar">
           {onSwitchToPdf && (
             <button
+              type="button"
               onClick={() => {
                 ttsService.stop();
                 onSwitchToPdf(book);
               }}
-              className={`min-h-[50px] px-3 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+              className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Passa alla visualizzazione PDF"
               title="Apri in PDF"
             >
-              <FileText size={17} className="text-white" />
-              <span className="hidden sm:inline">Apri in PDF</span>
+              <FileText size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
+              <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+                Apri in PDF
+              </span>
             </button>
           )}
 
           <button
+            type="button"
             onClick={() => setViewMode((prev) => (prev === 'full' ? 'page' : 'full'))}
-            className={`min-h-[50px] px-3 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={viewMode === 'full' ? 'Passa alla visualizzazione per pagina singola' : 'Mostra tutto il contenuto continuo del libro'}
             title={viewMode === 'full' ? 'Visualizzazione: Tutto il contenuto (tocca per pagina singola)' : 'Visualizzazione: Pagina singola (tocca per tutto il testo)'}
           >
-            <BookOpen size={17} className={themeClasses.accentText} />
-            <span className="hidden sm:inline">
+            <BookOpen size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
+            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
               {viewMode === 'full' ? 'Tutto il testo' : 'Pag. singola'}
             </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setShowTocModal(true)}
-            className={`min-h-[50px] min-w-[50px] rounded-xl border flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label="Indice e navigazione pagine del libro"
             title="Indice Pagine"
           >
-            <List size={22} />
+            <List size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
+            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+              Indice
+            </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setShowVoiceModal(true)}
-            className={`min-h-[50px] px-3 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={`Voce AI attiva: ${settings.voiceName || 'Kore AI'}. Tocca per impostazioni voce e velocità.`}
             title="Voce e Velocità Audio"
           >
-            <Volume2 size={17} className={themeClasses.accentText} />
-            <span className="hidden sm:inline">Voce</span>
+            <Volume2 size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
+            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+              Voce
+            </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setShowDisplayModal(true)}
-            className={`min-h-[50px] px-3 rounded-xl border flex items-center gap-1 font-bold text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black ${themeClasses.btnSecondary}`}
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label="Impostazioni di visualizzazione testo e caratteri stile Kindle (Aa)"
             title="Caratteri e Tema (Aa)"
           >
-            <Type size={17} className={themeClasses.accentText} />
-            <span className="font-extrabold tracking-tight">Aa</span>
+            <Type size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
+            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+              Caratteri
+            </span>
           </button>
         </div>
-      </header>
+      </div>
 
       {/* Notice / Status bar */}
       {enhanceNotice && (

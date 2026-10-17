@@ -1,12 +1,11 @@
 {
-  "projectId": "still-eye-nsmzh",
-  "appId": "1:228544497164:web:0df589c5b71f2eaf1c9029",
-  "apiKey": "AIzaSyCiAEBQE-bzumjynagXptWDgZU22CzPOBk",
-  "authDomain": "still-eye-nsmzh.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-appvora-2aa573da-524d-4852-ad3d-5bbdc52ebe2f",
-  "storageBucket": "still-eye-nsmzh.firebasestorage.app",
-  "messagingSenderId": "228544497164",
+  "projectId": "gen-lang-client-0020181242",
+  "appId": "1:885816221733:web:9f2dead0996cc7c5351fcc",
+  "apiKey": "AIzaSyBAc1RUlaNVbHwQCpj6nDYPwTnQPszq4Bk",
+  "authDomain": "gen-lang-client-0020181242.firebaseapp.com",
+  "storageBucket": "gen-lang-client-0020181242.firebasestorage.app",
+  "messagingSenderId": "885816221733",
   "measurementId": "",
-  "oAuthClientId": "228544497164-s3gi80u6ob6t5bf5iaq9qkkn0avb47hf.apps.googleusercontent.com",
+  "oAuthClientId": "885816221733-vqoeq2seub70spuha2jihpmpbn1cr1or.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }
