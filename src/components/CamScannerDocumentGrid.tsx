@@ -195,15 +195,15 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             <ArrowUpDown size={16} />
           </button>
 
-          {/* Pulsante PDF Badge rapido in alto */}
+          {/* Pulsante PDF rapido in alto - sfondo trasparente con bordo bianco */}
           <button
             type="button"
             onClick={onSavePdfBook}
             disabled={isSaving || pages.length === 0}
-            className="px-2.5 py-1 bg-white hover:bg-gray-100 active:scale-95 text-black font-black text-xs rounded-full flex items-center gap-1 shadow-md transition-all disabled:opacity-50"
+            className="px-2.5 py-1 bg-transparent hover:bg-white/10 active:scale-95 text-white font-black text-xs rounded-full flex items-center gap-1.5 border border-white shadow-sm transition-all disabled:opacity-50"
             title="Salva subito come PDF nella libreria"
           >
-            <span className="text-[10px] bg-black text-white border border-black px-1 py-0.2 rounded font-black tracking-tight">PDF</span>
+            <span className="text-[10px] bg-white text-black px-1 py-0.2 rounded font-black tracking-tight">PDF</span>
             <span className="hidden sm:inline">Salva</span>
           </button>
 
@@ -506,7 +506,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             title="Scatta o aggiungi un'altra foto a questo documento"
             aria-label="Aggiungi"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
               <Camera size={19} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Aggiungi</span>
@@ -525,7 +525,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             title="Modifica, ritaglia e applica filtri alle pagine"
             aria-label="Modifica"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
               <Edit3 size={19} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Modifica</span>
@@ -540,7 +540,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             title="Condividi documento scansionato"
             aria-label="Condividi"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
               <Share2 size={19} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Condividi</span>
@@ -555,14 +555,14 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             title="Riconoscimento testo OCR (In Word)"
             aria-label="In Word"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white relative">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white relative">
               <FileText size={19} className="text-white" />
               <span className="absolute -top-1 -right-1 bg-white text-[8px] font-black px-1 rounded text-black">W</span>
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">In Word</span>
           </button>
 
-          {/* 5. SALVA PDF (Salva il libro nella libreria in PDF) */}
+          {/* 5. SALVA PDF - Sfondo trasparente con bordi bianchi */}
           <button
             type="button"
             onClick={onSavePdfBook}
@@ -571,8 +571,8 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             title="Salva il libro nella libreria in PDF"
             aria-label="Salva PDF"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white text-black border-2 border-white flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.45)] hover:bg-gray-100 transition-colors">
-              <Check size={22} className="text-black stroke-[3]" />
+            <div className="w-10 h-10 rounded-2xl bg-transparent text-white border-2 border-white flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.3)] hover:bg-white/15 transition-colors">
+              <Check size={22} className="text-white stroke-[3]" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-black text-white tracking-tight truncate">Salva PDF</span>
           </button>

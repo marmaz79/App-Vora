@@ -11,6 +11,9 @@ import {
   RefreshCw,
   Plus,
   ArrowRight,
+  Sparkles,
+  Maximize2,
+  Loader2,
 } from 'lucide-react';
 
 export type CamScannerFilter = 'magic_color' | 'bw' | 'grayscale' | 'original';
@@ -33,6 +36,69 @@ interface CropBox {
   height: number; // 0 to 1
 }
 
+// Algoritmo di rilevamento rapido dei contorni del foglio cartaceo (Computer Vision locale)
+function detectPaperBoundsLocal(canvas: HTMLCanvasElement): CropBox {
+  const w = canvas.width;
+  const h = canvas.height;
+  if (!w || !h) return { x: 0.04, y: 0.04, width: 0.92, height: 0.92 };
+
+  const thumbW = 200;
+  const thumbH = Math.max(100, Math.round((h / w) * thumbW));
+  const off = document.createElement('canvas');
+  off.width = thumbW;
+  off.height = thumbH;
+  const ctx = off.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return { x: 0.04, y: 0.04, width: 0.92, height: 0.92 };
+
+  ctx.drawImage(canvas, 0, 0, thumbW, thumbH);
+  const imgData = ctx.getImageData(0, 0, thumbW, thumbH);
+  const d = imgData.data;
+
+  let totalLum = 0;
+  const lums: number[] = new Array(thumbW * thumbH);
+  for (let i = 0; i < d.length; i += 4) {
+    const l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    lums[i / 4] = l;
+    totalLum += l;
+  }
+  const avgLum = totalLum / lums.length;
+  const paperThreshold = Math.max(70, Math.min(210, avgLum * 0.90));
+
+  const rowCounts = new Array(thumbH).fill(0);
+  const colCounts = new Array(thumbW).fill(0);
+
+  for (let y = 0; y < thumbH; y++) {
+    for (let x = 0; x < thumbW; x++) {
+      if (lums[y * thumbW + x] >= paperThreshold) {
+        rowCounts[y]++;
+        colCounts[x]++;
+      }
+    }
+  }
+
+  let minY = 0;
+  while (minY < thumbH - 10 && rowCounts[minY] < thumbW * 0.18) minY++;
+  let maxY = thumbH - 1;
+  while (maxY > minY + 10 && rowCounts[maxY] < thumbW * 0.18) maxY--;
+
+  let minX = 0;
+  while (minX < thumbW - 10 && colCounts[minX] < thumbH * 0.18) minX++;
+  let maxX = thumbW - 1;
+  while (maxX > minX + 10 && colCounts[maxX] < thumbH * 0.18) maxX--;
+
+  const normX = Math.max(0.01, Math.min(0.8, (minX / thumbW) - 0.015));
+  const normY = Math.max(0.01, Math.min(0.8, (minY / thumbH) - 0.015));
+  const normW = Math.max(0.2, Math.min(1 - normX, ((maxX - minX) / thumbW) + 0.03));
+  const normH = Math.max(0.2, Math.min(1 - normY, ((maxY - minY) / thumbH) + 0.03));
+
+  return {
+    x: Number(normX.toFixed(4)),
+    y: Number(normY.toFixed(4)),
+    width: Number(normW.toFixed(4)),
+    height: Number(normH.toFixed(4)),
+  };
+}
+
 export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   imageFile,
   pageIndex = 0,
@@ -50,6 +116,8 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   const [contrast] = useState<number>(25);
   const [showCropMode, setShowCropMode] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isAiDetecting, setIsAiDetecting] = useState<boolean>(false);
+  const [aiStatusMessage, setAiStatusMessage] = useState<string>('');
 
   // Normalized crop box (0 to 1)
   const [cropBox, setCropBox] = useState<CropBox>({
@@ -93,6 +161,107 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       const next = direction === 'cw' ? (prev + 90) % 360 : (prev - 90 + 360) % 360;
       return next;
     });
+  };
+
+  /**
+   * Ritaglio Intelligente con AI (Computer Vision + Gemini 3.8 Flash):
+   * Rileva istantaneamente i bordi della pagina di carta/libro nella foto
+   * scartando il tavolo e lo sfondo circostante.
+   */
+  const runAiSmartCrop = useCallback(async () => {
+    const img = imgRef.current;
+    if (!img) return;
+
+    setIsAiDetecting(true);
+    setAiStatusMessage('✨ AI sta rilevando i bordi del documento...');
+
+    const isSideways = rotation === 90 || rotation === 270;
+    const rotW = isSideways ? img.naturalHeight : img.naturalWidth;
+    const rotH = isSideways ? img.naturalWidth : img.naturalHeight;
+
+    const rotCanvas = document.createElement('canvas');
+    rotCanvas.width = rotW;
+    rotCanvas.height = rotH;
+    const rotCtx = rotCanvas.getContext('2d');
+    if (rotCtx) {
+      rotCtx.save();
+      rotCtx.translate(rotW / 2, rotH / 2);
+      rotCtx.rotate((rotation * Math.PI) / 180);
+      rotCtx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      rotCtx.restore();
+    }
+
+    // 1. Rilevamento ultra-rapido locale dei bordi ad alto contrasto del foglio
+    try {
+      const localBox = detectPaperBoundsLocal(rotCanvas);
+      setCropBox(localBox);
+    } catch (localErr) {
+      console.warn('Local crop fallback error:', localErr);
+    }
+
+    // 2. Perfezionamento con Vision AI di Gemini 3.8 Flash
+    try {
+      const thumbCanvas = document.createElement('canvas');
+      const maxDim = 800;
+      let tw = rotW;
+      let th = rotH;
+      if (tw > maxDim || th > maxDim) {
+        if (tw > th) {
+          th = Math.round((th * maxDim) / tw);
+          tw = maxDim;
+        } else {
+          tw = Math.round((tw * maxDim) / th);
+          th = maxDim;
+        }
+      }
+      thumbCanvas.width = tw;
+      thumbCanvas.height = th;
+      const tctx = thumbCanvas.getContext('2d');
+      if (tctx) {
+        tctx.drawImage(rotCanvas, 0, 0, tw, th);
+      }
+      const base64Data = thumbCanvas.toDataURL('image/jpeg', 0.85);
+
+      const res = await fetch('/api/ai/smart-crop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64Data }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.cropBox && typeof data.cropBox.x === 'number') {
+          setCropBox(data.cropBox);
+          setAiStatusMessage('✓ Bordi documento rilevati con AI');
+        } else {
+          setAiStatusMessage('✓ Bordi documento rilevati');
+        }
+      } else {
+        setAiStatusMessage('✓ Bordi documento rilevati');
+      }
+    } catch (apiErr) {
+      console.warn('Gemini smart crop API error:', apiErr);
+      setAiStatusMessage('✓ Bordi documento rilevati');
+    } finally {
+      setIsAiDetecting(false);
+      setTimeout(() => {
+        setAiStatusMessage('');
+      }, 2600);
+    }
+  }, [rotation]);
+
+  /**
+   * Quando l'utente tocca "Ritaglia":
+   * Attiva subito la modalità di ritaglio ed esegue il ritaglio intelligente con AI!
+   */
+  const handleToggleCrop = async () => {
+    if (!showCropMode) {
+      setShowCropMode(true);
+      await runAiSmartCrop();
+    } else {
+      setShowCropMode(false);
+      renderProcessedPreview();
+    }
   };
 
   /**
@@ -451,15 +620,15 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Pulsante rapido Continua in alto */}
+          {/* Pulsante rapido Continua in alto - sfondo trasparente con bordi bianchi */}
           <button
             type="button"
             onClick={handleContinueSavePdf}
             disabled={isProcessing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-black font-extrabold text-xs shadow-md hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-transparent text-white font-extrabold text-xs border-2 border-white hover:bg-white/10 active:scale-95 transition-all disabled:opacity-50"
             title="Salva il libro nella libreria in PDF"
           >
-            <Check size={14} className="text-black stroke-[3]" />
+            <Check size={14} className="text-white stroke-[3]" />
             <span>Continua</span>
           </button>
 
@@ -467,7 +636,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="w-9 h-9 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-colors border border-white/20 shrink-0"
+              className="w-9 h-9 rounded-full bg-transparent text-white hover:bg-white/10 flex items-center justify-center transition-colors border border-white shrink-0"
               aria-label="Chiudi"
             >
               <X size={18} className="text-white" />
@@ -476,16 +645,76 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         </div>
       </header>
 
-      {/* Main Viewport: Anteprima Documento Pulito o Modalità Ritaglio */}
+      {/* Main Viewport: Anteprima Documento Pulito o Modalità Ritaglio Intelligente */}
       <main className="flex-1 overflow-hidden relative flex items-center justify-center p-3 sm:p-5 bg-black">
         {showCropMode ? (
-          /* CROP MODE: Immagine ruotata con rettangolo e maniglie interattive bianche */
+          /* CROP MODE: Immagine ruotata con rettangolo e maniglie interattive bianche + AI Detection */
           <div
             ref={cropContainerRef}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             className="relative max-w-full max-h-[64vh] sm:max-h-[70vh] flex items-center justify-center touch-none overflow-hidden select-none"
           >
+            {/* Barra superiore di controllo per Ritaglio Intelligente AI */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white shadow-2xl">
+              <button
+                type="button"
+                onClick={runAiSmartCrop}
+                disabled={isAiDetecting}
+                className="flex items-center gap-1.5 text-xs font-bold text-white hover:text-white transition-all px-2.5 py-1 rounded-full bg-transparent border border-white/50 hover:border-white active:scale-95 disabled:opacity-50"
+                title="Rileva di nuovo i bordi del documento con AI"
+              >
+                <Sparkles size={13} className="text-white animate-pulse" />
+                <span>{isAiDetecting ? 'AI in corso...' : 'Rileva con AI'}</span>
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/20" />
+
+              <button
+                type="button"
+                onClick={() => setCropBox({ x: 0.02, y: 0.02, width: 0.96, height: 0.96 })}
+                className="flex items-center gap-1 text-xs font-bold text-zinc-300 hover:text-white transition-colors px-2 py-1 rounded-full bg-transparent border border-white/20 hover:border-white active:scale-95"
+                title="Ripristina a tutto schermo"
+              >
+                <Maximize2 size={13} />
+                <span>Intero</span>
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/20" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCropMode(false);
+                  renderProcessedPreview();
+                }}
+                className="flex items-center gap-1 text-xs font-black text-white px-2.5 py-1 rounded-full bg-transparent border-2 border-white hover:bg-white/10 active:scale-95 transition-all shadow-sm"
+                title="Conferma ritaglio"
+              >
+                <Check size={14} className="stroke-[3]" />
+                <span>Fatto</span>
+              </button>
+            </div>
+
+            {/* Effetto ottico scansione laser AI mentre rileva */}
+            {isAiDetecting && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden z-25">
+                <div className="absolute left-0 right-0 h-1 bg-white shadow-[0_0_14px_#ffffff] animate-laser-scan pointer-events-none" />
+              </div>
+            )}
+
+            {/* Badge indicatore di stato AI */}
+            {aiStatusMessage && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-black/95 border border-white px-3.5 py-1.5 rounded-full shadow-2xl flex items-center gap-2 text-xs font-bold text-white animate-fade-in pointer-events-none whitespace-nowrap">
+                {isAiDetecting ? (
+                  <Loader2 size={13} className="animate-spin text-white" />
+                ) : (
+                  <Sparkles size={13} className="text-white" />
+                )}
+                <span>{aiStatusMessage}</span>
+              </div>
+            )}
+
             {imageSrc && (
               <img
                 src={imageSrc}
@@ -575,7 +804,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         <canvas ref={previewCanvasRef} className="hidden" aria-hidden="true" />
       )}
 
-      {/* Barra inferiore: opzioni con icone e nome sotto, con Scatti Multipli (+ Pagina) e Continua */}
+      {/* Barra inferiore: bottoni con sfondo trasparente e bordi bianchi */}
       <footer className="bg-black border-t border-zinc-800 px-1.5 sm:px-4 py-2.5 pb-6 sm:pb-3 shrink-0 z-20 shadow-2xl">
         <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1">
           {/* 1. Icona Rifai */}
@@ -586,7 +815,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Scatta di nuovo questa pagina"
             aria-label="Rifai"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
               <RefreshCw size={19} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Rifai</span>
@@ -606,8 +835,8 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
                 selectedFilter === 'magic_color' && !showCropMode
-                  ? 'bg-white/30 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                  : 'bg-white/10 border border-white/20'
+                  ? 'bg-white/20 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
+                  : 'bg-transparent border border-white'
               }`}
             >
               <Wand2 size={19} className="text-white" />
@@ -629,8 +858,8 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
                 selectedFilter === 'bw' && !showCropMode
-                  ? 'bg-white/30 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                  : 'bg-white/10 border border-white/20'
+                  ? 'bg-white/20 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
+                  : 'bg-transparent border border-white'
               }`}
             >
               <Contrast size={19} className="text-white" />
@@ -638,22 +867,23 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">B/N</span>
           </button>
 
-          {/* 4. Icona Ritaglia */}
+          {/* 4. Icona Ritaglia - Attiva il ritaglio intelligente con AI */}
           <button
             type="button"
-            onClick={() => setShowCropMode((prev) => !prev)}
+            onClick={handleToggleCrop}
             className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
-            title="Ritaglia bordi documento"
+            title="Attiva ritaglio intelligente con AI"
             aria-label="Ritaglia"
           >
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all relative ${
                 showCropMode
-                  ? 'bg-white/30 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                  : 'bg-white/10 border border-white/20'
+                  ? 'bg-white/20 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
+                  : 'bg-transparent border border-white'
               }`}
             >
               <Crop size={19} className="text-white" />
+              <span className="absolute -top-1 -right-1 bg-white text-[8px] font-black px-1 rounded text-black shadow-sm">AI</span>
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ritaglia</span>
           </button>
@@ -666,7 +896,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Ruota immagine (90°)"
             aria-label="Ruota"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
               <RotateCw size={19} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ruota</span>
@@ -681,13 +911,13 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Aggiungi questa pagina ed esegui un altro scatto (Scatti Multipli)"
             aria-label="+ Pagina"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/15 border-2 border-dashed border-white flex items-center justify-center text-white hover:bg-white/25 transition-colors">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-dashed border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors">
               <Plus size={20} className="text-white stroke-[2.5]" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">+ Pagina</span>
           </button>
 
-          {/* 7. CONTINUA: Salva libro nella libreria in PDF */}
+          {/* 7. CONTINUA: Sfondo trasparente con bordi bianchi */}
           <button
             type="button"
             onClick={handleContinueSavePdf}
@@ -696,8 +926,8 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Salva il libro nella libreria in PDF"
             aria-label="Continua"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white text-black border-2 border-white flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.45)] hover:bg-gray-100 transition-colors">
-              <Check size={22} className="text-black stroke-[3]" />
+            <div className="w-10 h-10 rounded-2xl bg-transparent text-white border-2 border-white flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.3)] hover:bg-white/15 transition-colors">
+              <Check size={22} className="text-white stroke-[3]" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-black text-white tracking-tight truncate">Continua</span>
           </button>

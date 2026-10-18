@@ -27,3 +27,23 @@
     width: 100%;
   }
 }
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.9;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.9;
+  }
+}
+
+.animate-laser-scan {
+  animation: laserScan 2s ease-in-out infinite;
+}
+

@@ -173,13 +173,11 @@ export const BookCard: React.FC<BookCardProps> = ({
           }}
           aria-label={`Opzioni per ${book.title}`}
           aria-expanded={showOptions}
-          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-            showOptions
-              ? 'bg-zinc-800 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-zinc-900 active:scale-95'
+          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors text-white hover:bg-zinc-800 active:scale-95 ${
+            showOptions ? 'bg-zinc-800' : ''
           }`}
         >
-          <MoreVertical size={18} />
+          <MoreVertical size={18} className="text-white" />
         </button>
       </article>
 

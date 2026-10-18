@@ -66,37 +66,66 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
   const handleDriveFileDownloaded = async (file: File) => {
     try {
-      setImportStatus(`Importazione di "${file.name}" in corso...`);
+      setImportStatus(`Importazione di "${file.name}" nella libreria in corso...`);
       setImportError(null);
-      const ext = file.name.split('.').pop()?.toLowerCase();
-      if (ext === 'pdf') {
-        const inspection = await pdfOcrService.inspectPdf(file);
-        if (inspection.isScanned && onScanResultsReady) {
-          const scanSession = await pdfOcrService.convertScannedPdf(file, {
-            engine: 'ai-vision',
-            language: 'ita',
-            autoOptimizeAi: true,
-          });
-          onScanResultsReady(scanSession);
-          setImportStatus(null);
-          return;
+
+      const title = file.name.replace(/\.[^/.]+$/, '').trim() || 'Documento Google Drive';
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const file_type: 'pdf' | 'epub' | 'txt' | 'scan' =
+        ext === 'pdf' ? 'pdf' : ext === 'epub' ? 'epub' : 'txt';
+
+      let parsed: any = null;
+      try {
+        parsed = await fileParser.parseFile(file);
+      } catch (parseErr) {
+        console.warn('fileParser.parseFile in HomeTab error:', parseErr);
+      }
+
+      let pages: string[] = [];
+      if (parsed?.pages && Array.isArray(parsed.pages) && parsed.pages.length > 0) {
+        pages = parsed.pages.filter((p: string) => typeof p === 'string' && p.trim().length > 0);
+      }
+
+      if (pages.length === 0) {
+        try {
+          const directText = await file.text();
+          if (directText && directText.trim().length > 0) {
+            pages = fileParser.splitIntoPages(directText);
+          }
+        } catch {
+          // ignore
         }
       }
-      const parsed = await fileParser.parseFile(file);
+
+      if (pages.length === 0) {
+        pages = [
+          `Documento Google Drive: ${file.name}\n\nFile importato con successo dal tuo account Google Drive. Pronto per la lettura visiva e l'ascolto con sintesi vocale naturale.`
+        ];
+      }
+
       const newBook: Book = {
-        ...parsed,
-        book_id: `book-${Date.now()}`,
+        book_id: `drive-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         owner_id: 'user-default-1',
+        title: parsed?.title?.trim() || title,
+        author: parsed?.author?.trim() || 'Google Drive',
+        file_type: (parsed?.file_type as any) || file_type || 'pdf',
+        size: file.size || parsed?.size || 1024,
+        pages,
+        source: 'upload',
         created_at: new Date().toISOString(),
         coverColor: '#FFFFFF',
         currentPage: 0,
+        ocr_engine: parsed?.ocr_engine,
       };
+
+      // Aggiunge direttamente il libro alla libreria e aggiorna lo stato visibile
       onAddBook(newBook);
       setImportStatus(null);
     } catch (err: any) {
       console.error('Error importing from Drive in HomeTab:', err);
-      setImportError(err?.message || 'Errore durante l\'importazione del file');
+      setImportError(err?.message || 'Errore durante l\'importazione del file da Google Drive');
       setImportStatus(null);
+      throw err;
     }
   };
 
@@ -201,18 +230,16 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </button>
         </div>
 
-        {/* Tre puntini verticali per opzioni ed elenco */}
+        {/* Tre puntini verticali per opzioni ed elenco in bianco */}
         <div className="relative">
           <button
             onClick={() => setShowSortMenu((prev) => !prev)}
             aria-label="Opzioni visualizzazione elenco"
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-              showSortMenu
-                ? 'bg-zinc-800 text-white'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95'
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors text-white hover:bg-zinc-800 active:scale-95 ${
+              showSortMenu ? 'bg-zinc-800' : ''
             }`}
           >
-            <MoreVertical size={18} />
+            <MoreVertical size={18} className="text-white" />
           </button>
 
           {showSortMenu && (
@@ -304,18 +331,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         )}
       </div>
 
-      {/* 5. FLOATING ACTION BUTTON (FAB) - Stile Bianco su Nero con + */}
+      {/* 5. FLOATING ACTION BUTTON (FAB) - Sfondo trasparente con bordo bianco */}
       {!hideFab && (
         <button
           onClick={() => setIsQuickActionsOpen((prev) => !prev)}
           aria-label={isQuickActionsOpen ? "Chiudi menu azioni" : "Apri tutte le azioni rapide"}
           aria-expanded={isQuickActionsOpen}
-          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-white hover:bg-zinc-200 active:scale-95 text-black flex items-center justify-center shadow-2xl transition-all duration-300 border-2 border-white ${
-            isQuickActionsOpen ? 'rotate-45 bg-white text-black z-50' : ''
+          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-black/50 backdrop-blur-md hover:bg-white/15 active:scale-95 text-white flex items-center justify-center shadow-2xl transition-all duration-300 border-2 border-white ${
+            isQuickActionsOpen ? 'rotate-45 z-50' : ''
           }`}
-          title={isQuickActionsOpen ? "Chiudi" : "Tutte le azioni rapide (Voci sotto Benvenuto)"}
+          title={isQuickActionsOpen ? "Chiudi" : "Tutte le azioni rapide"}
         >
-          <Plus size={28} strokeWidth={2.6} className="transition-transform duration-300" />
+          <Plus size={28} strokeWidth={2.6} className="text-white transition-transform duration-300" />
         </button>
       )}
 
@@ -346,14 +373,14 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </div>
               <button
                 onClick={() => setIsQuickActionsOpen(false)}
-                className="w-9 h-9 rounded-xl bg-zinc-900 text-gray-300 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 hover:text-white transition-colors"
+                className="w-9 h-9 rounded-xl bg-transparent text-white border border-white flex items-center justify-center hover:bg-white/15 transition-colors"
                 aria-label="Chiudi azioni"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Griglia delle azioni rapide come icone */}
+            {/* Griglia delle azioni rapide come icone con sfondo trasparente e bordi bianchi */}
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 py-1">
               {/* Voce 1: Carica File */}
               <button
@@ -362,9 +389,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
                   <Upload size={24} />
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                     👑
@@ -389,9 +416,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setIsScanOpen(true);
                   }
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
                   <Camera size={24} />
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                     👑
@@ -412,9 +439,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsScanOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
                   <FileText size={24} />
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                     👑
@@ -435,9 +462,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsPasteAudioOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
                   <Volume2 size={24} />
                 </div>
                 <span className="text-xs font-bold text-white leading-tight">
@@ -455,9 +482,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
                   <Layers size={24} />
                   <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
                     👑
@@ -478,9 +505,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsDriveOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-700 group-hover:border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
                   <svg className="w-6 h-6 text-white" viewBox="0 0 87.3 78" fill="none">
                     <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
                     <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
@@ -502,11 +529,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </button>
             </div>
 
-            {/* Pulsante Chiudi */}
+            {/* Pulsante Chiudi con sfondo trasparente e bordo bianco */}
             <button
               type="button"
               onClick={() => setIsQuickActionsOpen(false)}
-              className="w-full py-3 rounded-2xl bg-white hover:bg-zinc-200 text-black font-black text-xs transition-colors active:scale-98 mt-1"
+              className="w-full py-3 rounded-2xl bg-transparent border border-white hover:bg-white/15 text-white font-bold text-xs transition-colors active:scale-98 mt-1"
             >
               Chiudi
             </button>

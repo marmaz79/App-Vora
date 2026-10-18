@@ -40,7 +40,11 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
 
       const matchesFormat =
         selectedFormat === 'all' ||
-        (selectedFormat === 'scan' ? b.file_type === 'scan' : b.file_type === selectedFormat);
+        (selectedFormat === 'scan'
+          ? b.file_type === 'scan'
+          : selectedFormat === 'drive'
+          ? b.author?.toLowerCase().includes('drive') || b.book_id.startsWith('drive-')
+          : b.file_type === selectedFormat);
 
       return matchesQuery && matchesFormat;
     });
@@ -48,9 +52,11 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
 
   const formats = [
     { id: 'all', label: 'Tutti' },
-    { id: 'epub', label: 'EPUB' },
     { id: 'pdf', label: 'PDF' },
+    { id: 'epub', label: 'EPUB' },
     { id: 'scan', label: 'Scansioni' },
+    { id: 'txt', label: 'Testo' },
+    { id: 'drive', label: 'Google Drive' },
   ];
 
   return (

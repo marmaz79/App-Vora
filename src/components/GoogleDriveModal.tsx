@@ -24,7 +24,7 @@ import {
 interface GoogleDriveModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileDownloaded: (file: File) => void;
+  onFileDownloaded: (file: File) => Promise<void> | void;
 }
 
 export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
@@ -45,11 +45,21 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getGoogleDriveAccessToken());
   const deviceFileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleDeviceFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDeviceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      onFileDownloaded(file);
-      onClose();
+      setDownloadingFileId('device-file');
+      setDownloadStatus(`Importazione di "${file.name}" nella libreria...`);
+      try {
+        await onFileDownloaded(file);
+        onClose();
+      } catch (err: any) {
+        console.error('Error importing device Drive file:', err);
+        setError(err?.message || 'Errore durante l\'importazione del file.');
+      } finally {
+        setDownloadingFileId(null);
+        setDownloadStatus('');
+      }
     }
   };
 
@@ -139,11 +149,12 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
       const downloadedFile = await googleDriveService.downloadFile(file, (msg) => {
         setDownloadStatus(msg);
       });
-      onFileDownloaded(downloadedFile);
+      setDownloadStatus(`Salvataggio di "${downloadedFile.name}" nella libreria...`);
+      await onFileDownloaded(downloadedFile);
       onClose();
     } catch (err: any) {
-      console.error('Error downloading Drive file:', err);
-      setError(err?.message || 'Errore durante lo scaricamento del file da Google Drive.');
+      console.error('Error downloading or importing Drive file:', err);
+      setError(err?.message || 'Errore durante lo scaricamento o l\'importazione del file da Google Drive.');
     } finally {
       setDownloadingFileId(null);
       setDownloadStatus('');

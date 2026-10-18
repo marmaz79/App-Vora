@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, FileText, AlertCircle, Loader2, Sparkles, BookOpen, Camera } from 'lucide-react';
+import { Upload, X, FileText, AlertCircle, Loader2, Sparkles, BookOpen, Camera, Cloud } from 'lucide-react';
 import { fileParser } from '../services/fileParser';
 import { Book, ScanSessionData } from '../types';
 import { ScanProgressCircle } from './ScanProgressCircle';
@@ -186,179 +186,225 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDriveImport = async (file: File) => {
+    setError(null);
+    setLoading(true);
+    setLoadingFileName(file.name);
+    try {
+      const title = file.name.replace(/\.[^/.]+$/, '').trim() || 'Documento Google Drive';
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const file_type: 'pdf' | 'epub' | 'txt' | 'scan' =
+        ext === 'pdf' ? 'pdf' : ext === 'epub' ? 'epub' : 'txt';
+
+      let parsed: any = null;
+      try {
+        parsed = await fileParser.parseFile(file, (prog) => {
+          setOcrProgress(prog);
+        });
+      } catch (err) {
+        console.warn('fileParser error in UploadModal Drive import:', err);
+      }
+
+      let pages: string[] = [];
+      if (parsed?.pages && Array.isArray(parsed.pages) && parsed.pages.length > 0) {
+        pages = parsed.pages.filter((p: string) => typeof p === 'string' && p.trim().length > 0);
+      }
+
+      if (pages.length === 0) {
+        try {
+          const text = await file.text();
+          if (text && text.trim().length > 0) {
+            pages = fileParser.splitIntoPages(text);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (pages.length === 0) {
+        pages = [
+          `Documento Google Drive: ${file.name}\n\nFile importato con successo dal tuo account Google Drive. Pronto per la lettura visiva e l'ascolto vocale.`
+        ];
+      }
+
+      const newBook: Book = {
+        book_id: `drive-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        owner_id: 'user-default-1',
+        title: parsed?.title?.trim() || title,
+        author: parsed?.author?.trim() || 'Google Drive',
+        file_type: parsed?.file_type || file_type,
+        size: file.size || parsed?.size || 1024,
+        pages,
+        source: 'upload',
+        created_at: new Date().toISOString(),
+        coverColor: '#FFFFFF',
+        currentPage: 0,
+        ocr_engine: parsed?.ocr_engine,
+      };
+
+      onBookAdded(newBook);
+      setIsDriveOpen(false);
+      onClose();
+    } catch (err: any) {
+      console.error('Error in handleDriveImport in UploadModal:', err);
+      setError(err?.message || 'Errore durante l\'importazione del file da Google Drive.');
+    } finally {
+      setLoading(false);
+      setLoadingFileName('');
+    }
+  };
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="upload-modal-title"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3.5 sm:p-5 animate-fade-in select-none"
     >
-      <div className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-white">
+      <div className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl flex flex-col gap-4 text-white max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-zinc-900 text-white flex items-center justify-center border border-white/20 shadow-xs">
-              <Upload size={24} />
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-black border border-white/20 flex items-center justify-center text-white">
+              <Upload size={20} className="text-white" />
             </div>
             <div>
-              <h2 id="upload-modal-title" className="text-xl font-black text-white">
-                Carica Libro
+              <h2 id="upload-modal-title" className="text-base sm:text-lg font-black text-white">
+                {uploadMode === 'scanned_pdf' ? 'Carica PDF Scansionato' : 'Carica Libro o Documento'}
               </h2>
+              <p className="text-xs text-zinc-400">
+                {uploadMode === 'scanned_pdf'
+                  ? 'Estrai testo con OCR AI avanzato da scansioni PDF'
+                  : 'PDF, EPUB, TXT, Immagini o Google Drive'}
+              </p>
             </div>
           </div>
-          {!loading && (
-            <button
-              onClick={onClose}
-              aria-label="Chiudi finestra di caricamento"
-              className="w-10 h-10 rounded-xl bg-zinc-900 text-zinc-400 flex items-center justify-center hover:bg-zinc-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors border border-zinc-800"
-            >
-              <X size={20} />
-            </button>
-          )}
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-colors shrink-0"
+            aria-label="Chiudi"
+          >
+            <X size={18} />
+          </button>
         </div>
 
+        {/* Error message */}
         {error && (
-          <div className="bg-black border border-white/40 p-3.5 rounded-xl flex items-center gap-3 text-white">
-            <AlertCircle className="text-white shrink-0" size={22} />
-            <p className="text-xs font-semibold leading-relaxed">{error}</p>
+          <div className="p-3 bg-black border border-white/50 rounded-xl text-white text-xs flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0 text-white" />
+            <span>{error}</span>
           </div>
         )}
 
-        {/* LOADING CIRCLE (Cerchio Loading) */}
+        {/* Loading state with ScanProgressCircle */}
         {loading ? (
-          isOcrLoading ? (
+          <div className="py-6 flex flex-col items-center justify-center">
             <ScanProgressCircle
               progress={ocrProgress.progress}
-              message={ocrProgress.message || 'Scansione OCR del libro PDF in corso...'}
-              engine="Gemini AI Vision"
+              status={ocrProgress.status}
+              message={ocrProgress.message}
               fileName={loadingFileName}
-              subtitle="Trascrizione ad alta precisione e conversione in testo modificabile"
-              onCancel={() => {
-                setLoading(false);
-                setIsOcrLoading(false);
-              }}
             />
-          ) : (
-            <div
-              className="py-12 px-4 flex flex-col items-center justify-center text-center gap-6"
-              role="status"
-              aria-live="polite"
-            >
-              <div className="relative flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full border-4 border-zinc-800 border-t-white animate-spin" />
-                <Loader2 className="absolute text-white animate-spin" size={36} />
-              </div>
-
-              <div className="flex flex-col gap-2 max-w-sm">
-                <h3 className="text-2xl font-black text-white">
-                  Caricamento in corso...
-                </h3>
-                <p className="text-base font-bold text-zinc-200 truncate">
-                  {loadingFileName}
-                </p>
-                <p className="text-sm font-medium text-zinc-400 leading-relaxed">
-                  Stiamo leggendo ed estraendo le pagine del libro per la sintesi vocale.
-                </p>
-              </div>
-            </div>
-          )
+          </div>
         ) : (
-          /* Normal Controls */
           <div className="flex flex-col gap-4">
             {/* Google Drive Upload Option */}
-            <div className="bg-black border border-white/20 rounded-2xl p-3.5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
-                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
-                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
-                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
-                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
-                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
-                    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-black text-white truncate">
-                      Carica da Google Drive
-                    </span>
-                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-white border border-white/30">
-                      Drive
-                    </span>
+            <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-black border border-white/20 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
+                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
+                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
+                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
+                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
+                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
+                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
+                    </svg>
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-medium truncate">
-                    Sfoglia e scarica file PDF, documenti e libri dal tuo cloud
-                  </p>
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                      <span>Carica da Google Drive</span>
+                      <span className="text-[10px] bg-white text-black font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                        Drive
+                      </span>
+                    </h3>
+                    <p className="text-xs text-zinc-400">
+                      Importa e aggiungi subito alla libreria da Drive
+                    </p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDriveOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-transparent border border-white hover:bg-white/10 active:scale-95 text-xs font-bold text-white transition-all shrink-0 flex items-center gap-1.5"
+                >
+                  <Cloud size={14} />
+                  <span>Scegli da Drive</span>
+                </button>
               </div>
+            </div>
 
+            {/* Modalità Upload File Locale */}
+            <div className="flex items-center gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl">
               <button
                 type="button"
-                onClick={() => setIsDriveOpen(true)}
-                className="bg-white hover:bg-zinc-200 active:scale-95 text-black font-black text-xs px-3.5 py-2 rounded-xl transition-all shrink-0 flex items-center gap-1.5 shadow-md"
+                onClick={() => setUploadMode('all')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  uploadMode === 'all'
+                    ? 'bg-white text-black shadow-sm font-black'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
               >
-                <span>Scegli da Drive</span>
+                <BookOpen size={14} />
+                <span>Libri & Documenti</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setUploadMode('scanned_pdf')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  uploadMode === 'scanned_pdf'
+                    ? 'bg-white text-black shadow-sm font-black'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Camera size={14} />
+                <span>PDF Scansionati (OCR)</span>
               </button>
             </div>
 
-            {/* Quick Option for Scanned PDF */}
-            <div className="bg-black border border-white/20 rounded-2xl p-3.5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/20 text-white flex items-center justify-center shrink-0">
-                  <Sparkles size={20} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-black text-white truncate">
-                      Libro PDF Scansionato?
-                    </span>
-                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-white border border-white/30">
-                      OCR AI
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => scannedPdfInputRef.current?.click()}
-                className="bg-white hover:bg-zinc-200 active:scale-95 text-black font-black text-xs px-3.5 py-2 rounded-xl transition-all shrink-0 flex items-center gap-1.5 shadow-md"
-              >
-                <Sparkles size={14} />
-                <span>Carica PDF OCR</span>
-              </button>
-            </div>
-
-            {/* Hidden Input specifically for Scanned PDF */}
-            <input
-              ref={scannedPdfInputRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              onChange={handleScannedPdfInputChange}
-              className="hidden"
-            />
-
-            {/* Normal Drop Zone / File Picker */}
+            {/* Dropzone locale */}
             <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-zinc-700 hover:border-white bg-black rounded-2xl p-7 flex flex-col items-center justify-center gap-3.5 cursor-pointer transition-colors text-center group min-h-[170px]"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+              onClick={() => {
+                if (uploadMode === 'scanned_pdf') {
+                  scannedPdfInputRef.current?.click();
+                } else {
                   fileInputRef.current?.click();
                 }
               }}
-              aria-label="Seleziona un file PDF, PDF scansionato, EPUB o TXT dal tuo dispositivo"
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              className="border-2 border-dashed border-zinc-700 hover:border-white rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-zinc-950/40 hover:bg-zinc-900/40 text-center group"
             >
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".pdf,.epub,.txt,.jpg,.jpeg,.png,.webp,text/plain,application/pdf,image/*"
                 onChange={handleInputChange}
+                className="hidden"
+              />
+              <input
+                ref={scannedPdfInputRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFile(file, true);
+                }}
                 className="hidden"
               />
 
@@ -385,9 +431,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       <GoogleDriveModal
         isOpen={isDriveOpen}
         onClose={() => setIsDriveOpen(false)}
-        onFileDownloaded={(file) => {
-          handleFile(file);
-        }}
+        onFileDownloaded={handleDriveImport}
       />
     </div>
   );

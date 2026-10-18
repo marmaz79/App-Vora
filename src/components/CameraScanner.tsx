@@ -857,7 +857,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Scegli dalla galleria"
               aria-label="Galleria"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
                 <ImageIcon size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Galleria</span>
@@ -889,7 +889,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Fotocamera di sistema"
               aria-label="Fotocamera"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
                 <SwitchCamera size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Fotocamera</span>
@@ -903,7 +903,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Carica PDF scansionato"
               aria-label="PDF OCR"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
                 <FileText size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">PDF OCR</span>

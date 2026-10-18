@@ -190,6 +190,7 @@ export function App() {
   const handleAddBook = useCallback((book: Book) => {
     const updated = storageService.addBook(book);
     setBooks(updated);
+    setSearchQuery('');
     setCurrentTab('library');
     showToast(`Libro "${book.title}" aggiunto alla libreria!`);
   }, [showToast]);

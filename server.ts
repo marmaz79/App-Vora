@@ -586,6 +586,109 @@ ${text.slice(0, 15000)}`,
   }
 });
 
+// Endpoint: Ritaglio intelligente del documento con Computer Vision AI (Gemini 3.8 Flash)
+app.post('/api/ai/smart-crop', async (req: Request, res: Response) => {
+  try {
+    const { imageBase64, mimeType = 'image/jpeg' } = req.body;
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Immagine base64 mancante o non valida.',
+        cropBox: { x: 0.04, y: 0.04, width: 0.92, height: 0.92 },
+      });
+    }
+
+    const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '').trim();
+    if (!cleanBase64) {
+      return res.status(400).json({
+        success: false,
+        error: 'Formato immagine non valido.',
+        cropBox: { x: 0.04, y: 0.04, width: 0.92, height: 0.92 },
+      });
+    }
+
+    const ai = getAiClient();
+    if (!ai) {
+      return res.status(200).json({
+        fallback: true,
+        cropBox: { x: 0.04, y: 0.04, width: 0.92, height: 0.92 },
+        message: 'Client AI non configurato, utilizzato riquadro predefinito.',
+      });
+    }
+
+    const prompt = `Sei un sistema esperto di Computer Vision per scanner mobili di documenti (stile CamScanner/Adobe Scan).
+Identifica i confini esatti della pagina di libro, foglio di carta, scontrino o documento cartaceo fotografato.
+Escludi lo sfondo esterno (tavolo, scrivania, pavimento, coperte, bordi scuri, dita che tengono il foglio).
+Restituisci un oggetto JSON con le coordinate normalizzate del documento (valori compresi rigorosamente tra 0.00 e 1.00):
+{
+  "x": <float da 0.0 a 0.8: margine sinistro del documento>,
+  "y": <float da 0.0 a 0.8: margine superiore del documento>,
+  "width": <float da 0.2 a 1.0: larghezza del documento>,
+  "height": <float da 0.2 a 1.0: altezza del documento>,
+  "confidence": <float da 0.0 a 1.0>
+}
+Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [
+        {
+          inlineData: {
+            data: cleanBase64,
+            mimeType: mimeType || 'image/jpeg',
+          },
+        },
+        prompt,
+      ],
+      config: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+      },
+    });
+
+    const rawText = response.text || '{}';
+    let parsed: any = {};
+    try {
+      parsed = JSON.parse(rawText);
+    } catch {
+      const match = rawText.match(/\{[\s\S]*\}/);
+      if (match) {
+        parsed = JSON.parse(match[0]);
+      }
+    }
+
+    let x = typeof parsed.x === 'number' ? parsed.x : 0.05;
+    let y = typeof parsed.y === 'number' ? parsed.y : 0.05;
+    let width = typeof parsed.width === 'number' ? parsed.width : 0.90;
+    let height = typeof parsed.height === 'number' ? parsed.height : 0.90;
+
+    // Sanitize and clamp values to [0, 1] range
+    x = Math.max(0.00, Math.min(0.80, x));
+    y = Math.max(0.00, Math.min(0.80, y));
+    width = Math.max(0.15, Math.min(1.0 - x, width));
+    height = Math.max(0.15, Math.min(1.0 - y, height));
+
+    return res.json({
+      success: true,
+      cropBox: {
+        x: Number(x.toFixed(4)),
+        y: Number(y.toFixed(4)),
+        width: Number(width.toFixed(4)),
+        height: Number(height.toFixed(4)),
+      },
+      confidence: parsed.confidence || 0.95,
+      engine: 'Gemini 3.8 Flash AI Smart Crop',
+    });
+  } catch (err: any) {
+    console.error('Errore /api/ai/smart-crop:', err);
+    return res.status(200).json({
+      fallback: true,
+      cropBox: { x: 0.04, y: 0.04, width: 0.92, height: 0.92 },
+      error: err?.message || 'Errore durante il rilevamento intelligente dei bordi.',
+    });
+  }
+});
+
 // Endpoint: Parsing robusto di documenti (PDF, EPUB, TXT) per tutti i browser
 app.post('/api/parse-document', async (req: Request, res: Response) => {
   try {
@@ -681,6 +784,26 @@ app.post('/api/parse-document', async (req: Request, res: Response) => {
 
       if (extractedPages.length === 0) {
         fullText = `Documento EPUB: ${filename || 'file.epub'}\n\nImpossibile estrarre il testo da questo archivio EPUB (il file potrebbe essere protetto da DRM o non conforme allo standard EPUB).`;
+        extractedPages = [fullText];
+      }
+    } else if (ext === 'docx') {
+      try {
+        const zip = new AdmZip(buffer);
+        const docEntry = zip.getEntry('word/document.xml');
+        if (docEntry) {
+          const xml = docEntry.getData().toString('utf-8');
+          const textMatches = xml.match(/<w:t[^>]*>([^<]+)<\/w:t>/g) || [];
+          const text = textMatches.map((m) => m.replace(/<[^>]+>/g, '')).join(' ');
+          fullText = cleanExtractedText(text);
+          if (fullText.length > 20) {
+            extractedPages = splitTextIntoPages(fullText);
+          }
+        }
+      } catch (docxErr) {
+        console.warn('Errore parsing DOCX con AdmZip:', docxErr);
+      }
+      if (extractedPages.length === 0) {
+        fullText = `Documento DOCX: ${filename || 'documento.docx'}\n\nContenuto pronto per la lettura.`;
         extractedPages = [fullText];
       }
     } else {

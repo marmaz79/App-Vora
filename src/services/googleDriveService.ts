@@ -39,12 +39,14 @@ export const googleDriveService = {
   async listFiles(options: ListDriveFilesOptions = {}): Promise<{ files: DriveFile[]; nextPageToken?: string }> {
     const token = await this.getAccessToken(options.forceRefresh);
 
-    // Query for supported book and document files: PDF, EPUB, TXT, Google Docs, Images (OCR), and Folders
+    // Query for supported book and document files: PDF, EPUB, TXT, Google Docs/Sheets/Slides, Images (OCR), and Folders
     const mimeQuery = [
       "mimeType = 'application/pdf'",
       "mimeType = 'application/epub+zip'",
       "mimeType = 'text/plain'",
       "mimeType = 'application/vnd.google-apps.document'",
+      "mimeType = 'application/vnd.google-apps.presentation'",
+      "mimeType = 'application/vnd.google-apps.spreadsheet'",
       "mimeType = 'application/vnd.google-apps.folder'",
       "mimeType contains 'image/'",
     ].join(' or ');
@@ -105,8 +107,8 @@ export const googleDriveService = {
       onProgress(`Scaricamento di "${file.name}" da Google Drive...`);
     }
 
-    // Handle Google Docs by exporting directly to PDF
-    if (file.mimeType === 'application/vnd.google-apps.document') {
+    // Handle Google Docs, Presentations, Spreadsheets by exporting directly to PDF
+    if (file.mimeType.startsWith('application/vnd.google-apps.')) {
       const exportUrl = `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=application/pdf`;
       const response = await fetch(exportUrl, {
         headers: {
@@ -118,7 +120,7 @@ export const googleDriveService = {
         if (response.status === 401 || response.status === 403) {
           clearGoogleDriveAccessToken();
         }
-        throw new Error(`Impossibile esportare il documento Google Doc (${response.status})`);
+        throw new Error(`Impossibile esportare il file Google Drive (${response.status})`);
       }
 
       const blob = await response.blob();
