@@ -22,10 +22,14 @@ import {
   Camera,
   Loader2,
   ClipboardPaste,
+  Bookmark as BookmarkIcon,
+  BookmarkCheck,
 } from 'lucide-react';
-import { Book, TtsSettings } from '../types';
+import { Book, TtsSettings, Bookmark } from '../types';
 import { ttsService } from '../services/ttsService';
 import { fileParser } from '../services/fileParser';
+import { storageService } from '../services/storageService';
+import { BookmarksModal } from './BookmarksModal';
 
 interface ReaderViewProps {
   book: Book;
@@ -87,10 +91,58 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const [showSleepModal, setShowSleepModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showPasteModal, setShowPasteModal] = useState(false);
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false);
   const [pasteInputText, setPasteInputText] = useState('');
   const [pasteModalNotice, setPasteModalNotice] = useState<string | null>(null);
   const [previewVoiceUri, setPreviewVoiceUri] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+  // Bookmarks
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() =>
+    storageService.getBookmarks(book.book_id)
+  );
+
+  useEffect(() => {
+    setBookmarks(storageService.getBookmarks(book.book_id));
+  }, [book.book_id]);
+
+  const isCurrentPageBookmarked = bookmarks.some((b) => b.pageIndex === currentPage);
+
+  const handleToggleBookmark = (pageIdx: number = currentPage, note?: string) => {
+    const text = sanitizedPages[pageIdx] || `Pagina ${pageIdx + 1}`;
+    const res = storageService.toggleBookmark(book.book_id, pageIdx, text, note);
+    setBookmarks(res.bookmarks);
+    if (res.isBookmarked) {
+      setEnhanceNotice(`Segnalibro salvato per Pagina ${pageIdx + 1}`);
+    } else {
+      setEnhanceNotice(`Segnalibro rimosso da Pagina ${pageIdx + 1}`);
+    }
+    setTimeout(() => setEnhanceNotice(null), 3000);
+  };
+
+  const handleAddBookmark = (pageIdx: number, note?: string) => {
+    const text = sanitizedPages[pageIdx] || `Pagina ${pageIdx + 1}`;
+    const updated = storageService.addBookmark(book.book_id, pageIdx, text, note);
+    setBookmarks(updated);
+    setEnhanceNotice(`Segnalibro salvato per Pagina ${pageIdx + 1}`);
+    setTimeout(() => setEnhanceNotice(null), 3000);
+  };
+
+  const handleRemoveBookmark = (bmId: string) => {
+    const updated = storageService.removeBookmark(book.book_id, bmId);
+    setBookmarks(updated);
+    setEnhanceNotice('Segnalibro eliminato.');
+    setTimeout(() => setEnhanceNotice(null), 3000);
+  };
+
+  const handleUpdateBookmarkNote = (bmId: string, note: string) => {
+    const current = storageService.getBookmarks(book.book_id);
+    const updated = current.map((b) => (b.id === bmId ? { ...b, note: note || undefined } : b));
+    storageService.saveBookmarks(book.book_id, updated);
+    setBookmarks(updated);
+    setEnhanceNotice('Nota del segnalibro aggiornata.');
+    setTimeout(() => setEnhanceNotice(null), 3000);
+  };
 
   // Sleep Timer
   const [sleepTimerOption, setSleepTimerOption] = useState<SleepTimerOption>('off');
@@ -593,6 +645,35 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             {book.ocr_engine ? ` · ${book.ocr_engine}` : ''}
           </p>
         </div>
+
+        {/* Pulsante rapido Segnalibro pagina corrente */}
+        <button
+          type="button"
+          onClick={() => handleToggleBookmark(currentPage)}
+          className={`min-h-[44px] px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shrink-0 active:scale-95 ${
+            isCurrentPageBookmarked
+              ? 'bg-white text-black border-white font-bold shadow-xs'
+              : 'bg-black text-white border-white/20 hover:border-white hover:bg-zinc-900'
+          }`}
+          aria-label={
+            isCurrentPageBookmarked
+              ? `Pagina ${currentPage + 1} salvata nei segnalibri. Tocca per rimuovere.`
+              : `Salva Pagina ${currentPage + 1} nei segnalibri.`
+          }
+          title={
+            isCurrentPageBookmarked
+              ? 'Rimuovi segnalibro da questa pagina'
+              : 'Aggiungi segnalibro a questa pagina'
+          }
+        >
+          <BookmarkIcon
+            size={18}
+            className={`shrink-0 ${isCurrentPageBookmarked ? 'fill-black text-black' : 'text-white'}`}
+          />
+          <span className="hidden sm:inline text-xs font-bold">
+            {isCurrentPageBookmarked ? 'Salvata' : 'Segnalibro'}
+          </span>
+        </button>
       </header>
 
       {/* ===================== PULSANTI SOTTO LA HEADER CON TESTO BIANCO ===================== */}
@@ -639,6 +720,36 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             <List size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
             <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
               Indice
+            </span>
+          </button>
+
+          {/* Pulsante Segnalibri con badge conteggio */}
+          <button
+            type="button"
+            onClick={() => setShowBookmarksModal(true)}
+            className={`flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+              bookmarks.length > 0
+                ? 'border-white/40 bg-zinc-950 hover:bg-zinc-900 text-white'
+                : 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white'
+            }`}
+            aria-label={`Lista rapida segnalibri. ${bookmarks.length} salvati.`}
+            title="Lista Segnalibri"
+          >
+            <div className="relative inline-flex items-center justify-center">
+              <BookmarkCheck
+                size={17}
+                className={`text-white shrink-0 group-hover:scale-105 transition-transform ${
+                  isCurrentPageBookmarked ? 'fill-white' : ''
+                }`}
+              />
+              {bookmarks.length > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-white text-black font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-black shadow-xs">
+                  {bookmarks.length}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+              Segnalibri
             </span>
           </button>
 
@@ -738,25 +849,56 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     aria-label={`Pagina ${pIdx + 1} di ${totalPages}`}
                   >
                     {/* Page Divider / Header */}
-                    <div className="border-b pb-2 mb-4 flex justify-between items-center text-xs font-bold border-current/15">
-                      <span className="uppercase tracking-wider flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${isThisPage ? 'bg-white' : 'bg-zinc-600'}`} />
-                        Pagina {pIdx + 1} di {totalPages}
+                    <div className="border-b pb-2 mb-4 flex justify-between items-center text-xs font-bold border-current/15 gap-2">
+                      <span className="uppercase tracking-wider flex items-center gap-2 min-w-0 truncate">
+                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isThisPage ? 'bg-white' : 'bg-zinc-600'}`} />
+                        <span className="truncate">Pagina {pIdx + 1} di {totalPages}</span>
                       </span>
-                      {isThisPage && isPlaying ? (
-                        <span className="bg-white text-black text-[11px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-black animate-ping" />
-                          In ascolto
-                        </span>
-                      ) : isThisPage ? (
-                        <span className="bg-zinc-900 border border-white/30 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
-                          Pagina attiva
-                        </span>
-                      ) : (
-                        <span className="opacity-60 text-[11px] font-medium hover:opacity-100">
-                          Tocca per leggere
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isThisPage && isPlaying ? (
+                          <span className="bg-white text-black text-[11px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-black animate-ping" />
+                            In ascolto
+                          </span>
+                        ) : isThisPage ? (
+                          <span className="bg-zinc-900 border border-white/30 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                            Pagina attiva
+                          </span>
+                        ) : (
+                          <span className="opacity-60 text-[11px] font-medium hover:opacity-100 hidden sm:inline">
+                            Tocca per leggere
+                          </span>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleBookmark(pIdx);
+                          }}
+                          className={`min-h-[28px] px-2.5 py-0.5 rounded-full border text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
+                            bookmarks.some((b) => b.pageIndex === pIdx)
+                              ? 'bg-white text-black border-white shadow-xs'
+                              : 'border-white/20 hover:border-white text-zinc-300 hover:text-white bg-black/60'
+                          }`}
+                          aria-label={
+                            bookmarks.some((b) => b.pageIndex === pIdx)
+                              ? `Rimuovi segnalibro da Pagina ${pIdx + 1}`
+                              : `Aggiungi segnalibro a Pagina ${pIdx + 1}`
+                          }
+                          title={
+                            bookmarks.some((b) => b.pageIndex === pIdx)
+                              ? 'Rimuovi segnalibro'
+                              : 'Aggiungi segnalibro'
+                          }
+                        >
+                          <BookmarkIcon
+                            size={12}
+                            className={bookmarks.some((b) => b.pageIndex === pIdx) ? 'fill-current' : ''}
+                          />
+                          <span>{bookmarks.some((b) => b.pageIndex === pIdx) ? 'Segnalibro' : '+ Segnalibro'}</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Text block */}
@@ -797,13 +939,38 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               </button>
 
               {/* Kindle Chapter / Page Header */}
-              <div className="border-b pb-3 mb-6 flex justify-between items-center text-xs font-bold opacity-70 border-current/15">
-                <span className="uppercase tracking-wider">
+              <div className="border-b pb-3 mb-6 flex justify-between items-center text-xs font-bold opacity-85 border-current/15 gap-2">
+                <span className="uppercase tracking-wider truncate">
                   {book.file_type.toUpperCase()} · PAGINA {currentPage + 1} DI {totalPages}
                 </span>
-                <span>
-                  {progressPercent}% completato
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="hidden sm:inline opacity-80">{progressPercent}% completato</span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBookmark(currentPage)}
+                    className={`min-h-[28px] px-2.5 py-0.5 rounded-full border text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
+                      isCurrentPageBookmarked
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : 'border-white/20 hover:border-white text-zinc-300 hover:text-white bg-black/60'
+                    }`}
+                    title={
+                      isCurrentPageBookmarked
+                        ? 'Rimuovi segnalibro da questa pagina'
+                        : 'Salva questa pagina nei segnalibri'
+                    }
+                    aria-label={
+                      isCurrentPageBookmarked
+                        ? 'Rimuovi segnalibro da questa pagina'
+                        : 'Salva questa pagina nei segnalibri'
+                    }
+                  >
+                    <BookmarkIcon
+                      size={12}
+                      className={isCurrentPageBookmarked ? 'fill-current' : ''}
+                    />
+                    <span>{isCurrentPageBookmarked ? 'Salvata' : '+ Segnalibro'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Text block with Kindle Immersion Reading indicator */}
@@ -1541,6 +1708,19 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* ===================== MODAL: SEGNALIBRI ===================== */}
+      <BookmarksModal
+        isOpen={showBookmarksModal}
+        onClose={() => setShowBookmarksModal(false)}
+        book={book}
+        currentPage={currentPage}
+        bookmarks={bookmarks}
+        onSelectPage={(pageIdx) => changePage(pageIdx, isPlaying)}
+        onAddBookmark={(pageIdx, note) => handleAddBookmark(pageIdx, note)}
+        onRemoveBookmark={(bmId) => handleRemoveBookmark(bmId)}
+        onUpdateBookmarkNote={(bmId, note) => handleUpdateBookmarkNote(bmId, note)}
+      />
     </div>
   );
 };

@@ -1,3 +1,12 @@
+export interface Bookmark {
+  id: string;
+  book_id: string;
+  pageIndex: number;
+  snippet: string;
+  note?: string;
+  createdAt: string;
+}
+
 export interface Book {
   book_id: string;
   owner_id: string;
@@ -13,6 +22,7 @@ export interface Book {
   created_at: string;
   coverColor?: string;
   imageUrls?: string[];
+  bookmarks?: Bookmark[];
 }
 
 export interface User {

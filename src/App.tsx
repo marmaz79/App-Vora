@@ -22,7 +22,7 @@ import { signOutFirebase, subscribeToAuthState } from './services/firebase';
 
 export function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [showLogin, setShowLogin] = useState(!storageService.isAuthenticated());
+  const [showLogin, setShowLogin] = useState(true);
   const [currentTab, setCurrentTab] = useState<TabType>('home');
   const [books, setBooks] = useState<Book[]>([]);
   const [user, setUser] = useState<User>(storageService.getUser());
@@ -41,6 +41,14 @@ export function App() {
     storageService.getNotifications()
   );
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [pdfNightMode, setPdfNightMode] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('vora_pdf_night_mode');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     const loadedBooks = storageService.getBooks();
@@ -170,9 +178,15 @@ export function App() {
   }, []);
 
   // Opzione 2: Apri nel visualizzatore documento PDF
-  const handleOpenInPdf = useCallback((book: Book) => {
+  const handleOpenInPdf = useCallback((book: Book, nightMode?: boolean) => {
     setBookForOptions(null);
     const cleanBook = storageService.getSanitizedBook(book);
+    if (typeof nightMode === 'boolean') {
+      setPdfNightMode(nightMode);
+      try {
+        localStorage.setItem('vora_pdf_night_mode', nightMode ? 'true' : 'false');
+      } catch {}
+    }
     setLoadingBook(cleanBook);
     setTimeout(() => {
       setActiveBook(null);
@@ -260,33 +274,32 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      {/* Splash Screen with Logo and Title */}
-      {showSplash && (
-        <SplashScreen onDismiss={() => setShowSplash(false)} />
-      )}
-
-      {/* Login Screen con Firebase Google Auth - Mostrato dopo lo splash screen se non autenticato */}
-      {!showSplash && showLogin && (
-        <LoginScreen
-          onLoginSuccess={handleLoginSuccess}
-          onSkip={handleSkipLogin}
-          initialEmail={user.email}
-        />
-      )}
-
-      {/* Toast Notification */}
+      {/* Toast Notification - visibile sia in schermata login che nell'app */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white text-black font-black px-6 py-3 rounded-2xl shadow-2xl border border-white text-sm animate-bounce"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[110] bg-white text-black font-black px-6 py-3 rounded-2xl shadow-2xl border border-white text-sm animate-bounce"
         >
           {toastMessage}
         </div>
       )}
 
-      {/* Loading overlay when opening a book: mostra solo caricamento... con loading bianco */}
-      {loadingBook && (
+      {/* 1. Splash Screen all'avvio dell'applicazione */}
+      {showSplash ? (
+        <SplashScreen onDismiss={() => setShowSplash(false)} />
+      ) : showLogin ? (
+        /* 2. Login Screen subito dopo lo splash screen e prima di arrivare alla home */
+        <LoginScreen
+          onLoginSuccess={handleLoginSuccess}
+          onSkip={handleSkipLogin}
+          initialEmail={user.email}
+        />
+      ) : (
+        /* 3. Applicazione principale (Home, Lettore, Notifiche, ecc.) */
+        <>
+          {/* Loading overlay when opening a book: mostra solo caricamento... con loading bianco */}
+          {loadingBook && (
         <div
           role="status"
           aria-live="polite"
@@ -317,6 +330,7 @@ export function App() {
         <PdfDocumentView
           book={activePdfBook}
           settings={settings}
+          initialNightMode={pdfNightMode}
           onBack={() => {
             setActivePdfBook(null);
             setBooks(storageService.getBooks());
@@ -461,6 +475,8 @@ export function App() {
               }}
             />
           )}
+        </>
+      )}
         </>
       )}
     </div>

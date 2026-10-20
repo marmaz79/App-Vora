@@ -36,7 +36,7 @@ interface HomeTabProps {
   onAddBook: (book: Book) => void;
   onScanResultsReady?: (session: ScanSessionData) => void;
   hideFab?: boolean;
-  onOpenPdf?: (book: Book) => void;
+  onOpenPdf?: (book: Book, nightMode?: boolean) => void;
   onOpenReader?: (book: Book) => void;
   onOpenScan?: () => void;
 }

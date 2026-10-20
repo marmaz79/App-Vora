@@ -153,7 +153,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 onClick={onOpenLogin}
                 className="min-h-[42px] bg-white hover:bg-zinc-200 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-98"
               >
-                <span>Accedi con Google (Firebase Auth)</span>
+                <span>Accedi o Registrati (Google / Email)</span>
               </button>
             )}
           </div>
@@ -194,7 +194,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </ul>
       </div>
 
-      {/* Reset data, Google Authenticator & splash screen */}
+      {/* Reset data & splash screen */}
       <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
         <h3 className="text-sm font-bold text-white">Opzioni libreria e aspetto</h3>
         {onShowSplash && (

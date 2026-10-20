@@ -845,7 +845,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       }}
                       className="w-full py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-zinc-200 transition-colors"
                     >
-                      Accedi con Google
+                      Accedi o Registrati
                     </button>
                   )}
                 </div>

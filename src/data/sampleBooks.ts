@@ -12,6 +12,16 @@ export const SAMPLE_BOOKS: Book[] = [
     source: 'sample',
     coverColor: '#FFFFFF',
     currentPage: 0,
+    bookmarks: [
+      {
+        id: 'bm-sample-1',
+        book_id: 'sample-pinocchio',
+        pageIndex: 1,
+        snippet: 'Appena maestro Ciliegia ebbe visto quel pezzo di legno, se ne rallegrò tutto...',
+        note: 'La vocina misteriosa nel legno',
+        createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+      },
+    ],
     pages: [
       `Capitolo I. Come andò che maestro Ciliegia, falegname, trovò un pezzo di legno, che piangeva e rideva come un bambino.
 
@@ -71,6 +81,16 @@ Geppetto era bizzoso assai. Guai a chiamarlo Polendina! Diventava subito una bes
     source: 'sample',
     coverColor: '#FFFFFF',
     currentPage: 0,
+    bookmarks: [
+      {
+        id: 'bm-sample-2',
+        book_id: 'sample-promessi-sposi',
+        pageIndex: 0,
+        snippet: 'Quel ramo del lago di Como, che volge a mezzogiorno, tra due catene non interrotte di monti...',
+        note: 'Celebre incipit di Manzoni',
+        createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
+      },
+    ],
     pages: [
       `Capitolo I
 

@@ -1,4 +1,4 @@
-import { Book, User, TtsSettings, AppNotification } from '../types';
+import { Book, User, TtsSettings, AppNotification, Bookmark } from '../types';
 import { SAMPLE_BOOKS } from '../data/sampleBooks';
 import { fileParser } from './fileParser';
 
@@ -6,8 +6,19 @@ const BOOKS_KEY = 'vora_books_v1';
 const USER_KEY = 'vora_user_v1';
 const SETTINGS_KEY = 'vora_settings_v1';
 const NOTIFICATIONS_KEY = 'vora_notifications_v1';
+const BOOKMARKS_KEY = 'vora_bookmarks_v1';
 
 export const DEFAULT_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'notif-bookmarks',
+    title: 'Nuova funzione Segnalibri',
+    message: 'Salva pagine specifiche nei tuoi libri e visualizzale in una lista rapida direttamente dal pannello di lettura.',
+    type: 'reading',
+    timestamp: new Date().toISOString(),
+    read: false,
+    actionLabel: 'Sfoglia libreria',
+    actionTab: 'library',
+  },
   {
     id: 'notif-pdf-mode',
     title: 'Nuova opzione al tocco del libro',
@@ -103,6 +114,7 @@ function repairBook(book: Book): Book {
       source: 'sample',
       coverColor: originalSample.coverColor,
       pages: [...originalSample.pages],
+      bookmarks: book.bookmarks && book.bookmarks.length > 0 ? book.bookmarks : originalSample.bookmarks || [],
     };
   }
 
@@ -203,7 +215,18 @@ export const storageService = {
         localStorage.setItem(BOOKS_KEY, JSON.stringify(sanitized));
       }
 
-      return sanitized;
+      let allBookmarks: Record<string, Bookmark[]> = {};
+      try {
+        const rawBM = localStorage.getItem(BOOKMARKS_KEY);
+        if (rawBM) allBookmarks = JSON.parse(rawBM);
+      } catch {}
+
+      const withBookmarks = sanitized.map((b) => {
+        const bm = allBookmarks[b.book_id] || b.bookmarks || [];
+        return { ...b, bookmarks: bm };
+      });
+
+      return withBookmarks;
     } catch {
       return SAMPLE_BOOKS;
     }
@@ -213,13 +236,14 @@ export const storageService = {
     if (!book) return book;
     const isSample = book.source === 'sample' || SAMPLE_BOOKS.some((s) => s.book_id === book.book_id || s.title.toLowerCase() === book.title.toLowerCase());
     const hasCorruptedPages = !book.pages || book.pages.length === 0 || book.pages.some((p) => isCorruptedPage(p));
+    const bookmarks = this.getBookmarks(book.book_id);
 
     if (isSample || hasCorruptedPages) {
       const repaired = repairBook(book);
       this.updateBookContent(repaired.book_id, repaired.pages);
-      return repaired;
+      return { ...repaired, bookmarks };
     }
-    return book;
+    return { ...book, bookmarks };
   },
 
   saveBooks(books: Book[]) {
@@ -296,6 +320,102 @@ export const storageService = {
     const updated = books.map(b => b.book_id === bookId ? { ...b, pages } : b);
     this.saveBooks(updated);
     return updated;
+  },
+
+  getBookmarks(bookId: string): Bookmark[] {
+    try {
+      const raw = localStorage.getItem(BOOKMARKS_KEY);
+      const allBookmarks: Record<string, Bookmark[]> = raw ? JSON.parse(raw) : {};
+      if (allBookmarks[bookId]) {
+        return allBookmarks[bookId];
+      }
+      const books = this.getBooks();
+      const b = books.find((x) => x.book_id === bookId);
+      return b?.bookmarks || [];
+    } catch {
+      return [];
+    }
+  },
+
+  saveBookmarks(bookId: string, bookmarks: Bookmark[]): Bookmark[] {
+    try {
+      const raw = localStorage.getItem(BOOKMARKS_KEY);
+      const allBookmarks: Record<string, Bookmark[]> = raw ? JSON.parse(raw) : {};
+      allBookmarks[bookId] = bookmarks;
+      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(allBookmarks));
+
+      // Also sync into book record in books list
+      const books = this.getBooks();
+      const updated = books.map((b) => (b.book_id === bookId ? { ...b, bookmarks } : b));
+      this.saveBooks(updated);
+      return bookmarks;
+    } catch (e) {
+      console.error('Failed to save bookmarks', e);
+      return bookmarks;
+    }
+  },
+
+  addBookmark(bookId: string, pageIndex: number, snippet: string, note?: string): Bookmark[] {
+    const current = this.getBookmarks(bookId);
+    const exists = current.find((b) => b.pageIndex === pageIndex);
+    if (exists) {
+      if (note !== undefined && note !== exists.note) {
+        const updated = current.map((b) => (b.id === exists.id ? { ...b, note } : b));
+        return this.saveBookmarks(bookId, updated);
+      }
+      return current;
+    }
+
+    const cleanSnippet = (snippet || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 140);
+
+    const newBookmark: Bookmark = {
+      id: `bm-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      book_id: bookId,
+      pageIndex,
+      snippet: cleanSnippet || `Pagina ${pageIndex + 1}`,
+      note: note?.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = [...current, newBookmark].sort((a, b) => a.pageIndex - b.pageIndex);
+    return this.saveBookmarks(bookId, updated);
+  },
+
+  removeBookmark(bookId: string, bookmarkId: string): Bookmark[] {
+    const current = this.getBookmarks(bookId);
+    const updated = current.filter((b) => b.id !== bookmarkId);
+    return this.saveBookmarks(bookId, updated);
+  },
+
+  removeBookmarkByPage(bookId: string, pageIndex: number): Bookmark[] {
+    const current = this.getBookmarks(bookId);
+    const updated = current.filter((b) => b.pageIndex !== pageIndex);
+    return this.saveBookmarks(bookId, updated);
+  },
+
+  isPageBookmarked(bookId: string, pageIndex: number): boolean {
+    const bookmarks = this.getBookmarks(bookId);
+    return bookmarks.some((b) => b.pageIndex === pageIndex);
+  },
+
+  toggleBookmark(
+    bookId: string,
+    pageIndex: number,
+    snippet: string,
+    note?: string
+  ): { bookmarks: Bookmark[]; isBookmarked: boolean } {
+    const current = this.getBookmarks(bookId);
+    const exists = current.find((b) => b.pageIndex === pageIndex);
+    if (exists) {
+      const updated = this.removeBookmark(bookId, exists.id);
+      return { bookmarks: updated, isBookmarked: false };
+    } else {
+      const updated = this.addBookmark(bookId, pageIndex, snippet, note);
+      return { bookmarks: updated, isBookmarked: true };
+    }
   },
 
   getUser(): User {

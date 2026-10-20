@@ -10,7 +10,7 @@ interface LibraryTabProps {
   onOpenBook: (book: Book) => void;
   onDeleteBook: (bookId: string) => void;
   onBack?: () => void;
-  onOpenPdf?: (book: Book) => void;
+  onOpenPdf?: (book: Book, nightMode?: boolean) => void;
   onOpenReader?: (book: Book) => void;
 }
 

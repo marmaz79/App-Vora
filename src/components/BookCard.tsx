@@ -14,13 +14,15 @@ import {
   Cpu,
   Share2,
   Check,
+  Bookmark as BookmarkIcon,
+  Moon,
 } from 'lucide-react';
 
 interface BookCardProps {
   book: Book;
   onOpen: (book: Book) => void;
   onDelete: (bookId: string) => void;
-  onOpenPdf?: (book: Book) => void;
+  onOpenPdf?: (book: Book, nightMode?: boolean) => void;
   onOpenReader?: (book: Book) => void;
 }
 
@@ -160,6 +162,20 @@ export const BookCard: React.FC<BookCardProps> = ({
                   </span>
                 </>
               )}
+
+              {/* Segnalibri salvati */}
+              {book.bookmarks && book.bookmarks.length > 0 && (
+                <>
+                  <span className="text-white/70">•</span>
+                  <span
+                    className="text-white font-bold inline-flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded"
+                    title={`${book.bookmarks.length} segnalibri salvati`}
+                  >
+                    <BookmarkIcon size={10} className="fill-white" />
+                    <span>{book.bookmarks.length}</span>
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -265,22 +281,47 @@ export const BookCard: React.FC<BookCardProps> = ({
               </div>
             ) : (
               <div className="flex flex-col divide-y divide-zinc-800">
-                {/* 1. Apri in PDF */}
+                {/* 1. Apri in PDF Standard */}
                 {onOpenPdf && (
                   <button
                     type="button"
                     onClick={() => {
                       setShowOptions(false);
-                      onOpenPdf(book);
+                      onOpenPdf(book, false);
                     }}
                     className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-zinc-900 rounded-xl transition-colors group"
                   >
                     <div className="w-9 h-9 rounded-xl bg-black border border-white/20 flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
                       <FileText size={18} className="text-white" />
                     </div>
-                    <span className="text-sm font-bold text-white">
-                      Apri in PDF
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-white">
+                        Apri in PDF
+                      </span>
+                      <span className="text-[11px] text-zinc-400">Visualizzazione standard</span>
+                    </div>
+                  </button>
+                )}
+
+                {/* 1b. Apri in PDF - Modalità Notte */}
+                {onOpenPdf && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOptions(false);
+                      onOpenPdf(book, true);
+                    }}
+                    className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-zinc-900 rounded-xl transition-colors group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-black border border-white/20 flex items-center justify-center shrink-0 text-white group-hover:scale-105 transition-transform">
+                      <Moon size={18} className="fill-white text-white" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-white">
+                        Apri in PDF (Modalità Notte)
+                      </span>
+                      <span className="text-[11px] text-zinc-400">Sfondo scuro in tutto il libro</span>
+                    </div>
                   </button>
                 )}
 
