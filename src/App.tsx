@@ -177,7 +177,7 @@ export function App() {
     }, 450);
   }, []);
 
-  // Opzione 2: Apri nel visualizzatore documento PDF
+  // Opzione 2: Apri nel visualizzatore documento PDF (a pieno schermo)
   const handleOpenInPdf = useCallback((book: Book, nightMode?: boolean) => {
     setBookForOptions(null);
     const cleanBook = storageService.getSanitizedBook(book);
@@ -187,6 +187,21 @@ export function App() {
         localStorage.setItem('vora_pdf_night_mode', nightMode ? 'true' : 'false');
       } catch {}
     }
+
+    // Richiesta di apertura a pieno schermo sul gesto utente (click)
+    try {
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {});
+        } else if ((docEl as any).webkitRequestFullscreen) {
+          (docEl as any).webkitRequestFullscreen();
+        } else if ((docEl as any).msRequestFullscreen) {
+          (docEl as any).msRequestFullscreen();
+        }
+      }
+    } catch {}
+
     setLoadingBook(cleanBook);
     setTimeout(() => {
       setActiveBook(null);
@@ -196,6 +211,15 @@ export function App() {
   }, []);
 
   const handleCloseReader = useCallback(() => {
+    try {
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        }
+      }
+    } catch {}
     setActiveBook(null);
     setActivePdfBook(null);
     setBooks(storageService.getBooks());

@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
         {isSearchOpen && (
           <div className="relative animate-fade-in pt-1">
             <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white"
               size={18}
               aria-hidden="true"
             />

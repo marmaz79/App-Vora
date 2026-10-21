@@ -97,6 +97,22 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const [previewVoiceUri, setPreviewVoiceUri] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
+  // Real-time word-by-word reading progress & highlighting
+  const [readingWordIndex, setReadingWordIndex] = useState<number>(-1);
+  const [readingProgressRatio, setReadingProgressRatio] = useState<number>(0);
+  const activeWordSpanRef = useRef<HTMLSpanElement | null>(null);
+
+  // Auto-scroll to keep active reading word in viewport
+  useEffect(() => {
+    if (isPlaying && activeWordSpanRef.current) {
+      activeWordSpanRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+  }, [readingWordIndex, isPlaying]);
+
   // Bookmarks
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() =>
     storageService.getBookmarks(book.book_id)
@@ -189,6 +205,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     const validIdx = Math.max(0, Math.min(totalPages - 1, newIdx));
     setCurrentPage(validIdx);
     onPageChangeRef.current(validIdx);
+    setReadingWordIndex(-1);
+    setReadingProgressRatio(0);
 
     isProgrammaticScroll.current = true;
     if (viewMode === 'page') {
@@ -206,12 +224,26 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         const textToRead = sanitizedPages[validIdx] || '';
         if (textToRead.trim()) {
           setIsPlaying(true);
+          setReadingWordIndex(0);
+          setReadingProgressRatio(0);
           ttsService
-            .speak(textToRead, settings, (e) => {
-              if (e === 'end') handleSpeechEnd();
-              else if (e === 'error') setIsPlaying(false);
+            .speak(textToRead, settings, (e, payload) => {
+              if (e === 'progress' && payload) {
+                setReadingWordIndex(payload.wordIndex);
+                setReadingProgressRatio(payload.progressRatio);
+              } else if (e === 'end') {
+                handleSpeechEnd();
+              } else if (e === 'error') {
+                setIsPlaying(false);
+                setReadingWordIndex(-1);
+                setReadingProgressRatio(0);
+              }
             })
-            .catch(() => setIsPlaying(false));
+            .catch(() => {
+              setIsPlaying(false);
+              setReadingWordIndex(-1);
+              setReadingProgressRatio(0);
+            });
         }
       }, 200);
     }
@@ -295,6 +327,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const handleSpeechEnd = () => {
     setIsPlaying(false);
     setIsLoadingAudio(false);
+    setReadingWordIndex(-1);
+    setReadingProgressRatio(0);
 
     // If sleep timer is set to end of page, stop here!
     if (sleepTimerOption === 'end-of-page') {
@@ -315,37 +349,112 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       ttsService.stop();
       setIsPlaying(false);
       setIsLoadingAudio(false);
+      setReadingWordIndex(-1);
+      setReadingProgressRatio(0);
       return;
     }
 
     setIsLoadingAudio(true);
+    setReadingWordIndex(0);
+    setReadingProgressRatio(0);
     ttsService
-      .speak(currentText, settings, (event, err) => {
+      .speak(currentText, settings, (event, payload) => {
         if (event === 'start') {
           setIsLoadingAudio(false);
           setIsPlaying(true);
+          setReadingWordIndex(0);
+          setReadingProgressRatio(0);
+        } else if (event === 'progress' && payload) {
+          setReadingWordIndex(payload.wordIndex);
+          setReadingProgressRatio(payload.progressRatio);
         } else if (event === 'end') {
           setIsLoadingAudio(false);
           setIsPlaying(false);
+          setReadingWordIndex(-1);
+          setReadingProgressRatio(0);
           handleSpeechEnd();
         } else if (event === 'error') {
           setIsLoadingAudio(false);
           setIsPlaying(false);
-          console.warn('TTS error', err);
+          setReadingWordIndex(-1);
+          setReadingProgressRatio(0);
+          console.warn('TTS error', payload);
         }
       })
       .catch((err) => {
         setIsLoadingAudio(false);
         setIsPlaying(false);
+        setReadingWordIndex(-1);
+        setReadingProgressRatio(0);
         if (err?.name !== 'AbortError') {
           console.warn('Errore esecuzione speak:', err);
         }
       });
   };
 
+  // Play from a specific word tapped directly on the page
+  const handlePlayFromWord = (targetWordIndex: number, pageIndex: number = currentPage) => {
+    if (pageIndex !== currentPage) {
+      changePage(pageIndex);
+    }
+    const text = sanitizedPages[pageIndex] || '';
+    if (!text.trim()) return;
+
+    let charOffset = 0;
+    let wordCount = 0;
+    const parts = text.split(/(\s+)/);
+    for (const part of parts) {
+      const isWord = !/^\s+$/.test(part) && part.length > 0;
+      if (isWord) {
+        if (wordCount === targetWordIndex) break;
+        wordCount++;
+      }
+      charOffset += part.length;
+    }
+
+    const slicedText = text.slice(charOffset);
+    ttsService.stop();
+    setIsLoadingAudio(true);
+    setReadingWordIndex(targetWordIndex);
+    const words = text.split(/\s+/).filter(Boolean);
+    const totalWords = words.length;
+
+    ttsService
+      .speak(slicedText, settings, (event, payload) => {
+        if (event === 'start') {
+          setIsLoadingAudio(false);
+          setIsPlaying(true);
+          setReadingWordIndex(targetWordIndex);
+        } else if (event === 'progress' && payload) {
+          const currentGlobalWord = targetWordIndex + payload.wordIndex;
+          setReadingWordIndex(currentGlobalWord);
+          setReadingProgressRatio(totalWords > 0 ? Math.min(1, currentGlobalWord / totalWords) : 0);
+        } else if (event === 'end') {
+          setIsLoadingAudio(false);
+          setIsPlaying(false);
+          setReadingWordIndex(-1);
+          setReadingProgressRatio(0);
+          handleSpeechEnd();
+        } else if (event === 'error') {
+          setIsLoadingAudio(false);
+          setIsPlaying(false);
+          setReadingWordIndex(-1);
+          setReadingProgressRatio(0);
+        }
+      })
+      .catch(() => {
+        setIsLoadingAudio(false);
+        setIsPlaying(false);
+        setReadingWordIndex(-1);
+        setReadingProgressRatio(0);
+      });
+  };
+
   // Kindle 30s Rewind: restarts current page or goes back to prev page
   const handleRewind30 = () => {
     ttsService.stop();
+    setReadingWordIndex(-1);
+    setReadingProgressRatio(0);
     if (currentPage > 0) {
       changePage(currentPage - 1, isPlaying);
     } else {
@@ -356,6 +465,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   // Kindle 30s Fast Forward: skips to next page
   const handleForward30 = () => {
     ttsService.stop();
+    setReadingWordIndex(-1);
+    setReadingProgressRatio(0);
     if (currentPage < totalPages - 1) {
       changePage(currentPage + 1, isPlaying);
     }
@@ -364,6 +475,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const handlePrevPage = () => {
     ttsService.stop();
     setIsPlaying(false);
+    setReadingWordIndex(-1);
+    setReadingProgressRatio(0);
     if (currentPage > 0) {
       changePage(currentPage - 1);
     }
@@ -372,6 +485,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const handleNextPage = () => {
     ttsService.stop();
     setIsPlaying(false);
+    setReadingWordIndex(-1);
+    setReadingProgressRatio(0);
     if (currentPage < totalPages - 1) {
       changePage(currentPage + 1);
     }
@@ -387,9 +502,18 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       ttsService.stop();
       setTimeout(() => {
         setIsPlaying(true);
-        ttsService.speak(currentText, updated, (e) => {
-          if (e === 'end') handleSpeechEnd();
-          else if (e === 'error') setIsPlaying(false);
+        setReadingWordIndex(0);
+        ttsService.speak(currentText, updated, (e, payload) => {
+          if (e === 'progress' && payload) {
+            setReadingWordIndex(payload.wordIndex);
+            setReadingProgressRatio(payload.progressRatio);
+          } else if (e === 'end') {
+            handleSpeechEnd();
+          } else if (e === 'error') {
+            setIsPlaying(false);
+            setReadingWordIndex(-1);
+            setReadingProgressRatio(0);
+          }
         });
       }, 150);
     }
@@ -404,9 +528,18 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       ttsService.stop();
       setTimeout(() => {
         setIsPlaying(true);
-        ttsService.speak(currentText, updated, (e) => {
-          if (e === 'end') handleSpeechEnd();
-          else if (e === 'error') setIsPlaying(false);
+        setReadingWordIndex(0);
+        ttsService.speak(currentText, updated, (e, payload) => {
+          if (e === 'progress' && payload) {
+            setReadingWordIndex(payload.wordIndex);
+            setReadingProgressRatio(payload.progressRatio);
+          } else if (e === 'end') {
+            handleSpeechEnd();
+          } else if (e === 'error') {
+            setIsPlaying(false);
+            setReadingWordIndex(-1);
+            setReadingProgressRatio(0);
+          }
         });
       }, 150);
     }
@@ -590,11 +723,123 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     loose: 'leading-loose',
   }[lineHeight];
 
-  // Format sleep countdown (e.g. 14:32)
-  const formatSleepTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  // Helper to render page words with real-time reading progress highlighting
+  const renderHighlightedPageContent = (pageContent: string, pIdx: number) => {
+    const isThisPageActive = pIdx === currentPage;
+    const isThisPageSpeaking = isPlaying && isThisPageActive;
+    const parts = pageContent.split(/(\s+)/);
+    let wordCounter = 0;
+    const totalWordsOnPage = pageContent.split(/\s+/).filter(Boolean).length;
+
+    return (
+      <div className="flex flex-col gap-2">
+        {/* Banner avanzamento lettura della pagina in ascolto */}
+        {isThisPageSpeaking && readingWordIndex >= 0 && (
+          <div className="bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 sm:px-4 py-2.5 text-xs flex flex-col gap-1.5 mb-2 select-none shadow-md animate-in fade-in">
+            <div className="flex items-center justify-between font-bold">
+              <span className="flex items-center gap-2 text-white">
+                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                <span>Lettura in corso:</span>
+                <strong className="text-white underline decoration-white/40">
+                  parola {Math.min(totalWordsOnPage, readingWordIndex + 1)} di {totalWordsOnPage}
+                </strong>
+              </span>
+              <span className="text-zinc-200 font-mono">
+                {Math.round(readingProgressRatio * 100)}% letto
+              </span>
+            </div>
+            {/* Visual reading advancement progress bar */}
+            <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-white h-full transition-all duration-150 ease-out"
+                style={{ width: `${Math.round(readingProgressRatio * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="leading-relaxed whitespace-pre-wrap select-text">
+          {parts.map((part, partIdx) => {
+            const isWord = !/^\s+$/.test(part) && part.length > 0;
+            if (!isWord) {
+              return <React.Fragment key={partIdx}>{part}</React.Fragment>;
+            }
+
+            const currentWordNum = wordCounter;
+            wordCounter++;
+
+            if (!isThisPageSpeaking || readingWordIndex < 0) {
+              // Standard reading state: clickable word to start reading from that exact point
+              return (
+                <span
+                  key={partIdx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayFromWord(currentWordNum, pIdx);
+                  }}
+                  className="hover:underline cursor-pointer rounded-xs transition-colors"
+                  title="Tocca per avviare l'ascolto da questa parola"
+                >
+                  {part}
+                </span>
+              );
+            }
+
+            const isCurrent = currentWordNum === readingWordIndex;
+            const isRead = currentWordNum < readingWordIndex;
+
+            if (isCurrent) {
+              return (
+                <span
+                  key={partIdx}
+                  ref={activeWordSpanRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayFromWord(currentWordNum, pIdx);
+                  }}
+                  className="bg-white text-black font-black px-1.5 py-0.5 rounded-sm shadow-md ring-2 ring-white scale-105 inline-block mx-0.5 transition-all duration-100 z-10 cursor-pointer"
+                  title="Parola attualmente in lettura (tocca per ripetere)"
+                >
+                  {part}
+                </span>
+              );
+            }
+
+            if (isRead) {
+              // Word already read: highlighted based on reading advancement
+              return (
+                <span
+                  key={partIdx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayFromWord(currentWordNum, pIdx);
+                  }}
+                  className="bg-white/20 text-white font-semibold px-0.5 py-0.5 rounded-xs transition-colors duration-150 inline-block cursor-pointer hover:bg-white/30"
+                  title="Parola già letta (tocca per riascoltare da qui)"
+                >
+                  {part}
+                </span>
+              );
+            }
+
+            // Unread / upcoming word
+            return (
+              <span
+                key={partIdx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePlayFromWord(currentWordNum, pIdx);
+                }}
+                className="text-zinc-400 opacity-80 hover:opacity-100 hover:text-white cursor-pointer transition-opacity"
+                title="Tocca per saltare a questa parola"
+              >
+                {part}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -616,7 +861,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           aria-label="Torna alla libreria"
           title="Torna alla libreria"
         >
-          <ArrowLeft size={20} className="shrink-0" />
+          <ArrowLeft size={20} className="shrink-0 text-white" />
           <span className="hidden sm:inline font-bold text-xs">Indietro</span>
         </button>
 
@@ -628,11 +873,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               title={`Tipo file: ${book.file_type.toUpperCase()}`}
             >
               {book.file_type === 'pdf' ? (
-                <FileText size={16} aria-hidden="true" />
+                <FileText size={16} className="text-white" aria-hidden="true" />
               ) : book.file_type === 'scan' ? (
-                <Camera size={16} aria-hidden="true" />
+                <Camera size={16} className="text-white" aria-hidden="true" />
               ) : (
-                <BookOpen size={16} aria-hidden="true" />
+                <BookOpen size={16} className="text-white" aria-hidden="true" />
               )}
             </span>
             <span className="truncate">{book.title}</span>
@@ -906,7 +1151,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                       className={`font-serif tracking-normal whitespace-pre-line ${themeClasses.titleText} ${fontSizeClass} ${lineHeightClass}`}
                       style={{ wordBreak: 'break-word' }}
                     >
-                      {pageText}
+                      {renderHighlightedPageContent(pageText, pIdx)}
                     </div>
                   </article>
                 );
@@ -923,7 +1168,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 aria-label="Pagina precedente"
               >
                 <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
-                  <ArrowLeft size={16} />
+                  <ArrowLeft size={16} className="text-white" />
                 </div>
               </button>
 
@@ -934,7 +1179,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 aria-label="Pagina successiva"
               >
                 <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} className="text-white" />
                 </div>
               </button>
 
@@ -978,16 +1223,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 className={`font-serif tracking-normal whitespace-pre-line ${themeClasses.titleText} ${fontSizeClass} ${lineHeightClass}`}
                 style={{ wordBreak: 'break-word' }}
               >
-                {isPlaying ? (
-                  <div className={themeClasses.highlight}>
-                    <span className="inline-block mr-2 font-sans font-black text-xs uppercase px-1.5 py-0.5 rounded bg-white text-black">
-                      In ascolto
-                    </span>
-                    {currentText}
-                  </div>
-                ) : (
-                  currentText
-                )}
+                {renderHighlightedPageContent(currentText, currentPage)}
               </div>
             </div>
           )}
@@ -1027,6 +1263,22 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 aria-valuetext={`Pagina ${currentPage + 1} di ${totalPages}`}
               />
             </div>
+
+            {/* Live page reading progress in scrubber */}
+            {isPlaying && readingWordIndex >= 0 && (
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300 pt-0.5 animate-in fade-in">
+                <span className="flex items-center gap-1.5 text-white">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <span>Avanzamento pagina in lettura:</span>
+                  <span className="underline decoration-white/40">
+                    parola {readingWordIndex + 1}
+                  </span>
+                </span>
+                <span className="font-mono text-white">
+                  {Math.round(readingProgressRatio * 100)}%
+                </span>
+              </div>
+            )}
           </div>
 
           {/* --- MAIN KINDLE PLAYBACK CONTROLS CLUSTER --- */}
@@ -1041,7 +1293,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               aria-label="Pagina precedente"
               title="Pagina Precedente"
             >
-              <SkipBack size={24} />
+              <SkipBack size={24} className="text-white" />
             </button>
 
             {/* Kindle Rewind 30s Button */}
@@ -1051,7 +1303,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               aria-label="Riavvolgi di 30 secondi stile Kindle"
               title="Riavvolgi 30 secondi"
             >
-              <RotateCcw size={22} />
+              <RotateCcw size={22} className="text-white" />
               <span className="text-[10px] font-bold -mt-0.5 tracking-tighter">30s</span>
             </button>
 
@@ -1081,7 +1333,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               aria-label="Avanza di 30 secondi stile Kindle"
               title="Avanza 30 secondi"
             >
-              <RotateCw size={22} />
+              <RotateCw size={22} className="text-white" />
               <span className="text-[10px] font-bold -mt-0.5 tracking-tighter">30s</span>
             </button>
 
@@ -1095,7 +1347,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               aria-label="Pagina successiva"
               title="Pagina Successiva"
             >
-              <SkipForward size={24} />
+              <SkipForward size={24} className="text-white" />
             </button>
           </div>
         </div>

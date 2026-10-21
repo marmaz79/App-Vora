@@ -16,6 +16,7 @@ import {
   Plus,
   ArrowRight,
   Check,
+  Crop,
 } from 'lucide-react';
 import { ScanSessionData, Book } from '../types';
 import { tesseractOcr, OcrEngineMode, OcrLanguage, OcrProgress } from '../services/tesseractOcr';
@@ -66,7 +67,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   const [activeFileName, setActiveFileName] = useState('');
   const [hasTorch, setHasTorch] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
-  const [ocrEngine] = useState<OcrEngineMode>('ai-vision');
+  // Motore OCR: Tesseract locale (Sistema AI OCR commentato/disattivato)
+  const [ocrEngine] = useState<OcrEngineMode>('tesseract');
   const [ocrLanguage] = useState<OcrLanguage>('ita');
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -241,7 +243,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     setOcrProgress({
       status: 'init',
       progress: 0.08,
-      message: 'Inizializzazione estrazione testo con Gemini AI Vision...',
+      message: 'Inizializzazione estrazione testo con Tesseract OCR...',
     });
 
     const objectUrl = preProcessedUrl || URL.createObjectURL(file);
@@ -251,7 +253,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         engine: ocrEngine,
         language: ocrLanguage,
         enhanceContrast: true,
-        autoOptimizeAi: true,
+        autoOptimizeAi: false,
         speechOptimized: false,
         onProgress: (prog) => {
           setOcrProgress(prog);
@@ -269,9 +271,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         pages: [extractedText || '(Nessun testo leggibile rilevato nella foto. Riprova con una migliore illuminazione.)'],
         rawPages: [rawText],
         imageUrls: [objectUrl],
-        engine: result.engine || 'Gemini 3.8 Flash Vision',
-        confidence: result.confidence || 95,
-        isAiOptimized: result.isAiOptimized || true,
+        engine: result.engine || 'Tesseract OCR',
+        confidence: result.confidence || 88,
+        isAiOptimized: false,
         currentPageIndex: 0,
       };
 
@@ -404,9 +406,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         pages: extractedPages,
         rawPages: extractedPages,
         imageUrls: imageUrls,
-        engine: 'Gemini 3.8 Flash Vision / OCR',
-        confidence: 96,
-        isAiOptimized: true,
+        engine: 'Tesseract OCR (Locale)',
+        confidence: 88,
+        isAiOptimized: false,
         currentPageIndex: 0,
       };
 
@@ -621,8 +623,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
           <ScanProgressCircle
             progress={ocrProgress.progress}
             status={ocrProgress.status}
-            message={ocrProgress.message || 'Scansione ottica in corso con Gemini AI Vision...'}
-            engine="Gemini 3.8 Flash Vision"
+            message={ocrProgress.message || 'Scansione ottica OCR in corso con Tesseract...'}
+            engine="Tesseract OCR (Locale)"
             fileName={activeFileName}
             size={170}
             strokeWidth={12}
@@ -706,12 +708,18 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
 
             {/* Top Bar inside Viewfinder */}
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-auto z-10">
-              <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-md">
-                <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Camera size={13} className="text-white" />
-                  {cameraActive ? 'Fotocamera Live' : 'Fotocamera Pronta'}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-md">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Camera size={13} className="text-white" />
+                    {cameraActive ? 'Fotocamera Live' : 'Fotocamera Pronta'}
+                  </span>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-[11px] font-bold text-white shadow-md">
+                  <Crop size={12} className="text-white" />
+                  <span>Ritaglio auto: Attivo</span>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">

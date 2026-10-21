@@ -208,7 +208,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <span>{activeThemeOption.title}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-zinc-500 group-hover:text-white transition-colors shrink-0" />
+          <ChevronRight size={20} className="text-white shrink-0" />
         </div>
 
         {/* ROW 2: VOCE DI LETTURA (TTS AI & Sistema) */}
@@ -243,7 +243,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               )}
             </div>
           </div>
-          <ChevronRight size={20} className="text-zinc-500 group-hover:text-white transition-colors shrink-0" />
+          <ChevronRight size={20} className="text-white shrink-0" />
         </div>
 
         {/* ROW 3: VELOCITÀ DI RIPRODUZIONE */}
@@ -269,7 +269,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <span>{settings.rate.toFixed(1)}x {settings.rate === 1.0 ? '(Normale)' : settings.rate < 1.0 ? '(Lenta)' : '(Veloce)'}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-zinc-500 group-hover:text-white transition-colors shrink-0" />
+          <ChevronRight size={20} className="text-white shrink-0" />
         </div>
 
         {/* ROW 4: DIMENSIONE CARATTERI NEL LETTORE */}
@@ -295,7 +295,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <span>{getFontSizeLabel()}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-zinc-500 group-hover:text-white transition-colors shrink-0" />
+          <ChevronRight size={20} className="text-white shrink-0" />
         </div>
 
         {/* ROW 5: AVANZAMENTO AUTOMATICO (Switch Toggle) */}
@@ -363,7 +363,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <span>{settings.pitch.toFixed(1)} {settings.pitch === 1.0 ? '(Standard)' : settings.pitch > 1.0 ? '(Acuta)' : '(Grave)'}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-zinc-500 group-hover:text-white transition-colors shrink-0" />
+          <ChevronRight size={20} className="text-white shrink-0" />
         </div>
 
         {/* ROW 7: ACCOUNT & SICUREZZA */}
@@ -391,7 +391,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <span>{user?.auth_provider === 'google' ? 'Google Account Attivo' : 'Ospite Locale'}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-zinc-500 group-hover:text-white transition-colors shrink-0" />
+          <ChevronRight size={20} className="text-white shrink-0" />
         </div>
       </div>
 

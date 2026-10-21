@@ -33,12 +33,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
               aria-selected={isActive}
               aria-label={tab.label}
               onClick={() => onSelectTab(tab.id)}
-              className={`flex-1 flex flex-col items-center justify-center min-h-[64px] py-1 px-1 transition-colors relative rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-                isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
-              }`}
+              className="flex-1 flex flex-col items-center justify-center min-h-[64px] py-1 px-1 transition-colors relative rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
-              <Icon size={26} strokeWidth={isActive ? 2.5 : 2} aria-hidden="true" />
-              <span className={`text-xs mt-1 tracking-wide ${isActive ? 'font-black text-white' : 'font-medium text-zinc-500'}`}>
+              <Icon size={26} strokeWidth={isActive ? 2.5 : 2} className="text-white" aria-hidden="true" />
+              <span className={`text-xs mt-1 tracking-wide ${isActive ? 'font-black text-white' : 'font-medium text-zinc-400'}`}>
                 {tab.label}
               </span>
               {isActive && (

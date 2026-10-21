@@ -62,7 +62,18 @@ export const AI_VOICE_LIST: VoiceOption[] = [
   },
 ];
 
-type UtteranceCallback = (event: 'start' | 'end' | 'error' | 'pause' | 'resume', err?: any) => void;
+export interface TtsProgressPayload {
+  charIndex: number;
+  wordIndex: number;
+  totalWords: number;
+  progressRatio: number;
+  currentWord?: string;
+}
+
+export type UtteranceCallback = (
+  event: 'start' | 'end' | 'error' | 'pause' | 'resume' | 'progress',
+  payload?: any
+) => void;
 
 class TtsService {
   private synth: SpeechSynthesis | null = null;
@@ -75,6 +86,10 @@ class TtsService {
   private audioCache = new Map<string, string>();
   private abortController: AbortController | null = null;
   private sentenceQueue: string[] = [];
+  private sentenceOffsets: { text: string; startChar: number; startWord: number; wordCount: number }[] = [];
+  private totalWordsInText: number = 0;
+  private currentFullText: string = '';
+  private progressTicker: any = null;
   private currentSentenceIdx: number = 0;
   private currentSettings: TtsSettings | null = null;
   private currentCallback?: UtteranceCallback;
@@ -213,13 +228,44 @@ class TtsService {
     audio.playbackRate = Math.max(0.5, Math.min(2.0, settings.rate || 1.0));
     audio.volume = Math.max(0, Math.min(1.0, settings.volume ?? 1.0));
 
+    const words = text.split(/\s+/).filter(Boolean);
+    const totalWords = words.length;
+
     audio.onplay = () => {
       this.isSpeaking = true;
       this.isPaused = false;
       onEvent?.('start');
+      onEvent?.('progress', {
+        charIndex: 0,
+        wordIndex: 0,
+        totalWords,
+        progressRatio: 0,
+        currentWord: words[0],
+      });
+    };
+
+    audio.ontimeupdate = () => {
+      if (audio.duration && audio.duration > 0) {
+        const ratio = Math.max(0, Math.min(1, audio.currentTime / audio.duration));
+        const wordIndex = Math.min(totalWords - 1, Math.floor(ratio * totalWords));
+        const charIndex = Math.min(text.length - 1, Math.floor(ratio * text.length));
+        onEvent?.('progress', {
+          charIndex,
+          wordIndex,
+          totalWords,
+          progressRatio: ratio,
+          currentWord: words[wordIndex],
+        });
+      }
     };
 
     audio.onended = () => {
+      onEvent?.('progress', {
+        charIndex: text.length,
+        wordIndex: totalWords,
+        totalWords,
+        progressRatio: 1.0,
+      });
       this.isSpeaking = false;
       this.isPaused = false;
       this.currentAudio = null;
@@ -279,15 +325,45 @@ class TtsService {
 
     this.loadVoices();
 
-    const sentences = this.splitIntoSentences(text);
+    const cleanText = text.trim();
+    this.currentFullText = cleanText;
+    const words = cleanText.split(/\s+/).filter(Boolean);
+    this.totalWordsInText = words.length;
+
+    const sentences = this.splitIntoSentences(cleanText);
     this.sentenceQueue = sentences;
     this.currentSentenceIdx = 0;
     this.currentSettings = settings;
     this.currentCallback = onEvent;
 
+    // Calculate start character and start word indices for each sentence in the full page text
+    this.sentenceOffsets = [];
+    let searchPos = 0;
+    let wordRunning = 0;
+    for (const s of sentences) {
+      const sWords = s.split(/\s+/).filter(Boolean).length;
+      const foundIdx = cleanText.indexOf(s, searchPos);
+      const startChar = foundIdx >= 0 ? foundIdx : searchPos;
+      this.sentenceOffsets.push({
+        text: s,
+        startChar,
+        startWord: wordRunning,
+        wordCount: sWords,
+      });
+      searchPos = startChar + s.length;
+      wordRunning += sWords;
+    }
+
     this.isSpeaking = true;
     this.isPaused = false;
     onEvent?.('start');
+    onEvent?.('progress', {
+      charIndex: 0,
+      wordIndex: 0,
+      totalWords: this.totalWordsInText,
+      progressRatio: 0,
+      currentWord: words[0],
+    });
 
     this.speakNextSentence();
   }
@@ -296,14 +372,25 @@ class TtsService {
     if (!this.synth || !this.isSpeaking) return;
 
     if (this.currentSentenceIdx >= this.sentenceQueue.length) {
+      if (this.progressTicker) {
+        clearInterval(this.progressTicker);
+        this.progressTicker = null;
+      }
       this.isSpeaking = false;
       this.isPaused = false;
       this.currentUtterance = null;
+      this.currentCallback?.('progress', {
+        charIndex: this.currentFullText.length,
+        wordIndex: this.totalWordsInText,
+        totalWords: this.totalWordsInText,
+        progressRatio: 1.0,
+      });
       this.currentCallback?.('end');
       return;
     }
 
-    const sentenceText = this.sentenceQueue[this.currentSentenceIdx];
+    const sMeta = this.sentenceOffsets[this.currentSentenceIdx];
+    const sentenceText = sMeta ? sMeta.text : this.sentenceQueue[this.currentSentenceIdx];
     const settings = this.currentSettings || {
       voiceUri: '',
       voiceName: '',
@@ -314,6 +401,42 @@ class TtsService {
       fontSize: 'normal',
       highContrastMode: 'black-white',
     };
+
+    // Emit initial progress for sentence start
+    if (sMeta) {
+      const ratio = this.totalWordsInText > 0 ? Math.min(1, sMeta.startWord / this.totalWordsInText) : 0;
+      this.currentCallback?.('progress', {
+        charIndex: sMeta.startChar,
+        wordIndex: sMeta.startWord,
+        totalWords: this.totalWordsInText,
+        progressRatio: ratio,
+      });
+    }
+
+    // Set up ticker to ensure smooth continuous word highlighting
+    if (this.progressTicker) {
+      clearInterval(this.progressTicker);
+    }
+    const wordsPerMin = Math.max(80, Math.min(300, (settings.rate || 1.0) * 140));
+    const msPerWord = Math.round((60 / wordsPerMin) * 1000);
+    let tickerWordOffset = 0;
+
+    this.progressTicker = setInterval(() => {
+      if (!this.isSpeaking || this.isPaused) return;
+      tickerWordOffset++;
+      const curMeta = this.sentenceOffsets[this.currentSentenceIdx];
+      if (!curMeta) return;
+      if (tickerWordOffset < curMeta.wordCount) {
+        const curWordIdx = Math.min(this.totalWordsInText - 1, curMeta.startWord + tickerWordOffset);
+        const ratio = this.totalWordsInText > 0 ? Math.min(1, curWordIdx / this.totalWordsInText) : 0;
+        this.currentCallback?.('progress', {
+          charIndex: curMeta.startChar,
+          wordIndex: curWordIdx,
+          totalWords: this.totalWordsInText,
+          progressRatio: ratio,
+        });
+      }
+    }, msPerWord);
 
     const utterance = new SpeechSynthesisUtterance(sentenceText);
     this.currentUtterance = utterance;
@@ -343,7 +466,32 @@ class TtsService {
     utterance.pitch = Math.max(0.5, Math.min(1.5, settings.pitch || 1.0));
     utterance.volume = Math.max(0, Math.min(1.0, settings.volume ?? 1.0));
 
+    // Word boundary event listener (Web Speech API standard)
+    utterance.onboundary = (e: SpeechSynthesisEvent) => {
+      if (e.name === 'word') {
+        const curMeta = this.sentenceOffsets[this.currentSentenceIdx];
+        if (curMeta) {
+          const globalChar = curMeta.startChar + e.charIndex;
+          const sTextBefore = curMeta.text.slice(0, e.charIndex);
+          const wCountInS = sTextBefore.split(/\s+/).filter(Boolean).length;
+          const globalWord = Math.min(this.totalWordsInText - 1, curMeta.startWord + wCountInS);
+          tickerWordOffset = wCountInS;
+          const ratio = this.totalWordsInText > 0 ? Math.min(1, globalWord / this.totalWordsInText) : 0;
+          this.currentCallback?.('progress', {
+            charIndex: globalChar,
+            wordIndex: globalWord,
+            totalWords: this.totalWordsInText,
+            progressRatio: ratio,
+          });
+        }
+      }
+    };
+
     utterance.onend = () => {
+      if (this.progressTicker) {
+        clearInterval(this.progressTicker);
+        this.progressTicker = null;
+      }
       this.currentSentenceIdx++;
       if (this.isSpeaking && !this.isPaused) {
         this.speakNextSentence();
@@ -351,6 +499,10 @@ class TtsService {
     };
 
     utterance.onerror = (e) => {
+      if (this.progressTicker) {
+        clearInterval(this.progressTicker);
+        this.progressTicker = null;
+      }
       if (e.error === 'canceled' || e.error === 'interrupted') return;
       this.currentSentenceIdx++;
       if (this.isSpeaking && !this.isPaused) {
@@ -364,6 +516,10 @@ class TtsService {
     try {
       this.synth.speak(utterance);
     } catch (e) {
+      if (this.progressTicker) {
+        clearInterval(this.progressTicker);
+        this.progressTicker = null;
+      }
       console.error('Errore sintesi:', e);
       this.isSpeaking = false;
       this.currentCallback?.('error', e);
@@ -371,6 +527,10 @@ class TtsService {
   }
 
   public pause() {
+    if (this.progressTicker) {
+      clearInterval(this.progressTicker);
+      this.progressTicker = null;
+    }
     if (this.currentAudio && !this.currentAudio.paused) {
       this.currentAudio.pause();
       this.isPaused = true;
@@ -398,6 +558,10 @@ class TtsService {
   }
 
   public stop() {
+    if (this.progressTicker) {
+      clearInterval(this.progressTicker);
+      this.progressTicker = null;
+    }
     if (this.abortController) {
       this.abortController.abort();
       this.abortController = null;
@@ -407,6 +571,7 @@ class TtsService {
       this.currentAudio.onended = null;
       this.currentAudio.onerror = null;
       this.currentAudio.onpause = null;
+      this.currentAudio.ontimeupdate = null;
       this.currentAudio.pause();
       this.currentAudio.currentTime = 0;
       this.currentAudio = null;
@@ -416,7 +581,10 @@ class TtsService {
       this.currentUtterance = null;
     }
     this.sentenceQueue = [];
+    this.sentenceOffsets = [];
     this.currentSentenceIdx = 0;
+    this.totalWordsInText = 0;
+    this.currentFullText = '';
     this.isSpeaking = false;
     this.isPaused = false;
   }

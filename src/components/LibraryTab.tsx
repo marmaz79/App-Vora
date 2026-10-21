@@ -100,7 +100,7 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
       {/* Input di ricerca espandibile nella libreria */}
       {isSearchOpen && onSearchChange && (
         <div className="relative animate-fade-in pt-0.5">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white" size={18} />
           <input
             type="search"
             value={searchQuery}
@@ -111,9 +111,9 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded bg-zinc-800 text-zinc-300 flex items-center justify-center text-xs hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded bg-zinc-800 text-white flex items-center justify-center text-xs hover:text-white"
             >
-              <X size={14} />
+              <X size={14} className="text-white" />
             </button>
           )}
         </div>
@@ -121,7 +121,7 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
 
       {/* Filter pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-0.5" role="group" aria-label="Filtra per formato">
-        <Filter size={18} className="text-zinc-400 shrink-0 mr-1" aria-hidden="true" />
+        <Filter size={18} className="text-white shrink-0 mr-1" aria-hidden="true" />
         {formats.map((f) => {
           const isSelected = selectedFormat === f.id;
           return (

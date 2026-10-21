@@ -175,7 +175,8 @@ class PdfOcrService {
     options: PdfOcrOptions = {}
   ): Promise<ScanSessionData> {
     const title = file.name.replace(/\.[^/.]+$/, '');
-    const engineMode = options.engine || 'ai-vision';
+    // Motore OCR predefinito: Tesseract locale (AI disattivata/commentata)
+    const engineMode = options.engine || 'tesseract';
     const language = options.language || 'ita';
 
     options.onProgress?.({
@@ -207,11 +208,16 @@ class PdfOcrService {
 
     const totalPagesCount = renderedImages.length || 1;
 
-    // 2. Try server-side Gemini 3.8 Flash PDF OCR if available
     let serverSuccess = false;
     let finalPages: string[] = [];
-    let engineLabel = 'Gemini AI Vision';
+    let engineLabel = 'Tesseract OCR (Locale)';
 
+    /* -------------------------------------------------------------------------
+     * [SISTEMA AI OCR PER PDF COMMENTATO SU RICHIESTA DELL'UTENTE]
+     * La chiamata cloud a Gemini 3.8 Flash Vision per i PDF scansionati è stata
+     * commentata. La scansione viene effettuata pagina per pagina tramite
+     * il motore locale Tesseract.js.
+     * Decommentare il blocco seguente se si desidera ripristinare Gemini AI OCR per PDF:
     if (engineMode === 'ai-vision') {
       try {
         options.onProgress?.({
@@ -250,6 +256,7 @@ class PdfOcrService {
         console.warn('Endpoint /api/ocr/pdf non riuscito, fallback pagina per pagina:', serverErr);
       }
     }
+    ------------------------------------------------------------------------- */
 
     // 3. Fallback: Page-by-page OCR using rendered images (Gemini Vision per-page or Tesseract)
     if (!serverSuccess) {

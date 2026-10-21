@@ -23,6 +23,7 @@ import {
   BookmarkCheck,
   Moon,
   Sun,
+  Layers,
 } from 'lucide-react';
 import { fileParser } from '../services/fileParser';
 import { storageService } from '../services/storageService';
@@ -57,6 +58,95 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
   );
   const [showBookmarksModal, setShowBookmarksModal] = useState<boolean>(false);
   const [bookmarkNotice, setBookmarkNotice] = useState<string | null>(null);
+
+  // Stato Pieno Schermo: attivo per default all'apertura del PDF come richiesto
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
+  const [isNativeFullscreen, setIsNativeFullscreen] = useState<boolean>(() =>
+    typeof document !== 'undefined' ? Boolean(document.fullscreenElement) : false
+  );
+
+  // Apertura a pieno schermo automatica all'avvio del componente PDF
+  useEffect(() => {
+    const enterFullscreen = async () => {
+      try {
+        const elem = document.documentElement;
+        if (!document.fullscreenElement) {
+          if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+          } else if ((elem as any).webkitRequestFullscreen) {
+            await (elem as any).webkitRequestFullscreen();
+          } else if ((elem as any).msRequestFullscreen) {
+            await (elem as any).msRequestFullscreen();
+          }
+        }
+      } catch {
+        // Nessun blocco se eseguito in un iframe senza permessi di fullscreen
+      }
+    };
+
+    enterFullscreen();
+
+    const handleFullscreenChange = () => {
+      const isFull = Boolean(document.fullscreenElement);
+      setIsNativeFullscreen(isFull);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const handleToggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if ((elem as any).webkitRequestFullscreen) {
+          await (elem as any).webkitRequestFullscreen();
+        } else if ((elem as any).msRequestFullscreen) {
+          await (elem as any).msRequestFullscreen();
+        }
+        setIsFullscreen(true);
+        setBookmarkNotice('⛶ Visualizzazione a pieno schermo');
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+        setIsFullscreen(false);
+        setBookmarkNotice('Visualizzazione standard');
+      }
+    } catch {
+      // Fallback per iframe / browser con restrizioni di permessi
+      setIsFullscreen((prev) => {
+        const next = !prev;
+        setBookmarkNotice(next ? '⛶ Pieno schermo attivo' : 'Visualizzazione standard');
+        return next;
+      });
+    }
+    setTimeout(() => setBookmarkNotice(null), 2500);
+  };
+
+  const handleBack = () => {
+    try {
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        }
+      }
+    } catch {}
+    onBack();
+  };
 
   // Night Mode state for the whole PDF book (with persistence)
   const [isNightMode, setIsNightMode] = useState<boolean>(() => {
@@ -264,33 +354,39 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
       className="fixed inset-0 h-[100dvh] z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-text font-sans"
     >
       {/* ===================== PDF VIEWER HEADER ===================== */}
-      <header className="bg-black border-b border-zinc-800 px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-20 shadow-md">
+      <header className="bg-black border-b border-zinc-800 px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-4 shrink-0 z-20 shadow-md">
         {/* Left: Back button */}
         <button
           type="button"
-          onClick={onBack}
-          aria-label="Torna indietro"
-          className="min-h-[44px] px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-white hover:text-black text-white flex items-center gap-2 transition-all shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-          title="Torna indietro"
+          onClick={handleBack}
+          aria-label="Torna indietro ed esci da pieno schermo"
+          className="min-h-[44px] px-3.5 sm:px-4 py-2 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-white hover:text-black text-white flex items-center gap-2.5 transition-all shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          title="Torna indietro ed esci da pieno schermo"
         >
-          <ArrowLeft size={20} className="shrink-0" />
-          <span className="hidden sm:inline font-bold text-xs">Indietro</span>
+          <ArrowLeft size={20} className="shrink-0 text-white m-0.5" />
+          <span className="hidden sm:inline font-bold text-xs ml-0.5">Indietro</span>
         </button>
 
         {/* Center: Titolo completo del documento PDF e dettagli */}
-        <div className="flex-1 min-w-0 text-left sm:text-center px-1">
-          <h2 className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-1.5 sm:justify-center">
-            <FileText size={16} className="text-white shrink-0" aria-hidden="true" />
+        <div className="flex-1 min-w-0 text-left sm:text-center px-2">
+          <h2 className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-2 sm:justify-center">
+            <FileText size={17} className="text-white shrink-0 m-0.5" aria-hidden="true" />
             <span className="truncate">{book.title}</span>
           </h2>
-          <p className="text-xs font-semibold text-zinc-400 truncate flex items-center sm:justify-center gap-1.5">
+          <p className="text-xs font-semibold text-zinc-400 truncate flex items-center sm:justify-center gap-2 mt-0.5">
             {book.author ? `${book.author} · ` : ''}
             <span>
               Documento PDF · Pagina {currentPage + 1} di {totalPages}
             </span>
+            {isFullscreen && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white text-black text-[10px] font-black shrink-0">
+                <Maximize2 size={11} className="text-black m-0.5" />
+                Pieno Schermo
+              </span>
+            )}
             {isNightMode && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zinc-900 text-zinc-200 border border-zinc-700 text-[10px] font-bold shrink-0">
-                <Moon size={10} className="fill-zinc-200" />
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 text-zinc-200 border border-zinc-700 text-[10px] font-bold shrink-0">
+                <Moon size={11} className="fill-white text-white m-0.5" />
                 Notte attiva
               </span>
             )}
@@ -301,7 +397,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
         <button
           type="button"
           onClick={() => handleToggleBookmark(currentPage)}
-          className={`min-h-[44px] px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shrink-0 active:scale-95 ${
+          className={`min-h-[44px] px-3 sm:px-4 py-2 rounded-xl border flex items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shrink-0 active:scale-95 ${
             isCurrentPageBookmarked
               ? 'bg-white text-black border-white font-bold shadow-xs'
               : 'bg-black text-white border-white/20 hover:border-white hover:bg-zinc-900'
@@ -318,170 +414,14 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           }
         >
           <BookmarkIcon
-            size={18}
-            className={`shrink-0 ${isCurrentPageBookmarked ? 'fill-black text-black' : 'text-white'}`}
+            size={19}
+            className={`shrink-0 m-0.5 ${isCurrentPageBookmarked ? 'fill-black text-black' : 'text-white'}`}
           />
-          <span className="hidden sm:inline text-xs font-bold">
+          <span className="hidden sm:inline text-xs font-bold ml-0.5">
             {isCurrentPageBookmarked ? 'Salvata' : 'Segnalibro'}
           </span>
         </button>
       </header>
-
-      {/* ===================== PULSANTI SOTTO LA HEADER CON TESTO BIANCO ===================== */}
-      <div className="bg-black border-b border-zinc-800 px-2 sm:px-4 py-2 shrink-0 z-10 select-none">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar">
-          {/* 1. Passa a Leggi libro (Audio Voce AI) */}
-          <button
-            type="button"
-            onClick={() => onSwitchToReader(book)}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            title="Passa al lettore eBook con voce AI"
-            aria-label="Leggi libro con voce AI"
-          >
-            <BookOpen size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
-            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
-              Leggi libro
-            </span>
-          </button>
-
-          {/* 2. Modalità visualizzazione: Continuo vs Singola */}
-          <button
-            type="button"
-            onClick={() => setViewMode((prev) => (prev === 'continuous' ? 'single' : 'continuous'))}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            title={viewMode === 'continuous' ? 'Modalità: Scorrimento continuo (tocca per pagina singola)' : 'Modalità: Pagina singola (tocca per continuo)'}
-            aria-label="Cambia visualizzazione pagine"
-          >
-            {viewMode === 'continuous' ? (
-              <Maximize2 size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
-            ) : (
-              <Minimize2 size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
-            )}
-            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
-              {viewMode === 'continuous' ? 'Continuo' : 'Pag. singola'}
-            </span>
-          </button>
-
-          {/* Modalità Notte Toggle per tutto il libro */}
-          <button
-            type="button"
-            onClick={handleToggleNightMode}
-            className={`flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-              isNightMode
-                ? 'bg-white text-black border-white font-black shadow-sm'
-                : 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white'
-            }`}
-            title={
-              isNightMode
-                ? 'Modalità notte attiva in tutto il libro (tocca per tornare alla modalità standard)'
-                : 'Attiva modalità notte in tutto il libro (sfondo scuro ad alto contrasto per non affaticare la vista)'
-            }
-            aria-label={isNightMode ? 'Disattiva modalità notte' : 'Attiva modalità notte in tutto il libro'}
-            aria-pressed={isNightMode}
-          >
-            {isNightMode ? (
-              <Moon size={17} className="fill-black text-black shrink-0 group-hover:scale-105 transition-transform" />
-            ) : (
-              <Moon size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
-            )}
-            <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
-              {isNightMode ? 'Notte Attiva' : 'Mod. Notte'}
-            </span>
-          </button>
-
-          {/* 3. Cerca nel PDF */}
-          <button
-            type="button"
-            onClick={() => setShowSearch((prev) => !prev)}
-            aria-label="Cerca testo nel PDF"
-            className={`flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-              showSearch
-                ? 'bg-white text-black border-white'
-                : 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white'
-            }`}
-            title="Cerca nel testo"
-          >
-            <Search size={17} className="shrink-0 group-hover:scale-105 transition-transform" />
-            <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
-              Cerca
-            </span>
-          </button>
-
-          {/* Segnalibri con contatore badge */}
-          <button
-            type="button"
-            onClick={() => setShowBookmarksModal(true)}
-            className={`flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-              bookmarks.length > 0
-                ? 'border-white/40 bg-zinc-950 hover:bg-zinc-900 text-white'
-                : 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white'
-            }`}
-            aria-label={`Lista rapida segnalibri. ${bookmarks.length} salvati.`}
-            title="Lista Segnalibri"
-          >
-            <div className="relative inline-flex items-center justify-center">
-              <BookmarkCheck
-                size={17}
-                className={`text-white shrink-0 group-hover:scale-105 transition-transform ${
-                  isCurrentPageBookmarked ? 'fill-white' : ''
-                }`}
-              />
-              {bookmarks.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-white text-black font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-black shadow-xs">
-                  {bookmarks.length}
-                </span>
-              )}
-            </div>
-            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
-              Segnalibri
-            </span>
-          </button>
-
-          {/* 4. Zoom Controls (Riduci / Ingrandisci / Percentuale) */}
-          <div className="flex-1 min-w-[70px] sm:min-w-0 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-1.5 sm:px-2 rounded-xl border border-white/20 bg-black text-white">
-            <button
-              type="button"
-              onClick={() => handleZoom(-15)}
-              className="w-7 h-7 flex items-center justify-center text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-90"
-              title="Riduci zoom"
-              aria-label="Riduci zoom"
-            >
-              <ZoomOut size={15} />
-            </button>
-            <button
-              type="button"
-              onClick={handleResetZoom}
-              className="px-1 text-[11px] sm:text-xs font-bold text-white hover:underline whitespace-nowrap"
-              title="Reimposta zoom 100%"
-            >
-              {zoomLevel}%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleZoom(15)}
-              className="w-7 h-7 flex items-center justify-center text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-90"
-              title="Aumenta zoom"
-              aria-label="Aumenta zoom"
-            >
-              <ZoomIn size={15} />
-            </button>
-          </div>
-
-          {/* 5. Stampa o Salva PDF */}
-          <button
-            type="button"
-            onClick={handlePrintPdf}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            title="Stampa o Salva documento in PDF"
-            aria-label="Stampa o Salva PDF"
-          >
-            <Printer size={17} className="text-white shrink-0 group-hover:scale-105 transition-transform" />
-            <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
-              Stampa
-            </span>
-          </button>
-        </div>
-      </div>
 
       {/* Notifica rapida azione segnalibro */}
       {bookmarkNotice && (
@@ -494,45 +434,19 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
         </div>
       )}
 
-      {/* Barra di Ricerca quando attiva */}
-      {showSearch && (
-        <div className="bg-zinc-950 border-b border-zinc-800 p-2.5 flex items-center gap-2 z-10 animate-fade-in">
-          <Search size={16} className="text-zinc-400 shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cerca nel documento PDF..."
-            className="bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none flex-1"
-            autoFocus
-          />
-          {searchQuery && (
-            <span className="text-xs text-white font-bold shrink-0">
-              {searchMatchesCount} trovati
-            </span>
-          )}
-          <button
-            onClick={() => {
-              setShowSearch(false);
-              setSearchQuery('');
-            }}
-            className="text-zinc-400 hover:text-white p-1"
-            title="Chiudi ricerca"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
       {/* ===================== MAIN PDF CANVAS VIEWPORT ===================== */}
       <main
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-8 flex flex-col items-center bg-black print:bg-white print:p-0"
+        className={`flex-1 overflow-y-auto overflow-x-auto flex flex-col items-center bg-black print:bg-white print:p-0 transition-all ${
+          isFullscreen ? 'p-2 sm:p-4 md:p-6' : 'p-4 sm:p-8'
+        }`}
       >
         <div
           style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
-          className="transition-transform duration-150 flex flex-col items-center gap-8 w-full max-w-3xl print:transform-none print:max-w-none print:w-full"
+          className={`transition-all duration-150 flex flex-col items-center gap-6 sm:gap-8 w-full print:transform-none print:max-w-none print:w-full ${
+            isFullscreen ? 'max-w-4xl lg:max-w-5xl xl:max-w-6xl' : 'max-w-3xl'
+          }`}
         >
           {viewMode === 'continuous' ? (
             /* Continuous View: All Pages Stacked */
@@ -543,7 +457,11 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                   pageRefs.current[index] = el;
                 }}
                 id={`pdf-page-${index}`}
-                className={`w-full rounded-xl sm:rounded-2xl shadow-2xl p-8 sm:p-14 min-h-[780px] sm:min-h-[960px] flex flex-col justify-between relative transition-all duration-200 print:shadow-none print:border-none print:p-8 print:m-0 print:break-after-page ${
+                className={`w-full rounded-xl sm:rounded-2xl shadow-2xl flex flex-col justify-between relative transition-all duration-200 print:shadow-none print:border-none print:p-8 print:m-0 print:break-after-page ${
+                  isFullscreen
+                    ? 'p-6 sm:p-10 md:p-14 min-h-[850px] sm:min-h-[1050px]'
+                    : 'p-8 sm:p-14 min-h-[780px] sm:min-h-[960px]'
+                } ${
                   isNightMode
                     ? 'bg-[#121214] text-zinc-100 border border-zinc-800 shadow-black/80 ring-1 ring-white/5'
                     : 'bg-[#FCFCFD] text-[#1A1A1E] border border-zinc-200/80 hover:shadow-black/60'
@@ -563,7 +481,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                     <button
                       type="button"
                       onClick={() => handleToggleBookmark(index)}
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 border transition-all active:scale-95 ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all active:scale-95 ${
                         bookmarks.some((b) => b.pageIndex === index)
                           ? isNightMode
                             ? 'bg-white text-black border-white shadow-xs'
@@ -584,17 +502,17 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                       }
                     >
                       <BookmarkIcon
-                        size={11}
-                        className={bookmarks.some((b) => b.pageIndex === index) ? 'fill-current' : ''}
+                        size={13}
+                        className={`m-0.5 ${bookmarks.some((b) => b.pageIndex === index) ? 'fill-current' : ''}`}
                       />
                       <span>{bookmarks.some((b) => b.pageIndex === index) ? 'Segnalibro' : '+ Segnalibro'}</span>
                     </button>
                     <span
-                      className={`shrink-0 font-bold flex items-center gap-1 ${
+                      className={`shrink-0 font-bold flex items-center gap-1.5 px-1 ${
                         isNightMode ? 'text-zinc-300' : 'text-black'
                       }`}
                     >
-                      <FileText size={12} />
+                      <FileText size={14} className="m-0.5" />
                       PDF
                     </span>
                   </div>
@@ -611,7 +529,9 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                       <img
                         src={book.imageUrls[index]}
                         alt={`Scansione pagina ${index + 1}`}
-                        className={`max-h-[640px] sm:max-h-[760px] w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all ${
+                        className={`w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all ${
+                          isFullscreen ? 'max-h-[75vh] sm:max-h-[85vh]' : 'max-h-[640px] sm:max-h-[760px]'
+                        } ${
                           isNightMode
                             ? 'border-zinc-800 invert brightness-90 contrast-125'
                             : 'border-zinc-200'
@@ -642,7 +562,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                     isNightMode ? 'border-zinc-800 text-zinc-500' : 'border-zinc-200 text-zinc-400'
                   }`}
                 >
-                  <span>Vora Document Reader</span>
+                  <span>Lettore Documenti Vora</span>
                   <span className={`font-bold ${isNightMode ? 'text-zinc-300' : 'text-zinc-600'}`}>
                     — Pagina {index + 1} di {totalPages} —
                   </span>
@@ -653,7 +573,11 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           ) : (
             /* Single Page View */
             <div
-              className={`w-full rounded-xl sm:rounded-2xl shadow-2xl p-8 sm:p-14 min-h-[780px] sm:min-h-[960px] flex flex-col justify-between relative select-text transition-all duration-200 ${
+              className={`w-full rounded-xl sm:rounded-2xl shadow-2xl flex flex-col justify-between relative select-text transition-all duration-200 ${
+                isFullscreen
+                  ? 'p-6 sm:p-10 md:p-14 min-h-[850px] sm:min-h-[1050px]'
+                  : 'p-8 sm:p-14 min-h-[780px] sm:min-h-[960px]'
+              } ${
                 isNightMode
                   ? 'bg-[#121214] text-zinc-100 border border-zinc-800 shadow-black/80 ring-1 ring-white/5'
                   : 'bg-[#FCFCFD] text-[#1A1A1E] border border-zinc-200/80 hover:shadow-black/60'
@@ -673,7 +597,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleToggleBookmark(currentPage)}
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 border transition-all active:scale-95 ${
+                    className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all active:scale-95 ${
                       isCurrentPageBookmarked
                         ? isNightMode
                           ? 'bg-white text-black border-white shadow-xs'
@@ -694,17 +618,17 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                     }
                   >
                     <BookmarkIcon
-                      size={11}
-                      className={isCurrentPageBookmarked ? 'fill-current' : ''}
+                      size={13}
+                      className={`m-0.5 ${isCurrentPageBookmarked ? 'fill-current' : ''}`}
                     />
                     <span>{isCurrentPageBookmarked ? 'Segnalibro' : '+ Segnalibro'}</span>
                   </button>
                   <span
-                    className={`shrink-0 font-bold flex items-center gap-1 ${
+                    className={`shrink-0 font-bold flex items-center gap-1.5 px-1 ${
                       isNightMode ? 'text-zinc-300' : 'text-zinc-600'
                     }`}
                   >
-                    <FileText size={12} />
+                    <FileText size={14} className="m-0.5" />
                     PDF
                   </span>
                 </div>
@@ -721,7 +645,9 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                     <img
                       src={book.imageUrls[currentPage]}
                       alt={`Scansione pagina ${currentPage + 1}`}
-                      className={`max-h-[640px] sm:max-h-[760px] w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all ${
+                      className={`w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all ${
+                        isFullscreen ? 'max-h-[75vh] sm:max-h-[85vh]' : 'max-h-[640px] sm:max-h-[760px]'
+                      } ${
                         isNightMode
                           ? 'border-zinc-800 invert brightness-90 contrast-125'
                           : 'border-zinc-200'
@@ -752,7 +678,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                   isNightMode ? 'border-zinc-800 text-zinc-500' : 'border-zinc-200 text-zinc-400'
                 }`}
               >
-                <span>Vora Document Reader</span>
+                <span>Lettore Documenti Vora</span>
                 <span className={`font-bold ${isNightMode ? 'text-zinc-300' : 'text-zinc-600'}`}>
                   — Pagina {currentPage + 1} di {totalPages} —
                 </span>
@@ -763,60 +689,273 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
         </div>
       </main>
 
-      {/* ===================== FLOATING BOTTOM NAVIGATION BAR ===================== */}
-      <footer className="bg-black/95 backdrop-blur-md border-t border-zinc-800 px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-20 print:hidden">
-        {/* Previous page button */}
-        <button
-          type="button"
-          disabled={currentPage <= 0}
-          onClick={() => scrollToPage(currentPage - 1)}
-          className="min-h-[42px] px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none border border-zinc-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
-          aria-label="Pagina precedente"
-        >
-          <ChevronLeft size={18} />
-          <span className="hidden sm:inline">Precedente</span>
-        </button>
+      {/* ===================== FLOATING BOTTOM NAVIGATION & TOOLBAR ===================== */}
+      <footer className="bg-black/95 backdrop-blur-md border-t border-zinc-800 shrink-0 z-20 print:hidden flex flex-col shadow-2xl">
+        {/* Barra di Ricerca quando attiva (posizionata subito sopra la barra icone) */}
+        {showSearch && (
+          <div className="bg-zinc-950 border-b border-zinc-800 px-4 sm:px-6 py-3 flex items-center gap-3 z-10 animate-fade-in">
+            <Search size={18} className="text-white shrink-0 mx-1" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cerca nel documento PDF..."
+              className="bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none flex-1 px-1"
+              autoFocus
+            />
+            {searchQuery && (
+              <span className="text-xs text-white font-bold shrink-0 px-2">
+                {searchMatchesCount} trovati
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setShowSearch(false);
+                setSearchQuery('');
+              }}
+              className="text-white hover:text-zinc-200 p-2 rounded-xl hover:bg-zinc-800 transition-colors mx-1"
+              title="Chiudi ricerca"
+              aria-label="Chiudi ricerca"
+            >
+              <X size={18} className="text-white" />
+            </button>
+          </div>
+        )}
 
-        {/* Page selector and quick jump */}
-        <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
-          <span>Pagina</span>
-          <select
-            value={currentPage}
-            onChange={(e) => scrollToPage(Number(e.target.value))}
-            className="bg-zinc-900 border border-zinc-700 text-white rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-white cursor-pointer"
-            aria-label="Seleziona pagina del PDF"
-          >
-            {Array.from({ length: totalPages }).map((_, idx) => (
-              <option key={idx} value={idx}>
-                {idx + 1}
-              </option>
-            ))}
-          </select>
-          <span className="text-zinc-400">di {totalPages}</span>
+        {/* ===================== RIGA DELLE ICONE AZIONE (SPOSTATE SOTTO) ===================== */}
+        <div className="bg-black border-b border-zinc-800 px-3 sm:px-6 py-2.5 sm:py-3.5 overflow-x-auto no-scrollbar select-none">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4">
+            {/* 1. Passa a Leggi libro (Audio Voce AI) */}
+            <button
+              type="button"
+              onClick={() => onSwitchToReader(book)}
+              className="flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              title="Passa al lettore eBook con voce AI"
+              aria-label="Leggi libro con voce AI"
+            >
+              <BookOpen size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+                Leggi libro
+              </span>
+            </button>
+
+            {/* 2. Pulsante Pieno Schermo */}
+            <button
+              type="button"
+              onClick={handleToggleFullscreen}
+              className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                isFullscreen
+                  ? 'bg-white text-black border-white font-black shadow-sm'
+                  : 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white'
+              }`}
+              title={
+                isFullscreen
+                  ? 'Pieno schermo attivo: tocca per ridurre la visualizzazione'
+                  : 'Attiva visualizzazione a pieno schermo'
+              }
+              aria-label={isFullscreen ? 'Riduci da pieno schermo' : 'Attiva pieno schermo'}
+              aria-pressed={isFullscreen}
+            >
+              {isFullscreen ? (
+                <Minimize2 size={18} className="text-black shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              ) : (
+                <Maximize2 size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              )}
+              <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
+                {isFullscreen ? 'A Pieno Schermo' : 'Pieno Schermo'}
+              </span>
+            </button>
+
+            {/* 3. Modalità visualizzazione: Continuo vs Singola */}
+            <button
+              type="button"
+              onClick={() => setViewMode((prev) => (prev === 'continuous' ? 'single' : 'continuous'))}
+              className="flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              title={viewMode === 'continuous' ? 'Modalità: Scorrimento continuo (tocca per pagina singola)' : 'Modalità: Pagina singola (tocca per continuo)'}
+              aria-label="Cambia visualizzazione pagine"
+            >
+              <Layers size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+                {viewMode === 'continuous' ? 'Continuo' : 'Pag. singola'}
+              </span>
+            </button>
+
+            {/* 4. Modalità Notte Toggle per tutto il libro */}
+            <button
+              type="button"
+              onClick={handleToggleNightMode}
+              className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                isNightMode
+                  ? 'bg-white text-black border-white font-black shadow-sm'
+                  : 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white'
+              }`}
+              title={
+                isNightMode
+                  ? 'Modalità notte attiva in tutto il libro (tocca per tornare alla modalità standard)'
+                  : 'Attiva modalità notte in tutto il libro (sfondo scuro ad alto contrasto per non affaticare la vista)'
+              }
+              aria-label={isNightMode ? 'Disattiva modalità notte' : 'Attiva modalità notte in tutto il libro'}
+              aria-pressed={isNightMode}
+            >
+              {isNightMode ? (
+                <Moon size={18} className="fill-black text-black shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              ) : (
+                <Moon size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              )}
+              <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
+                {isNightMode ? 'Notte Attiva' : 'Mod. Notte'}
+              </span>
+            </button>
+
+            {/* 5. Cerca nel PDF */}
+            <button
+              type="button"
+              onClick={() => setShowSearch((prev) => !prev)}
+              aria-label="Cerca testo nel PDF"
+              className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                showSearch
+                  ? 'bg-white text-black border-white'
+                  : 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white'
+              }`}
+              title="Cerca nel testo"
+            >
+              <Search size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
+                Cerca
+              </span>
+            </button>
+
+            {/* 6. Segnalibri con contatore badge */}
+            <button
+              type="button"
+              onClick={() => setShowBookmarksModal(true)}
+              className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                bookmarks.length > 0
+                  ? 'border-white/40 bg-zinc-950 hover:bg-zinc-900 text-white'
+                  : 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white'
+              }`}
+              aria-label={`Lista rapida segnalibri. ${bookmarks.length} salvati.`}
+              title="Lista Segnalibri"
+            >
+              <div className="relative inline-flex items-center justify-center m-0.5">
+                <BookmarkCheck
+                  size={18}
+                  className={`text-white shrink-0 group-hover:scale-105 transition-transform ${
+                    isCurrentPageBookmarked ? 'fill-white' : ''
+                  }`}
+                />
+                {bookmarks.length > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-white text-black font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-black shadow-xs">
+                    {bookmarks.length}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+                Segnalibri
+              </span>
+            </button>
+
+            {/* 7. Zoom Controls (Riduci / Ingrandisci / Percentuale) */}
+            <div className="flex-1 min-w-[80px] sm:min-w-0 sm:flex-none min-h-[50px] flex items-center justify-center gap-1 sm:gap-2 py-1.5 px-2.5 sm:px-3 rounded-xl border border-white/20 bg-black text-white">
+              <button
+                type="button"
+                onClick={() => handleZoom(-15)}
+                className="w-8 h-8 flex items-center justify-center text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-90 m-0.5"
+                title="Riduci zoom"
+                aria-label="Riduci zoom"
+              >
+                <ZoomOut size={16} className="text-white" />
+              </button>
+              <button
+                type="button"
+                onClick={handleResetZoom}
+                className="px-1.5 text-[11px] sm:text-xs font-bold text-white hover:underline whitespace-nowrap"
+                title="Reimposta zoom 100%"
+              >
+                {zoomLevel}%
+              </button>
+              <button
+                type="button"
+                onClick={() => handleZoom(15)}
+                className="w-8 h-8 flex items-center justify-center text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-90 m-0.5"
+                title="Aumenta zoom"
+                aria-label="Aumenta zoom"
+              >
+                <ZoomIn size={16} className="text-white" />
+              </button>
+            </div>
+
+            {/* 8. Stampa o Salva PDF */}
+            <button
+              type="button"
+              onClick={handlePrintPdf}
+              className="flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              title="Stampa o Salva documento in PDF"
+              aria-label="Stampa o Salva PDF"
+            >
+              <Printer size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+              <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+                Stampa
+              </span>
+            </button>
+          </div>
         </div>
 
-        {/* Copy current page text & Next button */}
-        <div className="flex items-center gap-2">
+        {/* ===================== RIGA NAVIGAZIONE PAGINE ===================== */}
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-3 sm:gap-4">
+          {/* Previous page button */}
           <button
             type="button"
-            onClick={handleCopyCurrentPage}
-            className="hidden sm:flex min-h-[42px] px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white font-bold text-xs items-center gap-1.5 transition-all"
-            title="Copia testo della pagina"
+            disabled={currentPage <= 0}
+            onClick={() => scrollToPage(currentPage - 1)}
+            className="min-h-[44px] px-3.5 sm:px-4.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none border border-zinc-700 text-white font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
+            aria-label="Pagina precedente"
           >
-            {isCopied ? <Check size={16} className="text-white" /> : <Copy size={16} />}
-            <span>{isCopied ? 'Copiato!' : 'Copia'}</span>
+            <ChevronLeft size={19} className="text-white shrink-0 m-0.5" />
+            <span className="hidden sm:inline">Precedente</span>
           </button>
 
-          <button
-            type="button"
-            disabled={currentPage >= totalPages - 1}
-            onClick={() => scrollToPage(currentPage + 1)}
-            className="min-h-[42px] px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none border border-zinc-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
-            aria-label="Pagina successiva"
-          >
-            <span className="hidden sm:inline">Successiva</span>
-            <ChevronRight size={18} />
-          </button>
+          {/* Page selector and quick jump */}
+          <div className="flex items-center gap-2.5 text-xs font-bold text-zinc-300">
+            <span>Pagina</span>
+            <select
+              value={currentPage}
+              onChange={(e) => scrollToPage(Number(e.target.value))}
+              className="bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-white cursor-pointer"
+              aria-label="Seleziona pagina del PDF"
+            >
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <option key={idx} value={idx}>
+                  {idx + 1}
+                </option>
+              ))}
+            </select>
+            <span className="text-zinc-400">di {totalPages}</span>
+          </div>
+
+          {/* Copy current page text & Next button */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={handleCopyCurrentPage}
+              className="hidden sm:flex min-h-[44px] px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white font-bold text-xs items-center gap-2 transition-all"
+              title="Copia testo della pagina"
+            >
+              {isCopied ? <Check size={17} className="text-white shrink-0 m-0.5" /> : <Copy size={17} className="text-white shrink-0 m-0.5" />}
+              <span>{isCopied ? 'Copiato!' : 'Copia'}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => scrollToPage(currentPage + 1)}
+              className="min-h-[44px] px-3.5 sm:px-4.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none border border-zinc-700 text-white font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
+              aria-label="Pagina successiva"
+            >
+              <span className="hidden sm:inline">Successiva</span>
+              <ChevronRight size={19} className="text-white shrink-0 m-0.5" />
+            </button>
+          </div>
         </div>
       </footer>
 

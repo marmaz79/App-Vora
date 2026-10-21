@@ -308,7 +308,12 @@ app.post('/api/tts/generate', async (req: Request, res: Response) => {
   }
 });
 
-// Endpoint: Vision OCR avanzato con Gemini 3.8 Flash Multimodale
+// ============================================================================
+// [SISTEMA AI OCR PER SCANSIONE COMMENTATO SU RICHIESTA DELL'UTENTE]
+// Il sistema di scansione OCR basato su AI è stato commentato nel frontend
+// in favore del motore OCR locale Tesseract.js (WebAssembly offline).
+// ============================================================================
+// Endpoint: Vision OCR avanzato con Gemini 3.8 Flash Multimodale (Disattivato / Fallback)
 app.post('/api/ocr/vision', async (req: Request, res: Response) => {
   try {
     const { image, mimeType = 'image/jpeg', language = 'ita', speechOptimized = false } = req.body;
@@ -616,15 +621,23 @@ app.post('/api/ai/smart-crop', async (req: Request, res: Response) => {
       });
     }
 
-    const prompt = `Sei un sistema esperto di Computer Vision per scanner mobili di documenti (stile CamScanner/Adobe Scan).
-Identifica i confini esatti della pagina di libro, foglio di carta, scontrino o documento cartaceo fotografato.
+    const prompt = `Sei l'algoritmo di Computer Vision di CamScanner per il rilevamento prospettico di documenti.
+Identifica i 4 vertici esatti (quadrilatero prospettico) del foglio di carta, pagina di libro, scontrino o documento fotografato.
 Escludi lo sfondo esterno (tavolo, scrivania, pavimento, coperte, bordi scuri, dita che tengono il foglio).
 Restituisci un oggetto JSON con le coordinate normalizzate del documento (valori compresi rigorosamente tra 0.00 e 1.00):
 {
-  "x": <float da 0.0 a 0.8: margine sinistro del documento>,
-  "y": <float da 0.0 a 0.8: margine superiore del documento>,
-  "width": <float da 0.2 a 1.0: larghezza del documento>,
-  "height": <float da 0.2 a 1.0: altezza del documento>,
+  "corners": {
+    "tl": { "x": <float 0.0-1.0: angolo superiore sinistro X>, "y": <float 0.0-1.0: angolo superiore sinistro Y> },
+    "tr": { "x": <float 0.0-1.0: angolo superiore destro X>, "y": <float 0.0-1.0: angolo superiore destro Y> },
+    "br": { "x": <float 0.0-1.0: angolo inferiore destro X>, "y": <float 0.0-1.0: angolo inferiore destro Y> },
+    "bl": { "x": <float 0.0-1.0: angolo inferiore sinistro X>, "y": <float 0.0-1.0: angolo inferiore sinistro Y> }
+  },
+  "cropBox": {
+    "x": <float da 0.0 a 0.8: margine sinistro del documento>,
+    "y": <float da 0.0 a 0.8: margine superiore del documento>,
+    "width": <float da 0.2 a 1.0: larghezza del documento>,
+    "height": <float da 0.2 a 1.0: altezza del documento>
+  },
   "confidence": <float da 0.0 a 1.0>
 }
 Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
@@ -657,10 +670,10 @@ Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
       }
     }
 
-    let x = typeof parsed.x === 'number' ? parsed.x : 0.05;
-    let y = typeof parsed.y === 'number' ? parsed.y : 0.05;
-    let width = typeof parsed.width === 'number' ? parsed.width : 0.90;
-    let height = typeof parsed.height === 'number' ? parsed.height : 0.90;
+    let x = typeof parsed.cropBox?.x === 'number' ? parsed.cropBox.x : (typeof parsed.x === 'number' ? parsed.x : 0.05);
+    let y = typeof parsed.cropBox?.y === 'number' ? parsed.cropBox.y : (typeof parsed.y === 'number' ? parsed.y : 0.05);
+    let width = typeof parsed.cropBox?.width === 'number' ? parsed.cropBox.width : (typeof parsed.width === 'number' ? parsed.width : 0.90);
+    let height = typeof parsed.cropBox?.height === 'number' ? parsed.cropBox.height : (typeof parsed.height === 'number' ? parsed.height : 0.90);
 
     // Sanitize and clamp values to [0, 1] range
     x = Math.max(0.00, Math.min(0.80, x));
@@ -668,8 +681,31 @@ Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
     width = Math.max(0.15, Math.min(1.0 - x, width));
     height = Math.max(0.15, Math.min(1.0 - y, height));
 
+    const clamp = (v: any, fallback: number) =>
+      typeof v === 'number' && !isNaN(v) ? Math.max(0.0, Math.min(1.0, v)) : fallback;
+
+    const corners = {
+      tl: {
+        x: clamp(parsed.corners?.tl?.x, x),
+        y: clamp(parsed.corners?.tl?.y, y),
+      },
+      tr: {
+        x: clamp(parsed.corners?.tr?.x, x + width),
+        y: clamp(parsed.corners?.tr?.y, y),
+      },
+      br: {
+        x: clamp(parsed.corners?.br?.x, x + width),
+        y: clamp(parsed.corners?.br?.y, y + height),
+      },
+      bl: {
+        x: clamp(parsed.corners?.bl?.x, x),
+        y: clamp(parsed.corners?.bl?.y, y + height),
+      },
+    };
+
     return res.json({
       success: true,
+      corners,
       cropBox: {
         x: Number(x.toFixed(4)),
         y: Number(y.toFixed(4)),
@@ -677,7 +713,7 @@ Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
         height: Number(height.toFixed(4)),
       },
       confidence: parsed.confidence || 0.95,
-      engine: 'Gemini 3.8 Flash AI Smart Crop',
+      engine: 'Gemini 3.8 Flash CamScanner Perspective Vision',
     });
   } catch (err: any) {
     console.error('Errore /api/ai/smart-crop:', err);

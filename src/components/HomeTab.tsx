@@ -313,8 +313,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       {/* 4. DOCUMENT LIST (Stile Adobe Acrobat) */}
       <div className="flex flex-col divide-y divide-zinc-800 mt-1">
         {filteredBooks.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center gap-2 text-gray-400">
-            <FileText size={38} className="text-zinc-600 mb-2" />
+          <div className="p-12 text-center flex flex-col items-center justify-center gap-2 text-white">
+            <FileText size={38} className="text-white mb-2" />
             <p className="text-sm font-bold text-white">Nessun file trovato</p>
           </div>
         ) : (

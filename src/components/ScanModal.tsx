@@ -59,14 +59,14 @@ export const ScanModal: React.FC<ScanModalProps> = ({
     progress: 0,
     message: '',
   });
-  const [ocrEngine, setOcrEngine] = useState<OcrEngineMode>('ai-vision');
+  const [ocrEngine, setOcrEngine] = useState<OcrEngineMode>('tesseract');
   const [ocrLanguage, setOcrLanguage] = useState<OcrLanguage>('ita');
-  const [autoOptimizeAi, setAutoOptimizeAi] = useState(true);
+  const [autoOptimizeAi, setAutoOptimizeAi] = useState(false);
   const [speechOptimized, setSpeechOptimized] = useState(false);
   const [enhanceContrast, setEnhanceContrast] = useState(true);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [lastConfidence, setLastConfidence] = useState<number | null>(null);
-  const [currentEngineLabel, setCurrentEngineLabel] = useState<string>('Gemini AI Vision');
+  const [currentEngineLabel, setCurrentEngineLabel] = useState<string>('Tesseract OCR (Locale)');
   const [isAiOptimized, setIsAiOptimized] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [activeFileName, setActiveFileName] = useState('');
@@ -386,11 +386,11 @@ export const ScanModal: React.FC<ScanModalProps> = ({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 id="scan-modal-title" className="text-xl font-black text-white">
-                  Scansione OCR con AI
+                  Scansione OCR
                 </h2>
                 <span className="bg-zinc-900 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center gap-1 border border-white/30">
-                  <Sparkles size={11} />
-                  AI Ottimizzato
+                  <Cpu size={11} />
+                  Motore Locale (Tesseract)
                 </span>
               </div>
             </div>
@@ -404,72 +404,35 @@ export const ScanModal: React.FC<ScanModalProps> = ({
           </button>
         </div>
 
-        {/* OCR Engine Selector Tabs */}
+        {/* OCR Engine Info */}
         <div>
           <label className="block text-xs font-bold text-gray-300 mb-1.5">
             Motore di Riconoscimento OCR:
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => setOcrEngine('ai-vision')}
-              className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 ${
-                ocrEngine === 'ai-vision'
-                  ? 'bg-white text-black border-white shadow-xs'
-                  : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-white'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black flex items-center gap-1">
-                  <Bot size={14} />
-                  Gemini AI Vision
-                </span>
-                <span className={`text-[9px] font-extrabold px-1 rounded ${ocrEngine === 'ai-vision' ? 'bg-black text-white' : 'bg-zinc-800 text-white'}`}>
-                  Top
-                </span>
+          <div className="p-3 rounded-xl border border-white/30 bg-zinc-900 text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Cpu size={18} className="text-white" />
+              <div>
+                <span className="text-xs font-black block">Tesseract OCR (Locale WebAssembly)</span>
+                <span className="text-[11px] text-zinc-300">Riconoscimento ottico offline direttamente nel browser</span>
               </div>
+            </div>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-white text-black">
+              Attivo
+            </span>
+          </div>
+          {/*
+          // [SISTEMA AI OCR COMMENTATO SU RICHIESTA DELL'UTENTE]
+          // Decommentare il blocco sottostante per riattivare la selezione dei motori Gemini AI Vision:
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button type="button" onClick={() => setOcrEngine('ai-vision')}>
+              Gemini AI Vision
             </button>
-
-            <button
-              type="button"
-              onClick={() => setOcrEngine('tesseract-ai')}
-              className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 ${
-                ocrEngine === 'tesseract-ai'
-                  ? 'bg-white text-black border-white shadow-xs'
-                  : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-white'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black flex items-center gap-1">
-                  <Sparkles size={14} />
-                  Tesseract + AI
-                </span>
-                <span className={`text-[9px] font-bold px-1 rounded ${ocrEngine === 'tesseract-ai' ? 'bg-black text-white' : 'bg-zinc-800 text-white'}`}>
-                  Ibrido
-                </span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setOcrEngine('tesseract')}
-              className={`p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 ${
-                ocrEngine === 'tesseract'
-                  ? 'bg-white text-black border-white shadow-xs'
-                  : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-white'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black flex items-center gap-1">
-                  <Cpu size={14} />
-                  Tesseract Solo
-                </span>
-                <span className={`text-[9px] font-bold px-1 rounded ${ocrEngine === 'tesseract' ? 'bg-black text-white' : 'bg-zinc-800 text-white'}`}>
-                  Locale
-                </span>
-              </div>
+            <button type="button" onClick={() => setOcrEngine('tesseract-ai')}>
+              Tesseract + AI
             </button>
           </div>
+          */}
         </div>
 
         {/* OCR Options Bar */}
@@ -746,7 +709,9 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               )}
             </label>
 
-            {/* AI Optimization Toolbar */}
+            {/*
+            // [SISTEMA AI PER OTTIMIZZAZIONE TESTO OCR COMMENTATO SU RICHIESTA DELL'UTENTE]
+            // Decommentare questo blocco per riattivare i pulsanti di correzione refusi e formattazione con Gemini AI:
             {currentText.trim() && (
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
@@ -756,57 +721,42 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-zinc-900 hover:bg-zinc-800 border border-white/20 px-2 py-1 rounded-lg transition-colors shadow-2xs"
                   title="Corregge refusi OCR, unisce parole a capo e ripristina la struttura dei paragrafi con Gemini AI"
                 >
-                  {isEnhancingAi && activeAiMode === 'comprehensive' ? (
-                    <Loader2 size={12} className="animate-spin text-white" />
-                  ) : (
-                    <Wand2 size={12} className="text-white" />
-                  )}
+                  <Wand2 size={12} className="text-white" />
                   <span>Ottimizza con AI</span>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => handleEnhanceWithAi('speech_tts')}
                   disabled={isEnhancingAi}
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-zinc-900 hover:bg-zinc-800 border border-white/20 px-2 py-1 rounded-lg transition-colors shadow-2xs"
-                  title="Formatta ed espande abbreviazioni per una lettura vocale espressiva e scorrevole"
                 >
-                  {isEnhancingAi && activeAiMode === 'speech_tts' ? (
-                    <Loader2 size={12} className="animate-spin text-white" />
-                  ) : (
-                    <Volume2 size={12} className="text-white" />
-                  )}
+                  <Volume2 size={12} className="text-white" />
                   <span>Formatta per Voce</span>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => handleEnhanceWithAi('typos')}
                   disabled={isEnhancingAi}
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-zinc-900 hover:bg-zinc-800 border border-white/20 px-2 py-1 rounded-lg transition-colors shadow-2xs"
-                  title="Corregge solo caratteri e lettere scambiate mantenendo l'impaginazione"
                 >
-                  {isEnhancingAi && activeAiMode === 'typos' ? (
-                    <Loader2 size={12} className="animate-spin text-white" />
-                  ) : (
-                    <SpellCheck size={12} className="text-white" />
-                  )}
+                  <SpellCheck size={12} className="text-white" />
                   <span>Correggi Refusi</span>
                 </button>
-
-                {rawText && rawText !== currentText && (
-                  <button
-                    type="button"
-                    onClick={handleRestoreRawText}
-                    disabled={isEnhancingAi}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-zinc-900 hover:bg-zinc-800 border border-white/20 px-2 py-1 rounded-lg transition-colors shadow-2xs"
-                    title="Annulla le modifiche AI e ripristina il testo originale grezzo"
-                  >
-                    <RotateCcw size={12} />
-                    <span>Originale</span>
-                  </button>
-                )}
               </div>
+            )}
+            */}
+
+            {rawText && rawText !== currentText && (
+              <button
+                type="button"
+                onClick={handleRestoreRawText}
+                disabled={isEnhancingAi}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-zinc-900 hover:bg-zinc-800 border border-white/20 px-2 py-1 rounded-lg transition-colors shadow-2xs"
+                title="Annulla le modifiche e ripristina il testo originale grezzo"
+              >
+                <RotateCcw size={12} />
+                <span>Originale</span>
+              </button>
             )}
           </div>
 

@@ -7,17 +7,12 @@ import {
   ArrowLeft,
   X,
   Mail,
-  Lock,
   Eye,
   EyeOff,
   User as UserIcon,
   Check,
   HelpCircle,
   Phone,
-  Calendar,
-  Layers,
-  Smartphone,
-  ExternalLink,
 } from 'lucide-react';
 import { VoraLogo } from './VoraLogo';
 import { User } from '../types';
@@ -38,7 +33,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 }) => {
   // Navigation State
   const [activeScreen, setActiveScreen] = useState<ScreenMode>('login');
-  const [viewMode, setViewMode] = useState<'single' | 'panoramic'>('single');
 
   // Login Form State
   const [loginEmail, setLoginEmail] = useState<string>(initialEmail);
@@ -240,15 +234,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         isEmbedded ? 'scale-100' : ''
       }`}
     >
-      {/* Yellow / Amber Top Banner from image */}
+      {/* Yellow / Amber Top Banner */}
       <div className="bg-gradient-to-b from-amber-400 via-amber-400 to-amber-500 text-black px-6 pt-7 pb-8 rounded-b-[36px] relative shadow-md">
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <span className="text-3xl sm:text-4xl font-black tracking-tight text-black leading-tight">
-              Hello
+              Ciao
             </span>
             <span className="text-sm font-bold text-zinc-900/90 mt-0.5">
-              Welcome Back!
+              Bentornato!
             </span>
           </div>
 
@@ -262,7 +256,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <div className="bg-zinc-900 border-t border-zinc-800/80 px-6 pt-6 pb-6 flex flex-col gap-4 text-white -mt-4 rounded-[28px] relative z-10 mx-2 mb-2 shadow-xl">
         <div className="flex flex-col">
           <h2 className="text-lg font-black text-white tracking-tight">
-            Login Account
+            Accedi al tuo Account
           </h2>
           <p className="text-xs text-zinc-400 font-medium leading-relaxed">
             Inserisci le tue credenziali per accedere alla tua libreria
@@ -276,7 +270,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               htmlFor="login-email"
               className="text-xs font-bold text-zinc-300"
             >
-              Email Address
+              Indirizzo Email
             </label>
             <div className="relative flex items-center">
               <input
@@ -285,11 +279,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 required
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="Your Email Address"
+                placeholder="iltuoindirizzo@email.com"
                 className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all pr-10"
               />
-              <div className="absolute right-3 text-zinc-400 pointer-events-none">
-                <UserIcon size={16} />
+              <div className="absolute right-3 text-white pointer-events-none">
+                <UserIcon size={16} className="text-white" />
               </div>
             </div>
           </div>
@@ -315,10 +309,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setShowLoginPassword(!showLoginPassword)}
-                className="absolute right-3 text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="absolute right-3 text-white hover:text-zinc-300 transition-colors"
                 title={showLoginPassword ? 'Nascondi password' : 'Mostra password'}
               >
-                {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showLoginPassword ? (
+                  <EyeOff size={16} className="text-white" />
+                ) : (
+                  <Eye size={16} className="text-white" />
+                )}
               </button>
             </div>
           </div>
@@ -333,14 +331,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div
                 className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
                   savePassword
-                    ? 'border-emerald-500 bg-emerald-500 text-black'
-                    : 'border-zinc-600 bg-zinc-950'
+                    ? 'border-white bg-white text-black'
+                    : 'border-zinc-500 bg-zinc-950'
                 }`}
               >
-                {savePassword && <Check size={10} strokeWidth={3} />}
+                {savePassword && <Check size={10} strokeWidth={3} className="text-black" />}
               </div>
               <span className="text-[11px] font-semibold text-zinc-300 group-hover:text-white transition-colors">
-                Save Password
+                Ricorda Password
               </span>
             </button>
 
@@ -349,7 +347,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               onClick={() => setShowForgotPassword(true)}
               className="text-[11px] font-semibold text-zinc-400 hover:text-amber-400 transition-colors underline-offset-2 hover:underline"
             >
-              Forgot Password?
+              Password dimenticata?
             </button>
           </div>
 
@@ -358,16 +356,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <div className="bg-red-950/90 border border-red-700 text-red-200 rounded-xl p-3 text-xs flex flex-col gap-2 animate-fade-in shadow-lg">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2">
-                  <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
+                  <AlertCircle size={15} className="text-white shrink-0 mt-0.5" />
                   <span className="leading-relaxed">{loginError}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setLoginError(null)}
-                  className="text-zinc-400 hover:text-white p-0.5"
+                  className="text-white hover:text-zinc-300 p-0.5"
                   aria-label="Chiudi errore"
                 >
-                  <X size={14} />
+                  <X size={14} className="text-white" />
                 </button>
               </div>
               <button
@@ -376,7 +374,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 className="w-full bg-amber-400 hover:bg-amber-300 text-black font-extrabold text-xs py-2 px-3 rounded-lg transition-all text-center flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
               >
                 <span>Accedi subito come {quickUserName}</span>
-                <ArrowRight size={13} />
+                <ArrowRight size={13} className="text-black" />
               </button>
             </div>
           )}
@@ -386,7 +384,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             type="submit"
             className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-xs py-3 rounded-xl transition-all shadow-md shadow-amber-500/10 active:scale-[0.98] mt-1"
           >
-            Login Account
+            Accedi
           </button>
         </form>
 
@@ -406,7 +404,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             className="w-full bg-zinc-950 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] group"
           >
             {isFirebaseLoading ? (
-              <Loader2 size={16} className="animate-spin text-amber-400" />
+              <Loader2 size={16} className="animate-spin text-white" />
             ) : (
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -446,7 +444,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 Accedi subito come {quickUserName}
               </span>
             </div>
-            <ArrowRight size={13} className="text-zinc-400 shrink-0 ml-1" />
+            <ArrowRight size={13} className="text-white shrink-0 ml-1" />
           </button>
         </div>
 
@@ -455,12 +453,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <button
             type="button"
             onClick={() => setActiveScreen('register_personal')}
-            className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center gap-1 group"
+            className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center gap-1.5 group"
           >
-            <span>Create New Account</span>
+            <span>Crea un nuovo account</span>
             <ArrowRight
               size={13}
-              className="group-hover:translate-x-0.5 transition-transform"
+              className="text-white group-hover:translate-x-0.5 transition-transform"
             />
           </button>
         </div>
@@ -474,20 +472,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         isEmbedded ? 'scale-100' : ''
       }`}
     >
-      {/* Yellow / Amber Top Banner from image */}
+      {/* Yellow / Amber Top Banner */}
       <div className="bg-gradient-to-b from-amber-400 via-amber-400 to-amber-500 text-black px-6 pt-7 pb-8 rounded-b-[36px] relative shadow-md">
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <span className="text-3xl sm:text-4xl font-black tracking-tight text-black leading-tight">
-              Join Us
+              Unisciti a noi
             </span>
             <span className="text-sm font-bold text-zinc-900/90 mt-0.5">
-              Create Free Account
+              Crea account gratuito
             </span>
           </div>
 
           <div className="px-2.5 py-1 rounded-full bg-black text-amber-400 text-[10px] font-black uppercase tracking-wider shrink-0 shadow-sm">
-            Step 1 / 2
+            Passo 1 di 2
           </div>
         </div>
       </div>
@@ -496,7 +494,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <div className="bg-zinc-900 border-t border-zinc-800/80 px-6 pt-6 pb-6 flex flex-col gap-4 text-white -mt-4 rounded-[28px] relative z-10 mx-2 mb-2 shadow-xl">
         <div className="flex flex-col">
           <h2 className="text-lg font-black text-white tracking-tight">
-            Personal Info
+            Dati Personali
           </h2>
           <p className="text-xs text-zinc-400 font-medium leading-relaxed">
             Inserisci i tuoi dati anagrafici per iniziare
@@ -504,10 +502,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         <form onSubmit={handlePersonalStepContinue} className="flex flex-col gap-3.5">
-          {/* Your Name (First Name & Last Name 2-column grid as in image) */}
+          {/* Your Name (Nome e Cognome) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-zinc-300">
-              Your Name
+              Il tuo Nome e Cognome
             </label>
             <div className="grid grid-cols-2 gap-2">
               <input
@@ -515,7 +513,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 required
                 value={regFirstName}
                 onChange={(e) => setRegFirstName(e.target.value)}
-                placeholder="First Name"
+                placeholder="Nome"
                 className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all"
               />
               <input
@@ -523,7 +521,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 required
                 value={regLastName}
                 onChange={(e) => setRegLastName(e.target.value)}
-                placeholder="Last Name"
+                placeholder="Cognome"
                 className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all"
               />
             </div>
@@ -535,7 +533,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               htmlFor="reg-email"
               className="text-xs font-bold text-zinc-300"
             >
-              Email Address
+              Indirizzo Email
             </label>
             <div className="relative flex items-center">
               <input
@@ -544,22 +542,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 required
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
-                placeholder="Your Email Address"
+                placeholder="iltuoindirizzo@email.com"
                 className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all pr-10"
               />
-              <div className="absolute right-3 text-zinc-400 pointer-events-none">
-                <Mail size={16} />
+              <div className="absolute right-3 text-white pointer-events-none">
+                <Mail size={16} className="text-white" />
               </div>
             </div>
           </div>
 
-          {/* Username Field with green checkmark as in image */}
+          {/* Username Field */}
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="reg-username"
               className="text-xs font-bold text-zinc-300"
             >
-              Username
+              Nome Utente
             </label>
             <div className="relative flex items-center">
               <input
@@ -568,13 +566,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 required
                 value={regUsername}
                 onChange={(e) => setRegUsername(e.target.value)}
-                placeholder="example1234"
+                placeholder="mariano1234"
                 className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all pr-10"
               />
               <div className="absolute right-3">
                 {regUsername.trim().length >= 3 ? (
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
-                    <Check size={11} strokeWidth={3} />
+                  <div className="w-5 h-5 rounded-full bg-zinc-800 text-white border border-white flex items-center justify-center">
+                    <Check size={11} strokeWidth={3} className="text-white" />
                   </div>
                 ) : (
                   <span className="text-[10px] text-zinc-500 font-mono">min 3</span>
@@ -586,18 +584,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           {/* Error Message */}
           {personalInfoError && (
             <div className="bg-red-950/80 border border-red-800 text-red-200 rounded-xl p-2.5 text-xs flex items-center gap-2 animate-fade-in">
-              <AlertCircle size={15} className="text-red-400 shrink-0" />
+              <AlertCircle size={15} className="text-white shrink-0" />
               <span>{personalInfoError}</span>
             </div>
           )}
 
-          {/* Main Amber CTA: Save & Continue (as in image) */}
+          {/* Main Amber CTA: Save & Continue */}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-xs py-3 rounded-xl transition-all shadow-md shadow-amber-500/10 active:scale-[0.98] mt-1 flex items-center justify-center gap-1.5"
           >
-            <span>Save & Continue</span>
-            <ArrowRight size={14} />
+            <span>Salva e Continua</span>
+            <ArrowRight size={14} className="text-white" />
           </button>
         </form>
 
@@ -611,7 +609,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <span>Oppure registrati subito con Google</span>
           </button>
 
-          {/* Footer Link: Back to Login (as in image) */}
+          {/* Footer Link: Back to Login */}
           <div className="text-center pt-1">
             <button
               type="button"
@@ -620,9 +618,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             >
               <ArrowLeft
                 size={13}
-                className="group-hover:-translate-x-0.5 transition-transform"
+                className="text-white group-hover:-translate-x-0.5 transition-transform"
               />
-              <span>Back to Login</span>
+              <span>Torna al Login</span>
             </button>
           </div>
         </div>
@@ -636,20 +634,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         isEmbedded ? 'scale-100' : ''
       }`}
     >
-      {/* Yellow / Amber Top Banner from image */}
+      {/* Yellow / Amber Top Banner */}
       <div className="bg-gradient-to-b from-amber-400 via-amber-400 to-amber-500 text-black px-6 pt-7 pb-8 rounded-b-[36px] relative shadow-md">
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <span className="text-3xl sm:text-4xl font-black tracking-tight text-black leading-tight">
-              Join Us
+              Unisciti a noi
             </span>
             <span className="text-sm font-bold text-zinc-900/90 mt-0.5">
-              Secure Account
+              Sicurezza Account
             </span>
           </div>
 
           <div className="px-2.5 py-1 rounded-full bg-black text-amber-400 text-[10px] font-black uppercase tracking-wider shrink-0 shadow-sm">
-            Step 2 / 2
+            Passo 2 di 2
           </div>
         </div>
       </div>
@@ -658,7 +656,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <div className="bg-zinc-900 border-t border-zinc-800/80 px-6 pt-6 pb-6 flex flex-col gap-3.5 text-white -mt-4 rounded-[28px] relative z-10 mx-2 mb-2 shadow-xl">
         <div className="flex flex-col">
           <h2 className="text-lg font-black text-white tracking-tight">
-            Secure Account
+            Sicurezza Account
           </h2>
           <p className="text-xs text-zinc-400 font-medium leading-relaxed">
             Proteggi il tuo account con password e domande di sicurezza
@@ -666,10 +664,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         <form onSubmit={handleCompleteRegistration} className="flex flex-col gap-3">
-          {/* Birthday (Day - Month - Year 3-column selectors as in image) */}
+          {/* Birthday (Day - Month - Year 3-column selectors) */}
           <div className="flex flex-col gap-1">
             <label className="text-xs font-bold text-zinc-300 flex items-center justify-between">
-              <span>Birthday</span>
+              <span>Data di Nascita</span>
               <span className="text-[10px] font-normal text-zinc-400">Giorno / Mese / Anno</span>
             </label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -735,7 +733,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               htmlFor="reg-pass"
               className="text-xs font-bold text-zinc-300"
             >
-              Password
+              Crea Password
             </label>
             <div className="relative flex items-center">
               <input
@@ -750,21 +748,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setShowRegPassword(!showRegPassword)}
-                className="absolute right-3 text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="absolute right-3 text-white hover:text-zinc-200 transition-colors"
                 title={showRegPassword ? 'Nascondi password' : 'Mostra password'}
               >
-                {showRegPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showRegPassword ? <EyeOff size={16} className="text-white" /> : <Eye size={16} className="text-white" />}
               </button>
             </div>
           </div>
 
-          {/* Phone Number with country prefix selector and checkmark badge as in image */}
+          {/* Phone Number with country prefix selector and checkmark badge */}
           <div className="flex flex-col gap-1">
             <label
               htmlFor="reg-phone"
               className="text-xs font-bold text-zinc-300"
             >
-              Phone Number
+              Numero di Telefono
             </label>
             <div className="flex gap-2">
               <select
@@ -789,13 +787,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="123 45678 9101"
+                  placeholder="340 1234 567"
                   className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all pr-10"
                 />
                 <div className="absolute right-3">
                   {phoneNumber.trim().length >= 6 && (
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
-                      <Check size={11} strokeWidth={3} />
+                    <div className="w-5 h-5 rounded-full bg-zinc-800 text-white border border-white flex items-center justify-center">
+                      <Check size={11} strokeWidth={3} className="text-white" />
                     </div>
                   )}
                 </div>
@@ -803,13 +801,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
           </div>
 
-          {/* Security Question and Answer dropdown as in image */}
+          {/* Security Question and Answer dropdown */}
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="reg-sec-q"
               className="text-xs font-bold text-zinc-300"
             >
-              Security Question
+              Domanda di Sicurezza
             </label>
             <select
               id="reg-sec-q"
@@ -836,7 +834,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               required
               value={securityAnswer}
               onChange={(e) => setSecurityAnswer(e.target.value)}
-              placeholder="Your Answer..."
+              placeholder="La tua risposta..."
               className="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 outline-none transition-all"
             />
           </div>
@@ -844,24 +842,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           {/* Error Message */}
           {secureAccountError && (
             <div className="bg-red-950/80 border border-red-800 text-red-200 rounded-xl p-2.5 text-xs flex items-center gap-2 animate-fade-in">
-              <AlertCircle size={15} className="text-red-400 shrink-0" />
+              <AlertCircle size={15} className="text-white shrink-0" />
               <span>{secureAccountError}</span>
             </div>
           )}
 
-          {/* Main Amber CTA: Create Account (as in image) */}
+          {/* Main Amber CTA: Create Account */}
           <button
             type="submit"
             disabled={isSubmittingNewAccount}
             className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-xs py-3 rounded-xl transition-all shadow-md shadow-amber-500/10 active:scale-[0.98] mt-1 flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {isSubmittingNewAccount ? (
-              <Loader2 size={16} className="animate-spin text-black" />
+              <Loader2 size={16} className="animate-spin text-white" />
             ) : (
-              <ShieldCheck size={16} className="text-black" />
+              <ShieldCheck size={16} className="text-white" />
             )}
             <span>
-              {isSubmittingNewAccount ? 'Creazione account...' : 'Create Account'}
+              {isSubmittingNewAccount ? 'Creazione in corso...' : 'Crea Account'}
             </span>
           </button>
         </form>
@@ -875,9 +873,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           >
             <ArrowLeft
               size={12}
-              className="group-hover:-translate-x-0.5 transition-transform"
+              className="text-white group-hover:-translate-x-0.5 transition-transform"
             />
-            <span>Info Personali</span>
+            <span>Dati Personali</span>
           </button>
 
           <button
@@ -885,7 +883,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             onClick={() => setActiveScreen('login')}
             className="font-bold text-amber-400 hover:text-amber-300 transition-colors text-[11px]"
           >
-            Back to Login
+            Torna al Login
           </button>
         </div>
       </div>
@@ -918,67 +916,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </div>
         </div>
 
-        {/* Flow Switcher Tabs (Matches the 3-screen schema) */}
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 p-1 rounded-2xl">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveScreen('login');
-              setViewMode('single');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-              activeScreen === 'login' && viewMode === 'single'
-                ? 'bg-amber-400 text-black shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            1. Accedi (Login)
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveScreen('register_personal');
-              setViewMode('single');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-              activeScreen === 'register_personal' && viewMode === 'single'
-                ? 'bg-amber-400 text-black shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            2. Personal Info
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveScreen('register_secure');
-              setViewMode('single');
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-              activeScreen === 'register_secure' && viewMode === 'single'
-                ? 'bg-amber-400 text-black shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            3. Secure Account
-          </button>
-
-          {/* Desktop Panoramic Mode (renders 3 screens side-by-side as in user screenshot) */}
-          <button
-            type="button"
-            onClick={() => setViewMode(viewMode === 'single' ? 'panoramic' : 'single')}
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border-l border-zinc-800 ml-1 ${
-              viewMode === 'panoramic'
-                ? 'bg-zinc-800 text-amber-400'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-            title="Mostra tutti i 3 schermi insieme affiancati come nello schema"
-          >
-            <Layers size={13} />
-            <span>3 Schermi Insieme</span>
-          </button>
-        </div>
-
         {/* Close / Skip button */}
         <div className="flex items-center gap-2">
           {onSkip && (
@@ -989,7 +926,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               title="Entra come ospite nella home"
             >
               <span>Entra come ospite</span>
-              <ArrowRight size={13} />
+              <ArrowRight size={13} className="text-white" />
             </button>
           )}
 
@@ -998,10 +935,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               type="button"
               onClick={onSkip}
               aria-label="Salta ed entra nella home"
-              className="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white transition-colors active:scale-95"
+              className="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white transition-colors active:scale-95"
               title="Salta ed entra nella home"
             >
-              <X size={17} />
+              <X size={17} className="text-white" />
             </button>
           )}
         </div>
@@ -1009,53 +946,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* Main Content Area */}
       <div className="w-full max-w-6xl my-auto z-10 flex flex-col items-center justify-center py-2 sm:py-4">
-        {viewMode === 'panoramic' ? (
-          /* Panoramic View: All 3 mockups side-by-side as in the screenshot! */
-          <div className="w-full flex flex-col items-center gap-5 animate-fade-in">
-            <div className="text-center max-w-md mx-auto">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                Schema Completo Autenticazione
-              </span>
-              <h1 className="text-xl sm:text-2xl font-black text-white mt-0.5">
-                Login, Registrazione & Sicurezza Account
-              </h1>
-              <p className="text-xs text-zinc-400 mt-1">
-                Visualizzazione simultanea dei 3 schermi secondo lo schema grafico con tema dark
-              </p>
-            </div>
-
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start justify-center">
-              <div>{renderLoginCard(true)}</div>
-              <div>{renderPersonalInfoCard(true)}</div>
-              <div>{renderSecureAccountCard(true)}</div>
-            </div>
-          </div>
-        ) : (
-          /* Single Screen View: Interactive Focused Flow */
-          <div className="w-full flex flex-col items-center justify-center animate-fade-in">
-            {activeScreen === 'login' && renderLoginCard(false)}
-            {activeScreen === 'register_personal' && renderPersonalInfoCard(false)}
-            {activeScreen === 'register_secure' && renderSecureAccountCard(false)}
-          </div>
-        )}
-
-        {/* Security & Cloud Sync Notice */}
-        <div className="max-w-md w-full mx-auto mt-6 bg-zinc-950/80 border border-zinc-800/80 rounded-2xl p-3 flex items-center gap-3 text-zinc-400">
-          <ShieldCheck className="text-amber-400 shrink-0" size={18} />
-          <p className="text-[11px] leading-relaxed font-medium">
-            Accesso con <strong className="text-white">Google Firebase Auth</strong> e crittografia cloud. I tuoi libri, la libreria e le impostazioni vocali sono al sicuro.
-          </p>
+        <div className="w-full flex flex-col items-center justify-center animate-fade-in">
+          {activeScreen === 'login' && renderLoginCard(false)}
+          {activeScreen === 'register_personal' && renderPersonalInfoCard(false)}
+          {activeScreen === 'register_secure' && renderSecureAccountCard(false)}
         </div>
+
 
         {/* Bottom Guest Mode */}
         {onSkip && (
           <button
             type="button"
             onClick={onSkip}
-            className="text-xs font-semibold text-zinc-400 hover:text-amber-400 transition-colors text-center mt-3 inline-flex items-center gap-1.5 py-1 px-3 rounded-lg hover:bg-zinc-900"
+            className="text-xs font-semibold text-zinc-400 hover:text-white transition-colors text-center mt-3 inline-flex items-center gap-1.5 py-1 px-3 rounded-lg hover:bg-zinc-900"
           >
             <span>Continua come ospite ed entra nella home</span>
-            <ArrowRight size={13} />
+            <ArrowRight size={13} className="text-white" />
           </button>
         )}
       </div>
@@ -1070,15 +976,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div className="w-full max-w-sm bg-zinc-900 border border-zinc-700 rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-white">
-                <HelpCircle size={20} className="text-amber-400" />
+                <HelpCircle size={20} className="text-white" />
                 <h3 className="text-base font-black">Recupero Password</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(false)}
-                className="w-8 h-8 rounded-full bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-zinc-800 text-white hover:text-zinc-300 flex items-center justify-center"
               >
-                <X size={15} />
+                <X size={15} className="text-white" />
               </button>
             </div>
 
@@ -1098,7 +1004,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {forgotSuccess && (
                 <div className="bg-emerald-950/80 border border-emerald-800 text-emerald-300 rounded-xl p-2.5 text-xs flex items-center gap-2">
-                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <Check size={14} className="text-white shrink-0" />
                   <span>Link inviato! Controlla la tua casella di posta.</span>
                 </div>
               )}

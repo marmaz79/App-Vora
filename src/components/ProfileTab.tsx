@@ -164,7 +164,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       <div className="grid grid-cols-2 gap-2.5">
         <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col justify-between min-h-[96px] shadow-sm">
           <div className="flex items-center gap-2 text-white">
-            <BookOpen size={20} />
+            <BookOpen size={20} className="text-white" />
             <span className="text-[11px] font-bold uppercase text-zinc-400">Libri in libreria</span>
           </div>
           <p className="text-2xl font-black text-white mt-1">{books.length}</p>
@@ -173,7 +173,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
         <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col justify-between min-h-[96px] shadow-sm">
           <div className="flex items-center gap-2 text-white">
-            <Clock size={20} />
+            <Clock size={20} className="text-white" />
             <span className="text-[11px] font-bold uppercase text-zinc-400">Tempo ascolto</span>
           </div>
           <p className="text-2xl font-black text-white mt-1">{user.totalReadingMinutes} m</p>

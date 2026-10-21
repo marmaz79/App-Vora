@@ -10,6 +10,21 @@ export type OcrLanguage = 'ita' | 'eng' | 'ita+eng';
 export type OcrEngineMode = 'ai-vision' | 'tesseract-ai' | 'tesseract';
 export type AiOptimizationMode = 'comprehensive' | 'speech_tts' | 'typos';
 
+/**
+ * ============================================================================
+ * CONFIGURAZIONE SISTEMA AI OCR (GEMINI 3.8 FLASH VISION)
+ * ============================================================================
+ * [STATO ATTUALE: COMMENTATO / DISATTIVATO SU RICHIESTA]
+ * Il sistema di scansione OCR basato su AI (Gemini 3.8 Flash Vision) è stato
+ * commentato e disattivato. L'applicazione utilizza il motore OCR locale Tesseract.js
+ * per il riconoscimento ottico dei caratteri offline direttamente nel browser.
+ *
+ * Per riattivare l'AI OCR in futuro, impostare ENABLE_AI_OCR = true e decommentare
+ * i relativi blocchi in recognize() e optimizeTextWithAi().
+ * ============================================================================
+ */
+export const ENABLE_AI_OCR = false;
+
 export interface OcrOptions {
   engine?: OcrEngineMode;
   language?: OcrLanguage;
@@ -213,6 +228,12 @@ export class TesseractOcrService {
   /**
    * Optimize OCR text with Gemini AI via server-side endpoint
    */
+  /**
+   * Ottimizzazione del testo OCR.
+   * [SISTEMA AI COMMENTATO]: La chiamata all'endpoint AI /api/ocr/optimize è stata
+   * commentata su richiesta dell'utente. Il testo viene ripulito e normalizzato
+   * tramite il pulitore euristico locale ad alta precisione.
+   */
   public async optimizeTextWithAi(
     text: string,
     mode: AiOptimizationMode = 'comprehensive'
@@ -221,6 +242,9 @@ export class TesseractOcrService {
       return { text: '', engine: 'locale', isAi: false };
     }
 
+    /* -------------------------------------------------------------------------
+     * [CHIAMATA AI OCR OPTIMIZE COMMENTATA SU RICHIESTA UTENTE]
+     * Decommentare questo blocco per riattivare l'ottimizzazione tramite Gemini AI:
     try {
       const res = await fetch('/api/ocr/optimize', {
         method: 'POST',
@@ -240,14 +264,25 @@ export class TesseractOcrService {
     } catch (err) {
       console.warn('AI optimize error, fallback to local cleaner:', err);
     }
+    ------------------------------------------------------------------------- */
 
-    // Local fallback
+    // Pulizia e normalizzazione 100% locale offline
     const localCleaned = this.cleanOcrText(text);
-    return { text: localCleaned, engine: 'Pulitore euristico locale', isAi: false };
+    return { text: localCleaned, engine: 'Pulitore euristico locale (Offline)', isAi: false };
   }
 
   /**
-   * Perform Multimodal Vision OCR with Gemini 3.8 Flash
+   * =========================================================================
+   * SCANSIONE MULTIMODALE CON GEMINI 3.8 FLASH VISION
+   * =========================================================================
+   * Converte l'immagine del documento (scattata dalla fotocamera o caricata)
+   * in una stringa Base64 ad alta definizione e la invia all'endpoint /api/ocr/vision.
+   *
+   * Caratteristiche:
+   *  - Gestisce l'orientamento, la curvatura della pagina e ombre di rilegatura.
+   *  - Utilizza un ticker di progresso per un feedback visivo continuo all'utente.
+   *  - Restituisce il testo strutturato con metriche di confidenza e conteggio parole.
+   * =========================================================================
    */
   public async recognizeWithGeminiVision(
     imageSource: File | Blob | string,
@@ -445,42 +480,55 @@ export class TesseractOcrService {
   }
 
   /**
-   * Main unified OCR entry point:
-   * Defaults to 'ai-vision' for best accuracy with automatic Tesseract fallback,
-   * or allows user-chosen engine mode.
+   * =========================================================================
+   * METODO PRINCIPALE UNIFICATO DI SCANSIONE OCR
+   * =========================================================================
+   * 1. Se ENABLE_AI_OCR è abilitato (default):
+   *    - Invia l'immagine elaborata a Gemini 3.8 Flash Vision (/api/ocr/vision).
+   *    - In caso di problemi di rete o timeout, commuta automaticamente
+   *      e in modo trasparente sul motore locale Tesseract.js.
+   *
+   * 2. Se ENABLE_AI_OCR è disabilitato (o commentato):
+   *    - Esegue il riconoscimento 100% locale nel browser tramite Tesseract.js
+   *      senza effettuare alcuna chiamata di rete esterna.
+   * =========================================================================
    */
   public async recognize(
     imageSource: File | Blob | string,
     options: OcrOptions = {}
   ): Promise<OcrResult> {
-    const engine = options.engine || 'ai-vision';
+    // Motore predefinito: Tesseract locale (Sistema AI OCR commentato/disattivato)
+    const defaultEngine: OcrEngineMode = 'tesseract';
+    const engine = options.engine || defaultEngine;
 
-    if (engine === 'ai-vision') {
+    /* -------------------------------------------------------------------------
+     * [SISTEMA AI OCR (GEMINI VISION) COMMENTATO SU RICHIESTA DELL'UTENTE]
+     * Il motore Gemini 3.8 Flash Vision multimodale per la scansione OCR è stato
+     * commentato. Il flusso procede direttamente con il motore locale Tesseract.js.
+     * Decommentare il blocco sottostante per ripristinare le chiamate cloud all'AI:
+    if (ENABLE_AI_OCR && engine === 'ai-vision') {
       try {
         return await this.recognizeWithGeminiVision(imageSource, options);
       } catch (geminiErr: any) {
-        console.warn('Gemini Vision OCR fallback a Tesseract + AI:', geminiErr);
-        // Fallback gracefully to Tesseract + AI enhancement
+        console.warn('Gemini Vision OCR non disponibile, fallback automatico a Tesseract:', geminiErr);
         options.onProgress?.({
           status: 'fallback-tesseract',
           progress: 0.25,
-          message: 'Passaggio al motore locale Tesseract con ottimizzazione AI...',
+          message: 'Passaggio al motore locale Tesseract...',
         });
         return await this.recognizeWithTesseract(imageSource, {
           ...options,
-          autoOptimizeAi: true,
+          autoOptimizeAi: false,
         });
       }
     }
+    ------------------------------------------------------------------------- */
 
-    if (engine === 'tesseract-ai') {
-      return await this.recognizeWithTesseract(imageSource, {
-        ...options,
-        autoOptimizeAi: true,
-      });
-    }
-
-    // Default pure tesseract
+    /* -------------------------------------------------------------------------
+     * [OCR TESSERACT LOCALE]: MOTORE DI RICONOSCIMENTO ATTIVO (OFFLINE)
+     * Riconoscimento ottico dei caratteri ad alta risoluzione eseguito interamente
+     * nel browser via WebAssembly (Tesseract.js), senza inviare immagini all'esterno.
+     * ------------------------------------------------------------------------- */
     return await this.recognizeWithTesseract(imageSource, {
       ...options,
       autoOptimizeAi: false,
