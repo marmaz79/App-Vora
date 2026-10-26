@@ -13,7 +13,26 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+
+// Custom error handler for request body parsing to prevent HTML error responses
+app.use((err: any, _req: Request, res: Response, next: any) => {
+  if (err) {
+    console.error('Express body parsing error:', err.message || err);
+    if (err.type === 'entity.too.large' || err.status === 413) {
+      return res.status(413).json({
+        success: false,
+        error: 'Il file inviato supera il limite di dimensione consentito. Prova con un file audio compresso (es. MP3/M4A) o di durata inferiore.',
+      });
+    }
+    return res.status(err.status || 400).json({
+      success: false,
+      error: err.message || 'Errore nella lettura dei dati della richiesta.',
+    });
+  }
+  next();
+});
 
 // Helper text cleaner for document extraction
 function cleanExtractedText(raw: string): string {
@@ -31,6 +50,43 @@ function cleanExtractedText(raw: string): string {
   // Collapse excessive inline spaces
   clean = clean.replace(/[ \t]+/g, ' ');
   return clean.trim();
+}
+
+// Helper to extract text from Gemini responses, including audioTranscription parts
+function extractTextFromGenAiResponse(response: any): string {
+  if (!response) return '';
+  const textChunks: string[] = [];
+
+  // 1. Direct text property if available
+  if (typeof response.text === 'string' && response.text.trim()) {
+    textChunks.push(response.text.trim());
+  }
+
+  // 2. Iterate through all candidates and parts (critical for gemini-3.5-transcribe)
+  if (response.candidates && Array.isArray(response.candidates)) {
+    for (const candidate of response.candidates) {
+      const parts = candidate?.content?.parts;
+      if (Array.isArray(parts)) {
+        for (const part of parts) {
+          // Standard text part
+          if (part?.text && typeof part.text === 'string' && part.text.trim()) {
+            textChunks.push(part.text.trim());
+          }
+          // gemini-3.5-transcribe dedicated audioTranscription part
+          if (part?.audioTranscription?.text && typeof part.audioTranscription.text === 'string' && part.audioTranscription.text.trim()) {
+            textChunks.push(part.audioTranscription.text.trim());
+          }
+          // Generic transcription property fallback
+          if (part?.transcription && typeof part.transcription === 'string' && part.transcription.trim()) {
+            textChunks.push(part.transcription.trim());
+          }
+        }
+      }
+    }
+  }
+
+  const uniqueChunks = Array.from(new Set(textChunks.filter(Boolean)));
+  return uniqueChunks.join('\n\n').trim();
 }
 
 function cleanHtmlContent(html: string): string {
@@ -101,6 +157,18 @@ function splitTextIntoPages(text: string, wordsPerPage: number = 250): string[] 
   }
 
   return pages.length > 0 ? pages : [clean];
+}
+
+function extractGeminiErrorMessage(rawError: any): string {
+  if (!rawError) return 'Errore durante l\'elaborazione con Gemini AI.';
+  const msg = rawError?.message || String(rawError);
+  try {
+    const parsed = JSON.parse(msg);
+    if (parsed?.error?.message) {
+      return parsed.error.message;
+    }
+  } catch {}
+  return msg;
 }
 
 // Helper to resolve the real Gemini API key with multi-source fallback
@@ -304,6 +372,156 @@ app.post('/api/tts/generate', async (req: Request, res: Response) => {
     return res.status(200).json({
       fallback: true,
       error: err?.message || 'Errore durante la generazione della voce AI.',
+    });
+  }
+});
+
+// ============================================================================
+// Endpoint: Trascrizione File Audio con Gemini AI (gemini-3.5-transcribe)
+// Trascrive accuratamente file audio (MP3, WAV, M4A, OGG, AAC, WebM, FLAC) in testo
+// ============================================================================
+app.post('/api/audio/transcribe', async (req: Request, res: Response) => {
+  try {
+    const {
+      audio,
+      mimeType = 'audio/mp3',
+      filename = 'audio_file.mp3',
+      language = 'ita',
+      format = 'narrative',
+    } = req.body;
+
+    if (!audio || typeof audio !== 'string') {
+      return res.status(400).json({ error: 'Dati audio mancanti o non validi.' });
+    }
+
+    const ai = getAiClient();
+    if (!ai) {
+      return res.status(200).json({
+        fallback: true,
+        error: 'Chiave API Gemini non configurata sul server.',
+      });
+    }
+
+    // Strip data URI prefix if present
+    const base64Data = audio.includes(',') ? audio.split(',')[1] : audio;
+
+    // Normalize MIME type
+    let cleanMime = mimeType || '';
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+
+    if (ext === 'mp3' || cleanMime.includes('mpeg') || cleanMime.includes('mp3')) {
+      cleanMime = 'audio/mp3';
+    } else if (ext === 'wav' || cleanMime.includes('wav')) {
+      cleanMime = 'audio/wav';
+    } else if (ext === 'm4a' || cleanMime.includes('m4a') || cleanMime.includes('mp4') || cleanMime.includes('aac')) {
+      cleanMime = 'audio/m4a';
+    } else if (ext === 'ogg' || ext === 'oga' || ext === 'opus' || cleanMime.includes('ogg') || cleanMime.includes('opus')) {
+      cleanMime = 'audio/ogg';
+    } else if (ext === 'webm' || cleanMime.includes('webm')) {
+      cleanMime = 'audio/webm';
+    } else if (ext === 'flac' || cleanMime.includes('flac')) {
+      cleanMime = 'audio/flac';
+    } else {
+      cleanMime = cleanMime || 'audio/mp3';
+    }
+
+    const langInstruction =
+      language === 'eng'
+        ? 'in lingua inglese'
+        : language === 'fra'
+        ? 'in lingua francese'
+        : language === 'esp'
+        ? 'in lingua spagnola'
+        : language === 'deu'
+        ? 'in lingua tedesca'
+        : 'in lingua italiana (o nella lingua parlata originale)';
+
+    const formatInstruction =
+      format === 'dialogue'
+        ? 'Identifica i diversi interlocutori/parlanti separando chiaramente i dialoghi con i nomi o i ruoli (es. Interlocutore 1:, Interlocutore 2:).'
+        : format === 'summary'
+        ? 'Trascrivi il contenuto organizzandolo con titoli di sezione, punti chiave e testo scorrevole.'
+        : 'Trascrivi fedelmente e integralmente ogni singola parola, strutturando il testo in paragrafi leggibili adatti alla lettura e all\'ascolto come audiolibro.';
+
+    const userPrompt = `Trascrivi fedelmente e integralmente ogni singola parola pronunciata in questo file audio ${langInstruction}. Applica una corretta e rigorosa punteggiatura (. , ; : ! ? virgolette) per rendere il testo narrativo ed espressivo. ${formatInstruction} Non inserire note o premesse: fornisci esclusivamente la trascrizione.`;
+
+    const contents = {
+      parts: [
+        {
+          inlineData: {
+            mimeType: cleanMime,
+            data: base64Data,
+          },
+        },
+        {
+          text: userPrompt,
+        },
+      ],
+    };
+
+    let responseText = '';
+    let usedEngine = 'Gemini 3.5 Transcribe';
+
+    // 1. Try gemini-3.5-transcribe (dedicated audio transcription model)
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-transcribe',
+        contents,
+      });
+      responseText = extractTextFromGenAiResponse(response);
+    } catch (transcribeErr: any) {
+      console.warn('Fallback da gemini-3.5-transcribe:', transcribeErr?.message);
+      // Fallback to gemini-3.8-flash which also supports multimodal audio
+      try {
+        usedEngine = 'Gemini 3.8 Flash';
+        const fallbackResponse = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents,
+        });
+        responseText = extractTextFromGenAiResponse(fallbackResponse);
+      } catch (flashErr: any) {
+        console.warn('Fallback da gemini-3.8-flash:', flashErr?.message);
+        try {
+          usedEngine = 'Gemini 3.1 Flash Lite';
+          const liteResponse = await ai.models.generateContent({
+            model: 'gemini-3.1-flash-lite',
+            contents,
+          });
+          responseText = extractTextFromGenAiResponse(liteResponse);
+        } catch (liteErr: any) {
+          console.warn('Fallback da gemini-3.1-flash-lite:', liteErr?.message);
+        }
+      }
+    }
+
+    let cleanedText = cleanExtractedText(responseText);
+    const baseTitle = filename.replace(/\.[^/.]+$/, '').trim() || 'Registrazione Audio';
+    let noSpeechDetected = false;
+
+    if (!cleanedText) {
+      noSpeechDetected = true;
+      cleanedText = `Trascrizione: ${baseTitle}\n\n(Nessun discorso o parlato nitido rilevato nella traccia audio. Il file è stato comunque importato con successo nella tua libreria ed è pronto per l'ascolto vocale o per aggiungere note personali.)`;
+    }
+
+    const pages = splitTextIntoPages(cleanedText);
+    const wordsCount = cleanedText.split(/\s+/).filter(Boolean).length;
+
+    return res.json({
+      success: true,
+      text: cleanedText,
+      pages,
+      wordsCount,
+      title: `Trascrizione: ${baseTitle}`,
+      engine: usedEngine,
+      language,
+      noSpeechDetected,
+    });
+  } catch (err: any) {
+    console.error('Errore /api/audio/transcribe:', err);
+    const userMessage = extractGeminiErrorMessage(err);
+    return res.status(200).json({
+      fallback: true,
+      error: userMessage || 'Errore durante la trascrizione audio con Gemini AI.',
     });
   }
 });

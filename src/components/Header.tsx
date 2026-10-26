@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User as UserIcon, X } from 'lucide-react';
+import { Search, Bell, User as UserIcon, X, BarChart3 } from 'lucide-react';
 import { VoraLogo } from './VoraLogo';
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
   title?: string;
   onOpenProfile?: () => void;
   onOpenNotifications?: () => void;
+  onOpenStats?: () => void;
   unreadNotificationsCount?: number;
 }
 
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   title = 'Vora',
   onOpenProfile,
   onOpenNotifications,
+  onOpenStats,
   unreadNotificationsCount = 0,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(searchQuery));
@@ -69,6 +71,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Search size={22} />
             </button>
+
+            {onOpenStats && (
+              <button
+                onClick={onOpenStats}
+                aria-label="Statistiche di lettura"
+                title="Visualizza statistiche di lettura"
+                className="text-white hover:text-gray-300 transition-colors p-1 rounded-full active:scale-95"
+              >
+                <BarChart3 size={22} />
+              </button>
+            )}
 
             <button
               onClick={onOpenNotifications}

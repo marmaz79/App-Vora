@@ -18,6 +18,8 @@ import { NotificationsModal } from './components/NotificationsModal';
 import { ScanResultsPage } from './components/ScanResultsPage';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginScreen } from './components/LoginScreen';
+import { ReadingStatsModal } from './components/ReadingStatsModal';
+import { StatsTab } from './components/StatsTab';
 import { signOutFirebase, subscribeToAuthState } from './services/firebase';
 
 export function App() {
@@ -41,6 +43,7 @@ export function App() {
     storageService.getNotifications()
   );
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [pdfNightMode, setPdfNightMode] = useState<boolean>(() => {
     try {
       const stored = localStorage.getItem('vora_pdf_night_mode');
@@ -396,6 +399,7 @@ export function App() {
               title="Vora"
               onOpenProfile={() => handleSelectTab('profile')}
               onOpenNotifications={() => setIsNotificationsOpen(true)}
+              onOpenStats={() => handleSelectTab('stats')}
               unreadNotificationsCount={notifications.filter((n) => !n.read).length}
             />
           )}
@@ -414,6 +418,7 @@ export function App() {
                 onScanResultsReady={(session) => setScanSession(session)}
                 hideFab={showSplash}
                 onOpenScan={() => handleSelectTab('scan')}
+                onOpenStats={() => handleSelectTab('stats')}
               />
             )}
 
@@ -435,6 +440,14 @@ export function App() {
                 onAddBook={handleAddBook}
                 onScanResultsReady={(session) => setScanSession(session)}
                 onOpenScanModal={() => setIsScanModalOpen(true)}
+              />
+            )}
+
+            {currentTab === 'stats' && (
+              <StatsTab
+                books={books}
+                onOpenBook={handleReadBook}
+                onBack={handleBackToPrevious}
               />
             )}
 
@@ -460,6 +473,7 @@ export function App() {
                 onBack={handleBackToPrevious}
                 onOpenLogin={() => setShowLogin(true)}
                 onLogout={handleLogout}
+                onOpenStats={() => handleSelectTab('stats')}
               />
             )}
           </main>
@@ -499,6 +513,14 @@ export function App() {
               }}
             />
           )}
+
+          {/* Modale Statistiche di Lettura per ciascun libro */}
+          <ReadingStatsModal
+            isOpen={isStatsModalOpen}
+            onClose={() => setIsStatsModalOpen(false)}
+            books={books}
+            onOpenBook={handleReadBook}
+          />
         </>
       )}
         </>

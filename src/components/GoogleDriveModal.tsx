@@ -13,6 +13,7 @@ import {
   FileCode,
   Image as ImageIcon,
   Check,
+  Headphones,
 } from 'lucide-react';
 import { googleDriveService, DriveFile } from '../services/googleDriveService';
 import {
@@ -41,7 +42,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
   const [folderStack, setFolderStack] = useState<{ id?: string; name: string }[]>([
     { id: undefined, name: 'Il mio Drive' },
   ]);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pdf' | 'doc' | 'text'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pdf' | 'doc' | 'text' | 'audio'>('all');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getGoogleDriveAccessToken());
   const deviceFileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -181,6 +182,14 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
         f.name.toLowerCase().endsWith('.epub')
       );
     }
+    if (activeFilter === 'audio') {
+      return (
+        f.mimeType.startsWith('audio/') ||
+        ['.mp3', '.m4a', '.wav', '.ogg', '.aac', '.flac', '.opus', '.wma'].some((ext) =>
+          f.name.toLowerCase().endsWith(ext)
+        )
+      );
+    }
     return true;
   });
 
@@ -196,6 +205,9 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
   const getFileIcon = (mimeType: string) => {
     if (mimeType === 'application/vnd.google-apps.folder') {
       return <Folder size={20} className="text-white" />;
+    }
+    if (mimeType.startsWith('audio/')) {
+      return <Headphones size={20} className="text-white" />;
     }
     if (mimeType === 'application/pdf') {
       return <FileText size={20} className="text-white" />;
@@ -453,6 +465,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                   { id: 'pdf', label: 'Solo PDF' },
                   { id: 'doc', label: 'Documenti' },
                   { id: 'text', label: 'Testo / EPUB' },
+                  { id: 'audio', label: 'Audio' },
                 ] as const
               ).map((tab) => (
                 <button
@@ -547,14 +560,14 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
         <input
           ref={deviceFileInputRef}
           type="file"
-          accept=".pdf,.epub,.txt,.docx,.doc,application/pdf,application/epub+zip,text/plain,image/*"
+          accept=".pdf,.epub,.txt,.docx,.doc,.mp3,.m4a,.wav,.ogg,.aac,application/pdf,application/epub+zip,text/plain,image/*,audio/*"
           onChange={handleDeviceFileChange}
           className="hidden"
         />
 
         {/* Footer info */}
         <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500 shrink-0">
-          <span>Supportati: PDF, Google Docs, EPUB, TXT, Immagini</span>
+          <span>Supportati: PDF, Google Docs, EPUB, TXT, Audio, Immagini</span>
           <button
             type="button"
             onClick={onClose}

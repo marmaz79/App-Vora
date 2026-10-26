@@ -59,6 +59,18 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
   const [showBookmarksModal, setShowBookmarksModal] = useState<boolean>(false);
   const [bookmarkNotice, setBookmarkNotice] = useState<string | null>(null);
 
+  // Active reading time tracking in PDF view
+  useEffect(() => {
+    const interval = setInterval(() => {
+      storageService.recordBookReadingTime(book.book_id, 10, currentPage);
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      storageService.recordBookReadingTime(book.book_id, 5, currentPage);
+    };
+  }, [book.book_id, currentPage]);
+
   // Stato Pieno Schermo: attivo per default all'apertura del PDF come richiesto
   const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
   const [isNativeFullscreen, setIsNativeFullscreen] = useState<boolean>(() =>

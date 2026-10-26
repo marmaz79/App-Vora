@@ -1,17 +1,34 @@
-import React, { useState, useRef } from 'react';
-import { Upload, X, FileText, AlertCircle, Loader2, Sparkles, BookOpen, Camera, Cloud } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Upload,
+  X,
+  FileText,
+  AlertCircle,
+  BookOpen,
+  Camera,
+  Cloud,
+  Headphones,
+  Volume2,
+  Sparkles,
+  Languages,
+  Sliders,
+} from 'lucide-react';
 import { fileParser } from '../services/fileParser';
 import { Book, ScanSessionData } from '../types';
 import { ScanProgressCircle } from './ScanProgressCircle';
 import { OcrProgress } from '../services/tesseractOcr';
 import { pdfOcrService } from '../services/pdfOcrService';
+import { audioTranscribeService } from '../services/audioTranscribeService';
 import { GoogleDriveModal } from './GoogleDriveModal';
+
+export type UploadModalMode = 'all' | 'scanned_pdf' | 'audio';
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onBookAdded: (book: Book) => void;
   onScanResultsReady?: (session: ScanSessionData) => void;
+  initialMode?: UploadModalMode;
 }
 
 export const UploadModal: React.FC<UploadModalProps> = ({
@@ -19,11 +36,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   onClose,
   onBookAdded,
   onScanResultsReady,
+  initialMode = 'all',
 }) => {
   const [loading, setLoading] = useState(false);
   const [loadingFileName, setLoadingFileName] = useState<string>('');
   const [isOcrLoading, setIsOcrLoading] = useState<boolean>(false);
-  const [uploadMode, setUploadMode] = useState<'all' | 'scanned_pdf'>('all');
+  const [uploadMode, setUploadMode] = useState<UploadModalMode>(initialMode);
+  const [audioLanguage, setAudioLanguage] = useState<string>('ita');
+  const [audioFormat, setAudioFormat] = useState<'narrative' | 'dialogue' | 'summary'>('narrative');
   const [isDriveOpen, setIsDriveOpen] = useState<boolean>(false);
   const [ocrProgress, setOcrProgress] = useState<OcrProgress>({
     status: 'init',
@@ -31,8 +51,17 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     message: 'Preparazione documento...',
   });
   const [error, setError] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scannedPdfInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setUploadMode(initialMode);
+      setError(null);
+    }
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
@@ -42,6 +71,60 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     setLoadingFileName(file.name);
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const imageType = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'].includes(ext);
+    const isAudio = audioTranscribeService.isAudioFile(file) || uploadMode === 'audio';
+
+    // 0. If an audio file is uploaded (or modal is in audio mode), transcribe with Gemini AI
+    if (isAudio) {
+      setIsOcrLoading(true);
+      try {
+        setOcrProgress({
+          status: 'reading',
+          progress: 0.1,
+          message: 'Caricamento traccia audio in corso...',
+        });
+
+        const transcribeResult = await audioTranscribeService.transcribeAudio(file, {
+          language: audioLanguage,
+          format: audioFormat,
+          onProgress: (p) => {
+            setOcrProgress({
+              status: p.status,
+              progress: p.progress,
+              message: p.message,
+            });
+          },
+        });
+
+        const newBook: Book = {
+          book_id: `audio-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          owner_id: 'user-default-1',
+          title: transcribeResult.title,
+          author: 'Trascrizione Gemini AI',
+          file_type: 'audio',
+          size: file.size,
+          pages: transcribeResult.pages,
+          source: 'upload',
+          created_at: new Date().toISOString(),
+          coverColor: '#FFFFFF',
+          currentPage: 0,
+          ocr_engine: transcribeResult.engine,
+          audioUrl: transcribeResult.audioBlobUrl,
+        };
+
+        onBookAdded(newBook);
+        onClose();
+        return;
+      } catch (audioErr: any) {
+        console.error('Audio transcription error:', audioErr);
+        setError(
+          audioErr?.message ||
+            'Errore durante la trascrizione audio con Gemini AI. Verifica la connessione o riprova con un altro file audio.'
+        );
+        setLoading(false);
+        setIsOcrLoading(false);
+        return;
+      }
+    }
 
     // 1. If an image is uploaded directly, perform OCR and open Scan Results
     if (imageType) {
@@ -153,7 +236,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       onBookAdded(newBook);
       onClose();
     } catch (e: any) {
-      setError(e?.message || 'Errore durante la lettura del file. Prova con un file di testo, PDF o EPUB.');
+      setError(e?.message || 'Errore durante la lettura del file. Prova con un file di testo, PDF, EPUB o audio.');
     } finally {
       setLoading(false);
       setIsOcrLoading(false);
@@ -167,15 +250,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       const fileToUpload = files[0];
       e.target.value = '';
       handleFile(fileToUpload, uploadMode === 'scanned_pdf');
-    }
-  };
-
-  const handleScannedPdfInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const fileToUpload = files[0];
-      e.target.value = '';
-      handleFile(fileToUpload, true);
     }
   };
 
@@ -195,9 +269,51 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     setLoading(true);
     setLoadingFileName(file.name);
     try {
+      const isAudio = audioTranscribeService.isAudioFile(file);
+      if (isAudio) {
+        setIsOcrLoading(true);
+        setOcrProgress({
+          status: 'reading',
+          progress: 0.1,
+          message: 'Trascrizione traccia audio da Google Drive con Gemini AI...',
+        });
+
+        const transcribeResult = await audioTranscribeService.transcribeAudio(file, {
+          language: audioLanguage,
+          format: audioFormat,
+          onProgress: (p) => {
+            setOcrProgress({
+              status: p.status,
+              progress: p.progress,
+              message: p.message,
+            });
+          },
+        });
+
+        const newBook: Book = {
+          book_id: `audio-drive-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          owner_id: 'user-default-1',
+          title: transcribeResult.title,
+          author: 'Google Drive / Trascrizione Gemini AI',
+          file_type: 'audio',
+          size: file.size,
+          pages: transcribeResult.pages,
+          source: 'upload',
+          created_at: new Date().toISOString(),
+          coverColor: '#FFFFFF',
+          currentPage: 0,
+          ocr_engine: transcribeResult.engine,
+          audioUrl: transcribeResult.audioBlobUrl,
+        };
+
+        onBookAdded(newBook);
+        onClose();
+        return;
+      }
+
       const title = file.name.replace(/\.[^/.]+$/, '').trim() || 'Documento Google Drive';
       const ext = (file.name.split('.').pop() || '').toLowerCase();
-      const file_type: 'pdf' | 'epub' | 'txt' | 'scan' =
+      const file_type: 'pdf' | 'epub' | 'txt' | 'scan' | 'audio' =
         ext === 'pdf' ? 'pdf' : ext === 'epub' ? 'epub' : 'txt';
 
       let parsed: any = null;
@@ -227,7 +343,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
       if (pages.length === 0) {
         pages = [
-          `Documento Google Drive: ${file.name}\n\nFile importato con successo dal tuo account Google Drive. Pronto per la lettura visiva e l'ascolto vocale.`
+          `Documento Google Drive: ${file.name}\n\nFile importato con successo dal tuo account Google Drive. Pronto per la lettura visiva e l'ascolto vocale.`,
         ];
       }
 
@@ -244,6 +360,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         coverColor: '#FFFFFF',
         currentPage: 0,
         ocr_engine: parsed?.ocr_engine,
+        audioUrl: parsed?.audioUrl,
       };
 
       onBookAdded(newBook);
@@ -270,16 +387,28 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-2xl bg-black border border-white/20 flex items-center justify-center text-white">
-              <Upload size={20} className="text-white" />
+              {uploadMode === 'audio' ? (
+                <Headphones size={20} className="text-white" />
+              ) : uploadMode === 'scanned_pdf' ? (
+                <Camera size={20} className="text-white" />
+              ) : (
+                <Upload size={20} className="text-white" />
+              )}
             </div>
             <div>
               <h2 id="upload-modal-title" className="text-base sm:text-lg font-black text-white">
-                {uploadMode === 'scanned_pdf' ? 'Carica PDF Scansionato' : 'Carica Libro o Documento'}
+                {uploadMode === 'audio'
+                  ? 'Trascrivi Audio con Gemini AI'
+                  : uploadMode === 'scanned_pdf'
+                  ? 'Carica PDF Scansionato'
+                  : 'Carica Libro o Documento'}
               </h2>
               <p className="text-xs text-zinc-400">
-                {uploadMode === 'scanned_pdf'
+                {uploadMode === 'audio'
+                  ? 'Carica MP3/WAV/M4A e convertilo in testo con Gemini AI'
+                  : uploadMode === 'scanned_pdf'
                   ? 'Estrai testo con OCR AI avanzato da scansioni PDF'
-                  : 'PDF, EPUB, TXT, Immagini o Google Drive'}
+                  : 'PDF, EPUB, TXT, Immagini, Audio o Google Drive'}
               </p>
             </div>
           </div>
@@ -308,6 +437,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               status={ocrProgress.status}
               message={ocrProgress.message}
               fileName={loadingFileName}
+              engine={uploadMode === 'audio' ? 'Gemini 3.5 Transcribe' : undefined}
+              subtitle={
+                uploadMode === 'audio'
+                  ? 'Ascolto profondo, trascrizione e punteggiatura con Gemini AI'
+                  : undefined
+              }
             />
           </div>
         ) : (
@@ -349,12 +484,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               </div>
             </div>
 
-            {/* Modalità Upload File Locale */}
-            <div className="flex items-center gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl">
+            {/* Modalità Upload File Locale: 3 Tab */}
+            <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setUploadMode('all')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   uploadMode === 'all'
                     ? 'bg-white text-black shadow-sm font-black'
                     : 'text-zinc-400 hover:text-white'
@@ -363,10 +498,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 <BookOpen size={14} />
                 <span>Libri & Documenti</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setUploadMode('scanned_pdf')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   uploadMode === 'scanned_pdf'
                     ? 'bg-white text-black shadow-sm font-black'
                     : 'text-zinc-400 hover:text-white'
@@ -375,12 +511,85 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 <Camera size={14} />
                 <span>PDF Scansionati (OCR)</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setUploadMode('audio')}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                  uploadMode === 'audio'
+                    ? 'bg-white text-black shadow-sm font-black'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Headphones size={14} />
+                <span>Audio (Gemini AI)</span>
+              </button>
             </div>
+
+            {/* Specific Audio Settings when in Audio Mode */}
+            {uploadMode === 'audio' && (
+              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-white" />
+                    <span>Impostazioni Trascrizione AI</span>
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-black bg-white px-2 py-0.5 rounded-full">
+                    Gemini 3.5 Transcribe
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Lingua Audio */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1">
+                      <Languages size={12} />
+                      <span>Lingua traccia</span>
+                    </label>
+                    <select
+                      value={audioLanguage}
+                      onChange={(e) => setAudioLanguage(e.target.value)}
+                      className="bg-black border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:border-white focus:outline-none"
+                    >
+                      <option value="ita">Italiano (consigliato)</option>
+                      <option value="auto">Rilevamento automatico</option>
+                      <option value="eng">Inglese</option>
+                      <option value="esp">Spagnolo</option>
+                      <option value="fra">Francese</option>
+                      <option value="deu">Tedesco</option>
+                    </select>
+                  </div>
+
+                  {/* Formato Trascrizione */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1">
+                      <Sliders size={12} />
+                      <span>Stile impaginazione</span>
+                    </label>
+                    <select
+                      value={audioFormat}
+                      onChange={(e) => setAudioFormat(e.target.value as any)}
+                      className="bg-black border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:border-white focus:outline-none"
+                    >
+                      <option value="narrative">Narrativa (paragrafi fluidi)</option>
+                      <option value="dialogue">Dialoghi / Fedele</option>
+                      <option value="summary">Riassunto strutturato</option>
+                    </select>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  Supporta MP3, WAV, M4A, AAC, OGG, WebM, FLAC. Gemini AI riconosce la voce, inserisce punteggiatura e genera un libro pronto per la lettura visiva e l'ascolto vocale.
+                </p>
+              </div>
+            )}
 
             {/* Dropzone locale */}
             <div
               onClick={() => {
-                if (uploadMode === 'scanned_pdf') {
+                if (uploadMode === 'audio') {
+                  audioInputRef.current?.click();
+                } else if (uploadMode === 'scanned_pdf') {
                   scannedPdfInputRef.current?.click();
                 } else {
                   fileInputRef.current?.click();
@@ -390,10 +599,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               onDrop={handleDrop}
               className="border-2 border-dashed border-zinc-700 hover:border-white rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-zinc-950/40 hover:bg-zinc-900/40 text-center group"
             >
+              {/* Inputs nascosti */}
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.epub,.txt,.jpg,.jpeg,.png,.webp,text/plain,application/pdf,image/*"
+                accept=".pdf,.epub,.txt,.jpg,.jpeg,.png,.webp,.mp3,.wav,.m4a,.aac,.ogg,.webm,.flac,text/plain,application/pdf,image/*,audio/*"
                 onChange={handleInputChange}
                 className="hidden"
               />
@@ -407,20 +617,55 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 }}
                 className="hidden"
               />
-
-              <FileText
-                size={46}
-                className="text-zinc-500 group-hover:text-white transition-colors"
+              <input
+                ref={audioInputRef}
+                type="file"
+                accept=".mp3,.wav,.m4a,.aac,.ogg,.oga,.webm,.flac,.opus,.wma,audio/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFile(file, false);
+                }}
+                className="hidden"
               />
+
+              {uploadMode === 'audio' ? (
+                <Headphones
+                  size={46}
+                  className="text-zinc-500 group-hover:text-white transition-colors"
+                />
+              ) : uploadMode === 'scanned_pdf' ? (
+                <Camera
+                  size={46}
+                  className="text-zinc-500 group-hover:text-white transition-colors"
+                />
+              ) : (
+                <FileText
+                  size={46}
+                  className="text-zinc-500 group-hover:text-white transition-colors"
+                />
+              )}
 
               <div>
                 <p className="text-base font-bold text-white">
-                  Tocca o trascina qui il tuo file
+                  {uploadMode === 'audio'
+                    ? 'Tocca o trascina qui il tuo file audio'
+                    : 'Tocca o trascina qui il tuo file'}
+                </p>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  {uploadMode === 'audio'
+                    ? 'MP3, WAV, M4A, AAC, OGG, WebM, FLAC'
+                    : uploadMode === 'scanned_pdf'
+                    ? 'PDF scansionati o con immagini'
+                    : 'PDF, EPUB, TXT, Immagini o tracce Audio'}
                 </p>
               </div>
 
               <div className="mt-1 bg-white hover:bg-zinc-200 text-black font-black px-5 py-2.5 rounded-xl active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-md">
-                <span>Scegli file dal dispositivo</span>
+                <span>
+                  {uploadMode === 'audio'
+                    ? 'Scegli audio dal dispositivo'
+                    : 'Scegli file dal dispositivo'}
+                </span>
               </div>
             </div>
           </div>
@@ -436,4 +681,5 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     </div>
   );
 };
+
 

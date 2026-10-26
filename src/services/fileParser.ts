@@ -1,6 +1,7 @@
 import { Book } from '../types';
 import { tesseractOcr } from './tesseractOcr';
 import { pdfOcrService } from './pdfOcrService';
+import { audioTranscribeService } from './audioTranscribeService';
 
 export const fileParser = {
   // Convert File to Base64 data string
@@ -25,6 +26,31 @@ export const fileParser = {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'txt';
     const title = file.name.replace(/\.[^/.]+$/, '');
     const isImage = ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'gif'].includes(ext);
+
+    // If an audio file is uploaded, perform Gemini AI audio transcription
+    if (audioTranscribeService.isAudioFile(file)) {
+      const transcribeResult = await audioTranscribeService.transcribeAudio(file, {
+        language: 'ita',
+        format: 'narrative',
+        onProgress: (p) => {
+          onProgress?.({
+            status: p.status,
+            progress: p.progress,
+            message: p.message,
+          });
+        },
+      });
+
+      return {
+        title: transcribeResult.title,
+        file_type: 'audio',
+        size: file.size,
+        pages: transcribeResult.pages,
+        source: 'upload',
+        ocr_engine: transcribeResult.engine,
+        audioUrl: transcribeResult.audioBlobUrl,
+      };
+    }
 
     // If an image is uploaded directly, perform AI-optimized OCR (Gemini Vision with Tesseract fallback)
     if (isImage) {

@@ -29,16 +29,21 @@ export const db = (firebaseConfig as any).firestoreDatabaseId
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 
+// Standard OAuth Scopes for Google Drive integration
+export const SCOPES = [
+  'https://www.googleapis.com/auth/drive.readonly',
+];
+
 // Standard Google Auth Provider for Firebase Google Sign-In with Drive read access
 export const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
+SCOPES.forEach((scope) => googleProvider.addScope(scope));
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
 // Dedicated Google Drive Provider
 export const driveProvider = new GoogleAuthProvider();
-driveProvider.addScope('https://www.googleapis.com/auth/drive.readonly');
+SCOPES.forEach((scope) => driveProvider.addScope(scope));
 driveProvider.setCustomParameters({
   prompt: 'select_account',
 });
@@ -56,7 +61,7 @@ export const setGoogleAccessToken = (token: string | null) => {
 };
 
 export const getGoogleDriveAccessToken = (): string | null => {
-  return cachedDriveAccessToken;
+  return cachedDriveAccessToken || cachedAccessToken;
 };
 
 export const setGoogleDriveAccessToken = (token: string | null) => {
@@ -65,6 +70,7 @@ export const setGoogleDriveAccessToken = (token: string | null) => {
 
 export const clearGoogleDriveAccessToken = () => {
   cachedDriveAccessToken = null;
+  cachedAccessToken = null;
 };
 
 // Standardized Firestore Error Logging and Handling
@@ -247,11 +253,68 @@ export async function signInWithGoogleFirebase(): Promise<User> {
   }
 }
 
+// Request token via Google Identity Services (GIS) Token Client
+function requestGisToken(forceRefresh: boolean): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const google = (window as any).google;
+    if (!google?.accounts?.oauth2) {
+      return reject(new Error('GIS_NOT_LOADED'));
+    }
+    const clientId = (firebaseConfig as any).oAuthClientId;
+    if (!clientId) {
+      return reject(new Error('NO_CLIENT_ID'));
+    }
+
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: SCOPES.join(' '),
+        prompt: forceRefresh ? 'consent' : '',
+        callback: (resp: any) => {
+          if (resp?.error) {
+            reject(new Error(resp.error_description || resp.error));
+            return;
+          }
+          if (resp?.access_token) {
+            resolve(resp.access_token);
+          } else {
+            reject(new Error('Nessun token di accesso restituito da Google'));
+          }
+        },
+        error_callback: (err: any) => {
+          reject(err);
+        },
+      });
+      client.requestAccessToken();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 // Request or ensure Google Drive OAuth access token
 export async function requestGoogleDriveAccess(forceRefresh: boolean = false): Promise<string> {
   if (cachedDriveAccessToken && !forceRefresh) {
     return cachedDriveAccessToken;
   }
+
+  // 1. Try Google Identity Services (GIS) Token Client if available in browser
+  const google = (window as any).google;
+  if (google?.accounts?.oauth2 && (firebaseConfig as any).oAuthClientId) {
+    try {
+      const token = await requestGisToken(forceRefresh);
+      cachedDriveAccessToken = token;
+      cachedAccessToken = token;
+      return token;
+    } catch (gisErr: any) {
+      console.info('GIS Token Client info, proceeding to Firebase Auth fallback:', gisErr?.message || gisErr);
+      if (gisErr?.message?.includes('access_denied') || gisErr?.type === 'popup_closed') {
+        throw new Error('Accesso con Google annullato. Riprova quando desideri connettere Google Drive.');
+      }
+    }
+  }
+
+  // 2. Firebase Auth signInWithPopup
   try {
     const result = await signInWithPopup(auth, driveProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -261,7 +324,7 @@ export async function requestGoogleDriveAccess(forceRefresh: boolean = false): P
     cachedDriveAccessToken = credential.accessToken;
     cachedAccessToken = credential.accessToken;
     const appUser = mapFirebaseUserToAppUser(result.user);
-    await syncUserProfile(appUser);
+    await syncUserProfile(appUser).catch(() => {});
     return cachedDriveAccessToken;
   } catch (error: any) {
     console.warn('Google Drive access error:', error);

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Book, ScanSessionData } from '../types';
 import { BookCard } from './BookCard';
-import { UploadModal } from './UploadModal';
+import { UploadModal, UploadModalMode } from './UploadModal';
 import { ScanModal } from './ScanModal';
 import { GoogleDriveModal } from './GoogleDriveModal';
 import { PasteAudioModal } from './PasteAudioModal';
 import { fileParser } from '../services/fileParser';
 import { pdfOcrService } from '../services/pdfOcrService';
+import { audioTranscribeService } from '../services/audioTranscribeService';
 import {
   Upload,
   Camera,
@@ -25,6 +26,9 @@ import {
   Smartphone,
   AlertCircle,
   Loader2,
+  Headphones,
+  BarChart3,
+  ArrowRight,
 } from 'lucide-react';
 
 interface HomeTabProps {
@@ -39,6 +43,7 @@ interface HomeTabProps {
   onOpenPdf?: (book: Book, nightMode?: boolean) => void;
   onOpenReader?: (book: Book) => void;
   onOpenScan?: () => void;
+  onOpenStats?: () => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -53,8 +58,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onOpenPdf,
   onOpenReader,
   onOpenScan,
+  onOpenStats,
 }) => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadInitialMode, setUploadInitialMode] = useState<UploadModalMode>('all');
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isDriveOpen, setIsDriveOpen] = useState(false);
   const [isPasteAudioOpen, setIsPasteAudioOpen] = useState(false);
@@ -68,6 +75,33 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     try {
       setImportStatus(`Importazione di "${file.name}" nella libreria in corso...`);
       setImportError(null);
+
+      const isAudio = audioTranscribeService.isAudioFile(file);
+      if (isAudio) {
+        setImportStatus(`Trascrizione audio di "${file.name}" con Gemini AI in corso...`);
+        const transcribeResult = await audioTranscribeService.transcribeAudio(file, {
+          language: 'ita',
+          format: 'narrative',
+        });
+        const newBook: Book = {
+          book_id: `audio-drive-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          owner_id: 'user-default-1',
+          title: transcribeResult.title,
+          author: 'Google Drive / Trascrizione Gemini AI',
+          file_type: 'audio',
+          size: file.size,
+          pages: transcribeResult.pages,
+          source: 'upload',
+          created_at: new Date().toISOString(),
+          coverColor: '#FFFFFF',
+          currentPage: 0,
+          ocr_engine: transcribeResult.engine,
+          audioUrl: transcribeResult.audioBlobUrl,
+        };
+        onAddBook(newBook);
+        setImportStatus(null);
+        return;
+      }
 
       const title = file.name.replace(/\.[^/.]+$/, '').trim() || 'Documento Google Drive';
       const ext = (file.name.split('.').pop() || '').toLowerCase();
@@ -387,6 +421,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 type="button"
                 onClick={() => {
                   setIsQuickActionsOpen(false);
+                  setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
                 className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
@@ -405,7 +440,31 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 </span>
               </button>
 
-              {/* Voce 2: Scansiona OCR */}
+              {/* Voce 2: Trascrivi Audio (Gemini AI) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickActionsOpen(false);
+                  setUploadInitialMode('audio');
+                  setIsUploadOpen(true);
+                }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+              >
+                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
+                  <Headphones size={24} />
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
+                    👑
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-white leading-tight">
+                  Trascrivi audio
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                  Gemini AI
+                </span>
+              </button>
+
+              {/* Voce 3: Scansiona OCR */}
               <button
                 type="button"
                 onClick={() => {
@@ -432,30 +491,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 </span>
               </button>
 
-              {/* Voce 3: Crea con AI */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsQuickActionsOpen(false);
-                  setIsScanOpen(true);
-                }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
-              >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <FileText size={24} />
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                    👑
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-white leading-tight">
-                  Crea con AI
-                </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
-                  Genera testo
-                </span>
-              </button>
-
-              {/* Voce 4: Ascolta audio */}
+              {/* Voce 4: Ascolta testo (Incolla) */}
               <button
                 type="button"
                 onClick={() => {
@@ -480,6 +516,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 type="button"
                 onClick={() => {
                   setIsQuickActionsOpen(false);
+                  setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
                 className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
@@ -544,6 +581,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       {/* Modali */}
       <UploadModal
         isOpen={isUploadOpen}
+        initialMode={uploadInitialMode}
         onClose={() => setIsUploadOpen(false)}
         onBookAdded={onAddBook}
         onScanResultsReady={onScanResultsReady}

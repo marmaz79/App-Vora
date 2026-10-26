@@ -5,6 +5,7 @@ import {
   BookOpen,
   X,
   Maximize2,
+  Headphones,
 } from 'lucide-react';
 import { VoraLogo } from './VoraLogo';
 
@@ -35,6 +36,8 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
         return 'EPUB';
       case 'txt':
         return 'TXT';
+      case 'audio':
+        return 'AUDIO.AI';
       default:
         return 'PDF';
     }
@@ -57,7 +60,11 @@ export const BookOpenOptionsModal: React.FC<BookOpenOptionsModalProps> = ({
           <div className="flex items-center gap-3.5 min-w-0">
             {/* Acrobat style badge */}
             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-700 text-white flex flex-col items-center justify-center shrink-0 shadow-md">
-              <VoraLogo size={22} variant="white" showCircle={false} className="w-5 h-5 text-white" />
+              {book.file_type === 'audio' ? (
+                <Headphones size={22} className="text-white" />
+              ) : (
+                <VoraLogo size={22} variant="white" showCircle={false} className="w-5 h-5 text-white" />
+              )}
               <span className="text-[7.5px] font-black uppercase text-white mt-0.5 tracking-wider">
                 {getFormatBadge()}
               </span>

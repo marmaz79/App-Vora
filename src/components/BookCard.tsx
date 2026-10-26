@@ -16,6 +16,7 @@ import {
   Check,
   Bookmark as BookmarkIcon,
   Moon,
+  Headphones,
 } from 'lucide-react';
 
 interface BookCardProps {
@@ -69,6 +70,8 @@ export const BookCard: React.FC<BookCardProps> = ({
         return 'EPUB';
       case 'txt':
         return 'TXT';
+      case 'audio':
+        return 'AUDIO';
       default:
         return 'PDF';
     }
@@ -96,6 +99,8 @@ export const BookCard: React.FC<BookCardProps> = ({
           >
             {book.file_type === 'scan' ? (
               <Camera size={18} className="text-white" />
+            ) : book.file_type === 'audio' ? (
+              <Headphones size={18} className="text-white" />
             ) : (
               <VoraLogo size={20} variant="white" showCircle={false} className="w-5 h-5 text-white" />
             )}

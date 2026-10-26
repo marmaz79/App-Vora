@@ -1,7 +1,7 @@
 import React from 'react';
-import { Home, Library, Camera, Settings } from 'lucide-react';
+import { Home, Library, Camera, BarChart3, Settings } from 'lucide-react';
 
-export type TabType = 'home' | 'library' | 'scan' | 'settings' | 'profile';
+export type TabType = 'home' | 'library' | 'scan' | 'stats' | 'settings' | 'profile';
 
 interface NavbarProps {
   currentTab: TabType;
@@ -13,6 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
     { id: 'home' as TabType, label: 'Home', icon: Home },
     { id: 'library' as TabType, label: 'Libreria', icon: Library },
     { id: 'scan' as TabType, label: 'Scansione', icon: Camera },
+    { id: 'stats' as TabType, label: 'Statistiche', icon: BarChart3 },
     { id: 'settings' as TabType, label: 'Impostazioni', icon: Settings },
   ];
 
@@ -35,8 +36,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
               onClick={() => onSelectTab(tab.id)}
               className="flex-1 flex flex-col items-center justify-center min-h-[64px] py-1 px-1 transition-colors relative rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
-              <Icon size={26} strokeWidth={isActive ? 2.5 : 2} className="text-white" aria-hidden="true" />
-              <span className={`text-xs mt-1 tracking-wide ${isActive ? 'font-black text-white' : 'font-medium text-zinc-400'}`}>
+              <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className="text-white" aria-hidden="true" />
+              <span className={`text-[11px] sm:text-xs mt-1 tracking-tight truncate ${isActive ? 'font-black text-white' : 'font-medium text-zinc-400'}`}>
                 {tab.label}
               </span>
               {isActive && (

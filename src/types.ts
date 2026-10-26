@@ -12,7 +12,7 @@ export interface Book {
   owner_id: string;
   title: string;
   author?: string;
-  file_type: 'pdf' | 'epub' | 'txt' | 'scan';
+  file_type: 'pdf' | 'epub' | 'txt' | 'scan' | 'audio';
   storage_path?: string;
   size: number;
   pages: string[];
@@ -22,6 +22,7 @@ export interface Book {
   created_at: string;
   coverColor?: string;
   imageUrls?: string[];
+  audioUrl?: string;
   bookmarks?: Bookmark[];
 }
 
@@ -73,7 +74,23 @@ export interface AppNotification {
   timestamp: string;
   read: boolean;
   actionLabel?: string;
-  actionTab?: 'home' | 'library' | 'scan' | 'settings' | 'profile';
+  actionTab?: 'home' | 'library' | 'scan' | 'stats' | 'settings' | 'profile';
   actionUrl?: string;
+}
+
+export interface BookReadingStat {
+  bookId: string;
+  title: string;
+  author?: string;
+  fileType: 'pdf' | 'epub' | 'txt' | 'scan' | 'audio';
+  coverColor?: string;
+  pagesRead: number;
+  totalPages: number;
+  percentComplete: number;
+  estimatedSpentMinutes: number;
+  estimatedRemainingMinutes: number;
+  totalEstimatedMinutes: number;
+  totalWords: number;
+  lastReadAt?: string;
 }
 

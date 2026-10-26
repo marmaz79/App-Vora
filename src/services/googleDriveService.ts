@@ -12,6 +12,10 @@ export interface DriveFile {
   modifiedTime?: string;
   iconLink?: string;
   thumbnailLink?: string;
+  shortcutDetails?: {
+    targetId?: string;
+    targetMimeType?: string;
+  };
 }
 
 export interface ListDriveFilesOptions {
@@ -39,7 +43,7 @@ export const googleDriveService = {
   async listFiles(options: ListDriveFilesOptions = {}): Promise<{ files: DriveFile[]; nextPageToken?: string }> {
     const token = await this.getAccessToken(options.forceRefresh);
 
-    // Query for supported book and document files: PDF, EPUB, TXT, Google Docs/Sheets/Slides, Images (OCR), and Folders
+    // Query for supported book and document files: PDF, EPUB, TXT, Google Docs/Sheets/Slides, Images (OCR), Audio, and Folders
     const mimeQuery = [
       "mimeType = 'application/pdf'",
       "mimeType = 'application/epub+zip'",
@@ -48,12 +52,14 @@ export const googleDriveService = {
       "mimeType = 'application/vnd.google-apps.presentation'",
       "mimeType = 'application/vnd.google-apps.spreadsheet'",
       "mimeType = 'application/vnd.google-apps.folder'",
+      "mimeType = 'application/vnd.google-apps.shortcut'",
       "mimeType contains 'image/'",
+      "mimeType contains 'audio/'",
     ].join(' or ');
 
     let query = `trashed = false and (${mimeQuery})`;
 
-    if (options.folderId) {
+    if (options.folderId && !options.searchTerm) {
       query += ` and '${options.folderId}' in parents`;
     }
 
@@ -64,7 +70,7 @@ export const googleDriveService = {
 
     const params = new URLSearchParams({
       q: query,
-      fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime, iconLink, thumbnailLink)',
+      fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime, iconLink, thumbnailLink, shortcutDetails)',
       pageSize: '40',
       orderBy: 'folder, modifiedTime desc',
     });
@@ -73,20 +79,30 @@ export const googleDriveService = {
       params.append('pageToken', options.pageToken);
     }
 
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+    let response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
+    // Auto-refresh token once if 401 occurs
+    if (response.status === 401 && !options.forceRefresh) {
+      clearGoogleDriveAccessToken();
+      const freshToken = await this.getAccessToken(true);
+      response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${freshToken}`,
+        },
+      });
+    }
+
     if (!response.ok) {
+      const errJson = await response.json().catch(() => null);
       if (response.status === 401 || response.status === 403) {
         clearGoogleDriveAccessToken();
-        const errJson = await response.json().catch(() => null);
         const detail = errJson?.error?.message || `Codice ${response.status}`;
-        throw new Error(`Permessi Google Drive non concessi (${detail}). Premi "Connetti Cloud Drive" per autorizzare.`);
+        throw new Error(`Permessi Google Drive necessari (${detail}). Premi "Autorizza Google Drive" per consentire l'accesso.`);
       }
-      const errJson = await response.json().catch(() => null);
       throw new Error(errJson?.error?.message || `Errore caricamento file Google Drive (${response.status})`);
     }
 
@@ -101,26 +117,41 @@ export const googleDriveService = {
    * Download a file from Google Drive and return standard Web File object
    */
   async downloadFile(file: DriveFile, onProgress?: (msg: string) => void): Promise<File> {
-    const token = await this.getAccessToken();
+    let token = await this.getAccessToken();
+
+    // Resolve shortcut if applicable
+    const effectiveId = file.shortcutDetails?.targetId || file.id;
+    const effectiveMimeType = file.shortcutDetails?.targetMimeType || file.mimeType;
 
     if (onProgress) {
       onProgress(`Scaricamento di "${file.name}" da Google Drive...`);
     }
 
     // Handle Google Docs, Presentations, Spreadsheets by exporting directly to PDF
-    if (file.mimeType.startsWith('application/vnd.google-apps.')) {
-      const exportUrl = `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=application/pdf`;
-      const response = await fetch(exportUrl, {
+    if (effectiveMimeType.startsWith('application/vnd.google-apps.')) {
+      const exportUrl = `https://www.googleapis.com/drive/v3/files/${effectiveId}/export?mimeType=application/pdf`;
+      let response = await fetch(exportUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      if (response.status === 401) {
+        clearGoogleDriveAccessToken();
+        token = await this.getAccessToken(true);
+        response = await fetch(exportUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           clearGoogleDriveAccessToken();
         }
-        throw new Error(`Impossibile esportare il file Google Drive (${response.status})`);
+        const errJson = await response.json().catch(() => null);
+        throw new Error(errJson?.error?.message || `Impossibile esportare il file Google Drive (${response.status})`);
       }
 
       const blob = await response.blob();
@@ -129,21 +160,32 @@ export const googleDriveService = {
     }
 
     // Handle binary and text files (PDF, EPUB, TXT, Images)
-    const downloadUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
-    const response = await fetch(downloadUrl, {
+    const downloadUrl = `https://www.googleapis.com/drive/v3/files/${effectiveId}?alt=media`;
+    let response = await fetch(downloadUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
+    if (response.status === 401) {
+      clearGoogleDriveAccessToken();
+      token = await this.getAccessToken(true);
+      response = await fetch(downloadUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         clearGoogleDriveAccessToken();
       }
-      throw new Error(`Impossibile scaricare il file da Google Drive (${response.status})`);
+      const errJson = await response.json().catch(() => null);
+      throw new Error(errJson?.error?.message || `Impossibile scaricare il file da Google Drive (${response.status})`);
     }
 
     const blob = await response.blob();
-    return new File([blob], file.name, { type: file.mimeType || blob.type });
+    return new File([blob], file.name, { type: effectiveMimeType || blob.type });
   },
 };

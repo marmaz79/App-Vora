@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { User, Book } from '../types';
 import { storageService, DEFAULT_USER } from '../services/storageService';
-import { User as UserIcon, BookOpen, Clock, RotateCcw, Check, Sparkles, ArrowLeft } from 'lucide-react';
+import { User as UserIcon, BookOpen, Clock, RotateCcw, Check, Sparkles, ArrowLeft, BarChart3, TrendingUp, ArrowRight } from 'lucide-react';
 
 interface ProfileTabProps {
   user: User;
@@ -12,6 +12,7 @@ interface ProfileTabProps {
   onBack?: () => void;
   onOpenLogin?: () => void;
   onLogout?: () => void;
+  onOpenStats?: () => void;
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -23,6 +24,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onBack,
   onOpenLogin,
   onLogout,
+  onOpenStats,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user.name);
@@ -165,21 +167,41 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col justify-between min-h-[96px] shadow-sm">
           <div className="flex items-center gap-2 text-white">
             <BookOpen size={20} className="text-white" />
-            <span className="text-[11px] font-bold uppercase text-zinc-400">Libri in libreria</span>
+            <span className="text-[11px] font-bold uppercase text-zinc-400">Pagine lette</span>
           </div>
-          <p className="text-2xl font-black text-white mt-1">{books.length}</p>
-          <span className="text-[11px] font-medium text-zinc-400">{totalPages} pagine totali</span>
+          <p className="text-2xl font-black text-white mt-1">
+            {books.reduce((acc, b) => acc + (storageService.getBookStats(b).pagesRead), 0)}
+          </p>
+          <span className="text-[11px] font-medium text-zinc-400">su {totalPages} pagine totali</span>
         </div>
 
         <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col justify-between min-h-[96px] shadow-sm">
           <div className="flex items-center gap-2 text-white">
             <Clock size={20} className="text-white" />
-            <span className="text-[11px] font-bold uppercase text-zinc-400">Tempo ascolto</span>
+            <span className="text-[11px] font-bold uppercase text-zinc-400">Tempo dedicato</span>
           </div>
           <p className="text-2xl font-black text-white mt-1">{user.totalReadingMinutes} m</p>
-          <span className="text-[11px] font-medium text-zinc-400">Sessioni completate</span>
+          <span className="text-[11px] font-medium text-zinc-400">Tempo stimato dedicato</span>
         </div>
       </div>
+
+      {/* Button to open Full Reading Stats Panel */}
+      {onOpenStats && (
+        <button
+          type="button"
+          onClick={onOpenStats}
+          className="w-full bg-white hover:bg-zinc-200 text-black font-black text-sm p-3.5 rounded-2xl flex items-center justify-between transition-all shadow-md active:scale-98"
+        >
+          <div className="flex items-center gap-2.5">
+            <BarChart3 size={20} className="text-black" />
+            <div className="flex flex-col text-left">
+              <span>Pannello Statistiche di Lettura</span>
+              <span className="text-[11px] font-bold text-zinc-700">Visualizza pagine lette e tempo per ciascun libro</span>
+            </div>
+          </div>
+          <ArrowRight size={18} className="text-black" />
+        </button>
+      )}
 
       {/* Quick accessibility instructions */}
       <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">

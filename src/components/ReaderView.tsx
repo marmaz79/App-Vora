@@ -24,6 +24,7 @@ import {
   ClipboardPaste,
   Bookmark as BookmarkIcon,
   BookmarkCheck,
+  Headphones,
 } from 'lucide-react';
 import { Book, TtsSettings, Bookmark } from '../types';
 import { ttsService } from '../services/ttsService';
@@ -112,6 +113,18 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       });
     }
   }, [readingWordIndex, isPlaying]);
+
+  // Active reading time tracking per book
+  useEffect(() => {
+    const interval = setInterval(() => {
+      storageService.recordBookReadingTime(book.book_id, 10, currentPage);
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      storageService.recordBookReadingTime(book.book_id, 5, currentPage);
+    };
+  }, [book.book_id, currentPage]);
 
   // Bookmarks
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() =>
@@ -876,6 +889,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 <FileText size={16} className="text-white" aria-hidden="true" />
               ) : book.file_type === 'scan' ? (
                 <Camera size={16} className="text-white" aria-hidden="true" />
+              ) : book.file_type === 'audio' ? (
+                <Headphones size={16} className="text-white" aria-hidden="true" />
               ) : (
                 <BookOpen size={16} className="text-white" aria-hidden="true" />
               )}
