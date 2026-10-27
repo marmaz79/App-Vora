@@ -300,15 +300,15 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      {/* Toast Notification - visibile sia in schermata login che nell'app */}
+    <div className="min-h-screen bg-[#EFF8F7] text-slate-800 flex flex-col font-sans selection:bg-[#FFD23F] selection:text-[#1E8C86]">
+      {/* Toast Notification - Flip7 Pill Style */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[110] bg-white text-black font-black px-6 py-3 rounded-2xl shadow-2xl border border-white text-sm animate-bounce"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-[#FFD23F] text-[#1E8C86] font-black px-6 py-2.5 rounded-full shadow-accent-glow border-2 border-[#E6B800] text-sm animate-bounce flex items-center gap-2 select-none"
         >
-          {toastMessage}
+          <span>{toastMessage}</span>
         </div>
       )}
 
@@ -325,22 +325,22 @@ export function App() {
       ) : (
         /* 3. Applicazione principale (Home, Lettore, Notifiche, ecc.) */
         <>
-          {/* Loading overlay when opening a book: mostra solo caricamento... con loading bianco */}
+          {/* Loading overlay when opening a book: Flip7 spinner */}
           {loadingBook && (
-        <div
-          role="status"
-          aria-live="polite"
-          aria-label="Caricamento..."
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
-        >
-          <div className="relative flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-          </div>
-          <p className="text-base font-bold text-white tracking-wide">
-            Caricamento...
-          </p>
-        </div>
-      )}
+            <div
+              role="status"
+              aria-live="polite"
+              aria-label="Caricamento..."
+              className="fixed inset-0 z-50 bg-[#EFF8F7]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
+            >
+              <div className="relative flex items-center justify-center mb-4">
+                <div className="w-14 h-14 rounded-full border-4 border-[#2BA8A2]/25 border-t-[#2BA8A2] animate-spin" />
+              </div>
+              <p className="text-base font-black text-[#1E8C86] tracking-wide">
+                Caricamento in corso...
+              </p>
+            </div>
+          )}
 
       {/* Modale con le due opzioni al tocco del libro: Apri in PDF o Leggi libro */}
       {bookForOptions && (
@@ -410,6 +410,7 @@ export function App() {
               <HomeTab
                 books={books}
                 searchQuery={searchQuery}
+                userName={user?.name || (user?.email ? user.email.split('@')[0] : 'mariano')}
                 onOpenBook={handleOpenBook}
                 onOpenPdf={handleOpenInPdf}
                 onOpenReader={handleReadBook}

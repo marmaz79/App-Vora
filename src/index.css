@@ -13,31 +13,94 @@
   }
 
   :root {
-    color-scheme: dark;
+    color-scheme: light;
+    --primary-teal: #2BA8A2;
+    --primary-light: #3CC4BD;
+    --primary-dark: #1E8C86;
+    --primary-bg: #E8F6F5;
+    --accent-gold: #FFD23F;
+    --accent-light: #FFE47A;
+    --accent-dark: #E6B800;
+    --coral: #EF6C4A;
+    --coral-light: #FF8A6A;
+    --coral-dark: #D45233;
+    --cream: #FFF8E7;
+    --sky-blue: #5DADE2;
+    --surface-base: #EFF8F7;
+    --surface-card: #FFFFFF;
   }
   
   body {
     box-sizing: border-box;
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #EFF8F7;
+    color: #000000;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* High contrast accessible focus indicators */
+  /* High contrast accessible focus indicators in Flip7 Teal */
   *:focus-visible {
-    outline: 2px solid #ffffff !important;
+    outline: 3px solid #2BA8A2 !important;
     outline-offset: 2px !important;
   }
 }
 
-@keyframes splashProgress {
-  from {
-    width: 0%;
+/* Flip7 Elevation -- Colored Glow System */
+.shadow-card {
+  box-shadow: 0 4px 20px rgba(43, 168, 162, 0.12);
+}
+
+.shadow-card-hover {
+  box-shadow: 0 8px 28px rgba(43, 168, 162, 0.20);
+}
+
+.shadow-coral-glow {
+  box-shadow: 0 4px 20px rgba(239, 108, 74, 0.35);
+}
+
+.shadow-teal-glow {
+  box-shadow: 0 4px 20px rgba(43, 168, 162, 0.30);
+}
+
+.shadow-accent-glow {
+  box-shadow: 0 4px 20px rgba(255, 210, 63, 0.45);
+}
+
+.shadow-sky-glow {
+  box-shadow: 0 4px 16px rgba(93, 173, 226, 0.30);
+}
+
+.shadow-focus-teal {
+  box-shadow: 0 0 0 4px rgba(43, 168, 162, 0.20);
+}
+
+/* Animations */
+@keyframes glowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
   }
-  to {
-    width: 100%;
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
   }
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s infinite ease-in-out;
+}
+
+@keyframes crownBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px) rotate(3deg);
+  }
+}
+
+.animate-crown-bounce {
+  animation: crownBounce 1.5s infinite ease-in-out;
 }
 
 @keyframes laserScan {
@@ -58,4 +121,3 @@
 .animate-laser-scan {
   animation: laserScan 2s ease-in-out infinite;
 }
-

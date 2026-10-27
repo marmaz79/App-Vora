@@ -62,23 +62,23 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   // Kindle Display Settings (synced with settings.highContrastMode)
   const getInitialTheme = (): KindleTheme => {
     if (settings?.highContrastMode) {
-      if (settings.highContrastMode === 'black-white' || settings.highContrastMode === 'black-yellow') return 'black-white';
-      if (settings.highContrastMode === 'dark') return 'dark';
+      if (settings.highContrastMode === 'dark' || settings.highContrastMode === 'black-white') return 'dark';
       if (settings.highContrastMode === 'cream-black') return 'cream-black';
       if (settings.highContrastMode === 'sepia') return 'sepia';
+      if (settings.highContrastMode === 'paperwhite') return 'paperwhite';
       if (settings.highContrastMode === 'white') return 'white';
     }
-    return 'black-white';
+    return 'white';
   };
 
   const [kindleTheme, setKindleTheme] = useState<KindleTheme>(getInitialTheme);
 
   useEffect(() => {
     if (settings?.highContrastMode) {
-      if (settings.highContrastMode === 'black-white' || settings.highContrastMode === 'black-yellow') setKindleTheme('black-white');
-      else if (settings.highContrastMode === 'dark') setKindleTheme('dark');
+      if (settings.highContrastMode === 'dark' || settings.highContrastMode === 'black-white') setKindleTheme('dark');
       else if (settings.highContrastMode === 'cream-black') setKindleTheme('cream-black');
       else if (settings.highContrastMode === 'sepia') setKindleTheme('sepia');
+      else if (settings.highContrastMode === 'paperwhite') setKindleTheme('paperwhite');
       else if (settings.highContrastMode === 'white') setKindleTheme('white');
     }
   }, [settings?.highContrastMode]);
@@ -601,8 +601,68 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   const remainingMinutes = Math.max(1, Math.round(wordsRemaining / (140 * settings.rate)));
   const progressPercent = Math.round(((currentPage + 1) / totalPages) * 100);
 
-  // Theme styles (including high contrast black-white and dark)
+  // Theme styles (including Flip7 white default, cream, sepia, paperwhite, and dark modes)
   const themeClasses = {
+    white: {
+      bg: 'bg-[#EFF8F7] text-slate-800',
+      card: 'bg-white border-[#2BA8A2]/25 text-slate-800 shadow-card',
+      pageItemActive: 'border-[#2BA8A2] bg-[#E8F6F5] shadow-md ring-2 ring-[#2BA8A2]/30 text-slate-900',
+      pageItemInactive: 'border-[#2BA8A2]/15 bg-white hover:border-[#2BA8A2]/40 shadow-xs text-slate-700',
+      header: 'bg-[#1E8C86] border-[#1E8C86] text-white shadow-md backdrop-blur-md',
+      player: 'bg-white border-t border-[#2BA8A2]/20 text-slate-800 shadow-card',
+      sliderTrack: 'bg-[#E8F6F5]',
+      accentText: 'text-[#1E8C86]',
+      titleText: 'text-slate-900',
+      metaText: 'text-slate-500',
+      playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
+      btnSecondary: 'bg-[#FFF8E7] border border-[#2BA8A2]/20 hover:border-[#2BA8A2] text-slate-800 shadow-xs',
+      highlight: 'bg-[#FFD23F]/35 border-l-4 border-[#FFD23F] pl-3 py-1 my-2 rounded-r text-slate-900 font-medium',
+    },
+    'cream-black': {
+      bg: 'bg-[#FFF8E7] text-amber-950',
+      card: 'bg-white border-[#FFD23F]/40 text-amber-950 shadow-card',
+      pageItemActive: 'border-[#FFD23F] bg-[#FFF8E7] shadow-md ring-2 ring-[#FFD23F]/30 text-amber-950',
+      pageItemInactive: 'border-[#FFD23F]/20 bg-white hover:border-[#FFD23F]/50 shadow-xs text-amber-900',
+      header: 'bg-[#1E8C86] border-[#1E8C86] text-white shadow-md backdrop-blur-md',
+      player: 'bg-[#FFF8E7] border-t border-[#FFD23F]/30 text-amber-950 shadow-card',
+      sliderTrack: 'bg-[#FFE47A]/30',
+      accentText: 'text-[#1E8C86]',
+      titleText: 'text-amber-950',
+      metaText: 'text-amber-800',
+      playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
+      btnSecondary: 'bg-white border border-[#FFD23F]/40 hover:border-[#FFD23F] text-amber-950 shadow-xs',
+      highlight: 'bg-[#FFD23F]/40 border-l-4 border-[#FFD23F] pl-3 py-1 my-2 rounded-r text-amber-950 font-medium',
+    },
+    paperwhite: {
+      bg: 'bg-[#F9FBFA] text-slate-800',
+      card: 'bg-white border-slate-200 text-slate-800 shadow-card',
+      pageItemActive: 'border-[#2BA8A2] bg-[#E8F6F5] shadow-md ring-2 ring-[#2BA8A2]/30 text-slate-900',
+      pageItemInactive: 'border-slate-200 bg-white hover:border-slate-300 shadow-xs text-slate-700',
+      header: 'bg-[#1E8C86] border-[#1E8C86] text-white shadow-md backdrop-blur-md',
+      player: 'bg-white border-t border-slate-200 text-slate-800 shadow-card',
+      sliderTrack: 'bg-slate-100',
+      accentText: 'text-[#1E8C86]',
+      titleText: 'text-slate-900',
+      metaText: 'text-slate-500',
+      playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
+      btnSecondary: 'bg-slate-50 border border-slate-200 hover:border-slate-400 text-slate-800 shadow-xs',
+      highlight: 'bg-[#FFD23F]/30 border-l-4 border-[#FFD23F] pl-3 py-1 my-2 rounded-r text-slate-900 font-medium',
+    },
+    sepia: {
+      bg: 'bg-[#FBF0D9] text-[#5F4B32]',
+      card: 'bg-[#F4ECD8] border-[#E3D7BF] text-[#5F4B32] shadow-card',
+      pageItemActive: 'border-[#B8860B] bg-[#EDE0C8] shadow-md ring-2 ring-[#B8860B]/30 text-[#433422]',
+      pageItemInactive: 'border-[#E3D7BF] bg-[#F4ECD8] hover:border-[#B8860B]/40 shadow-xs text-[#5F4B32]',
+      header: 'bg-[#1E8C86] border-[#1E8C86] text-white shadow-md backdrop-blur-md',
+      player: 'bg-[#F4ECD8] border-t border-[#E3D7BF] text-[#5F4B32] shadow-card',
+      sliderTrack: 'bg-[#E3D7BF]',
+      accentText: 'text-[#1E8C86]',
+      titleText: 'text-[#433422]',
+      metaText: 'text-[#7D684F]',
+      playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
+      btnSecondary: 'bg-[#FBF0D9] border border-[#E3D7BF] hover:border-[#B8860B] text-[#5F4B32] shadow-xs',
+      highlight: 'bg-[#FFD23F]/40 border-l-4 border-[#FFD23F] pl-3 py-1 my-2 rounded-r text-[#433422] font-medium',
+    },
     'black-white': {
       bg: 'bg-black text-white',
       card: 'bg-black border-zinc-800 text-white shadow-md',
@@ -614,114 +674,54 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       accentText: 'text-white',
       titleText: 'text-white',
       metaText: 'text-zinc-400',
-      playBtn: 'bg-transparent text-white border-4 border-white hover:bg-white/20',
+      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
       btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
       highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
     },
     dark: {
       bg: 'bg-[#121212] text-white',
       card: 'bg-[#1A1A1A] border-zinc-800 text-white',
-      pageItemActive: 'border-white bg-[#222222] shadow-lg ring-2 ring-white/30 text-white',
+      pageItemActive: 'border-[#2BA8A2] bg-[#222222] shadow-lg ring-2 ring-[#2BA8A2]/30 text-white',
       pageItemInactive: 'border-zinc-850 bg-[#101010] hover:border-zinc-700 text-zinc-300',
       header: 'bg-[#121212] border-zinc-800 text-white',
       player: 'bg-[#1A1A1A] border-zinc-800 text-white',
       sliderTrack: 'bg-zinc-800',
-      accentText: 'text-white',
+      accentText: 'text-[#3CC4BD]',
       titleText: 'text-white',
       metaText: 'text-zinc-400',
-      playBtn: 'bg-transparent text-white border-4 border-white hover:bg-white/20',
+      playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
       btnSecondary: 'bg-zinc-900 border-zinc-700 hover:border-white text-white',
-      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+      highlight: 'bg-white/20 border-l-4 border-[#3CC4BD] pl-3 py-1 my-2 rounded-r text-white',
     },
     'black-yellow': {
       bg: 'bg-black text-white',
       card: 'bg-black border-zinc-800 text-white shadow-md',
-      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemActive: 'border-yellow-400 bg-zinc-900 shadow-xl ring-2 ring-yellow-400 text-white',
       pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
       header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
       player: 'bg-black border-zinc-850 text-white shadow-xl',
       sliderTrack: 'bg-zinc-800',
-      accentText: 'text-white',
+      accentText: 'text-yellow-400',
       titleText: 'text-white',
       metaText: 'text-zinc-400',
-      playBtn: 'bg-transparent text-white border-4 border-white hover:bg-white/20',
-      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
-      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
-    },
-    'cream-black': {
-      bg: 'bg-black text-white',
-      card: 'bg-black border-zinc-800 text-white shadow-md',
-      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
-      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
-      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
-      player: 'bg-black border-zinc-850 text-white shadow-xl',
-      sliderTrack: 'bg-zinc-800',
-      accentText: 'text-white',
-      titleText: 'text-white',
-      metaText: 'text-zinc-400',
-      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
-      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
-      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
-    },
-    paperwhite: {
-      bg: 'bg-black text-white',
-      card: 'bg-black border-zinc-800 text-white shadow-md',
-      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
-      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
-      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
-      player: 'bg-black border-zinc-850 text-white shadow-xl',
-      sliderTrack: 'bg-zinc-800',
-      accentText: 'text-white',
-      titleText: 'text-white',
-      metaText: 'text-zinc-400',
-      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
-      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
-      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
-    },
-    white: {
-      bg: 'bg-white text-black',
-      card: 'bg-white border-zinc-300 text-black shadow-sm',
-      pageItemActive: 'border-black bg-zinc-200 shadow-md ring-2 ring-black/20 text-black',
-      pageItemInactive: 'border-zinc-200 bg-white hover:border-zinc-400 shadow-xs text-zinc-800',
-      header: 'bg-white/95 border-zinc-200 text-black shadow-xs backdrop-blur-md',
-      player: 'bg-white border-zinc-200 text-black shadow-lg',
-      sliderTrack: 'bg-zinc-200',
-      accentText: 'text-black',
-      titleText: 'text-black',
-      metaText: 'text-zinc-600',
-      playBtn: 'bg-black text-white border-4 border-black hover:bg-zinc-800',
-      btnSecondary: 'bg-white border-zinc-300 hover:bg-zinc-100 text-black shadow-xs',
-      highlight: 'bg-black/10 border-l-4 border-black pl-3 py-1 my-2 rounded-r text-black',
-    },
-    sepia: {
-      bg: 'bg-black text-white',
-      card: 'bg-black border-zinc-800 text-white shadow-md',
-      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
-      pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
-      header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
-      player: 'bg-black border-zinc-850 text-white shadow-xl',
-      sliderTrack: 'bg-zinc-800',
-      accentText: 'text-white',
-      titleText: 'text-white',
-      metaText: 'text-zinc-400',
-      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
-      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
-      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+      playBtn: 'bg-yellow-400 text-black border-4 border-yellow-400 hover:bg-yellow-300',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-yellow-400 text-white shadow-xs',
+      highlight: 'bg-yellow-400/20 border-l-4 border-yellow-400 pl-3 py-1 my-2 rounded-r text-white',
     },
   }[kindleTheme] || {
-    bg: 'bg-black text-white',
-    card: 'bg-black border-zinc-800 text-white shadow-md',
-    pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
-    pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
-    header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
-    player: 'bg-black border-zinc-850 text-white shadow-xl',
-    sliderTrack: 'bg-zinc-800',
-    accentText: 'text-white',
-    titleText: 'text-white',
-    metaText: 'text-zinc-400',
-    playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
-    btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
-    highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+    bg: 'bg-[#EFF8F7] text-slate-800',
+    card: 'bg-white border-[#2BA8A2]/25 text-slate-800 shadow-card',
+    pageItemActive: 'border-[#2BA8A2] bg-[#E8F6F5] shadow-md ring-2 ring-[#2BA8A2]/30 text-slate-900',
+    pageItemInactive: 'border-[#2BA8A2]/15 bg-white hover:border-[#2BA8A2]/40 shadow-xs text-slate-700',
+    header: 'bg-[#1E8C86] border-[#1E8C86] text-white shadow-md backdrop-blur-md',
+    player: 'bg-white border-t border-[#2BA8A2]/20 text-slate-800 shadow-card',
+    sliderTrack: 'bg-[#E8F6F5]',
+    accentText: 'text-[#1E8C86]',
+    titleText: 'text-slate-900',
+    metaText: 'text-slate-500',
+    playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
+    btnSecondary: 'bg-[#FFF8E7] border border-[#2BA8A2]/20 hover:border-[#2BA8A2] text-slate-800 shadow-xs',
+    highlight: 'bg-[#FFD23F]/35 border-l-4 border-[#FFD23F] pl-3 py-1 my-2 rounded-r text-slate-900 font-medium',
   };
 
   const fontSizeClass = {

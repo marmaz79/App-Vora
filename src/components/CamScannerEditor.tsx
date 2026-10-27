@@ -1191,26 +1191,26 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
       {/* 1. Header superiore CamScanner */}
-      <header className="bg-black border-b border-zinc-800 px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20">
+      <header className="bg-[#1E8C86] border-b border-[#1E8C86]/50 text-white px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20 shadow-md">
         <div className="flex items-center gap-2">
-          <Wand2 size={18} className="text-white shrink-0" />
+          <Wand2 size={18} className="text-[#FFD23F] shrink-0" />
           <h2 className="text-sm font-bold text-white tracking-wide">CamScanner</h2>
-          <span className="text-[11px] font-bold bg-white/15 px-2.5 py-0.5 rounded-full text-white border border-white/20 whitespace-nowrap">
+          <span className="text-[11px] font-bold bg-[#2BA8A2] px-2.5 py-0.5 rounded-full text-white border border-white/20 whitespace-nowrap shadow-xs">
             Pagina {pageIndex + 1} {totalPages > 1 ? `di ${totalPages}` : ''}
           </span>
         </div>
 
         {/* Selettore Vista: Ritaglio Prospettico vs Anteprima Sbiancata */}
-        <div className="flex items-center bg-zinc-900 border border-white/20 rounded-full p-0.5">
+        <div className="flex items-center bg-[#2BA8A2] border border-white/25 rounded-full p-0.5 shadow-xs">
           <button
             type="button"
             onClick={() => setShowCropMode(true)}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              showCropMode ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+              showCropMode ? 'bg-white text-[#1E8C86] shadow-sm' : 'text-white/80 hover:text-white'
             }`}
             title="Mostra gli 8 punti di ritaglio prospettico"
           >
-            <Crop size={12} className={showCropMode ? 'text-black' : 'text-white'} />
+            <Crop size={12} className={showCropMode ? 'text-[#1E8C86]' : 'text-white'} />
             <span>Ritaglio</span>
           </button>
           <button
@@ -1220,11 +1220,11 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               renderProcessedPreview();
             }}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              !showCropMode ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+              !showCropMode ? 'bg-white text-[#1E8C86] shadow-sm' : 'text-white/80 hover:text-white'
             }`}
             title="Mostra anteprima del documento raddrizzato e sbiancato"
           >
-            <Eye size={12} className={!showCropMode ? 'text-black' : 'text-white'} />
+            <Eye size={12} className={!showCropMode ? 'text-[#1E8C86]' : 'text-white'} />
             <span>Anteprima</span>
           </button>
         </div>
@@ -1234,10 +1234,10 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             type="button"
             onClick={handleContinueSavePdf}
             disabled={isProcessing}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-black font-extrabold text-xs hover:bg-zinc-200 active:scale-95 transition-all disabled:opacity-50 shadow-md"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FFD23F] text-slate-950 font-black text-xs hover:bg-[#FFE47A] active:scale-95 transition-all disabled:opacity-50 shadow-accent-glow border border-[#E6B800]"
             title="Raddrizza prospettiva e salva documento"
           >
-            <Check size={14} className="text-black stroke-[3]" />
+            <Check size={14} className="text-slate-950 stroke-[3]" />
             <span>Prossimo</span>
           </button>
 
@@ -1245,7 +1245,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="w-8 h-8 rounded-full bg-transparent text-white hover:bg-white/10 flex items-center justify-center transition-colors border border-white shrink-0"
+              className="w-8 h-8 rounded-full bg-[#2BA8A2] text-white hover:bg-[#3CC4BD] flex items-center justify-center transition-colors border border-white/25 shrink-0"
               aria-label="Chiudi"
             >
               <X size={16} className="text-white" />
@@ -1255,10 +1255,10 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       </header>
 
       {/* 2. Barra Presets e Strumenti Rapidi CamScanner */}
-      <section className="bg-zinc-950 border-b border-zinc-800/80 px-2.5 py-2 shrink-0 z-20 overflow-x-auto scrollbar-thin">
+      <section className="bg-[#EFF8F7] border-b border-[#2BA8A2]/20 px-2.5 py-2 shrink-0 z-20 overflow-x-auto scrollbar-thin">
         <div className="flex items-center gap-1.5 max-w-full min-w-max mx-auto justify-start sm:justify-center">
-          <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider pr-1 flex items-center gap-1">
-            <Crop size={12} className="text-white" />
+          <span className="text-[11px] font-bold text-[#1E8C86] uppercase tracking-wider pr-1 flex items-center gap-1">
+            <Crop size={12} className="text-[#1E8C86]" />
             <span>Modalità:</span>
           </span>
 
@@ -1272,17 +1272,17 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
                 onClick={() => handleSelectCropPreset(preset.id)}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all relative cursor-pointer active:scale-95 ${
                   isSelected
-                    ? 'bg-white text-black border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                    : 'bg-black text-white border border-white/30 hover:border-white hover:bg-zinc-900'
+                    ? 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] shadow-accent-glow font-black'
+                    : 'bg-white text-slate-700 border border-[#2BA8A2]/20 hover:border-[#2BA8A2] hover:bg-[#FFF8E7]'
                 }`}
                 title={preset.desc}
               >
-                <Icon size={13} className={isSelected ? 'text-black' : 'text-white'} />
+                <Icon size={13} className={isSelected ? 'text-slate-950' : 'text-[#1E8C86]'} />
                 <span>{preset.label}</span>
                 {preset.badge && (
                   <span
                     className={`text-[9px] px-1 py-0.2 rounded font-black ${
-                      isSelected ? 'bg-black text-white' : 'bg-white/15 text-white'
+                      isSelected ? 'bg-slate-950 text-[#FFD23F]' : 'bg-[#E8F6F5] text-[#1E8C86]'
                     }`}
                   >
                     {preset.badge}
@@ -1592,7 +1592,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       </main>
 
       {/* 4. Footer con controlli CamScanner */}
-      <footer className="bg-black border-t border-zinc-800 px-1.5 sm:px-4 py-2 pb-5 sm:pb-3 shrink-0 z-20 shadow-2xl">
+      <footer className="bg-[#1E8C86] border-t border-[#1E8C86]/50 px-1.5 sm:px-4 py-2 pb-5 sm:pb-3 shrink-0 z-20 shadow-2xl">
         <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1">
           {/* 1. Rifai scatto */}
           <button
@@ -1602,7 +1602,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Scatta di nuovo questa pagina"
             aria-label="Rifai"
           >
-            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2] border border-white/25 flex items-center justify-center text-white shadow-xs">
               <RefreshCw size={18} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Rifai</span>
@@ -1616,7 +1616,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Ruota 90° a sinistra"
             aria-label="Ruota Sx"
           >
-            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2] border border-white/25 flex items-center justify-center text-white shadow-xs">
               <RotateCcw size={18} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ruota Sx</span>
@@ -1630,7 +1630,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Ruota 90° a destra"
             aria-label="Ruota Dx"
           >
-            <div className="w-10 h-10 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2] border border-white/25 flex items-center justify-center text-white shadow-xs">
               <RotateCw size={18} className="text-white" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ruota Dx</span>
@@ -1650,11 +1650,11 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
                 selectedFilter === 'magic_color' && !showCropMode
-                  ? 'bg-white/20 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                  : 'bg-transparent border border-white'
+                  ? 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] shadow-accent-glow font-black'
+                  : 'bg-[#2BA8A2] border border-white/25'
               }`}
             >
-              <Wand2 size={18} className="text-white" />
+              <Wand2 size={18} className={selectedFilter === 'magic_color' && !showCropMode ? 'text-slate-950' : 'text-white'} />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Magic Color</span>
           </button>
@@ -1673,11 +1673,11 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
                 selectedFilter === 'bw' && !showCropMode
-                  ? 'bg-white/20 border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
-                  : 'bg-transparent border border-white'
+                  ? 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] shadow-accent-glow font-black'
+                  : 'bg-[#2BA8A2] border border-white/25'
               }`}
             >
-              <Contrast size={18} className="text-white" />
+              <Contrast size={18} className={selectedFilter === 'bw' && !showCropMode ? 'text-slate-950' : 'text-white'} />
             </div>
             <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">B/N</span>
           </button>
@@ -1691,13 +1691,13 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Aggiungi questa pagina ed esegui un altro scatto (Scatti Multipli)"
             aria-label="+ Pagina"
           >
-            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-dashed border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors">
-              <Plus size={19} className="text-white stroke-[2.5]" />
+            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2]/60 border-2 border-dashed border-[#FFD23F] flex items-center justify-center text-[#FFD23F] hover:bg-[#2BA8A2] transition-colors">
+              <Plus size={19} className="text-[#FFD23F] stroke-[2.5]" />
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">+ Pagina</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-[#FFD23F] tracking-tight truncate">+ Pagina</span>
           </button>
 
-          {/* 7. Prossimo / Salva PDF (Spunta verde/bianca CamScanner) */}
+          {/* 7. Prossimo / Salva PDF (Spunta) */}
           <button
             type="button"
             onClick={handleContinueSavePdf}
@@ -1706,8 +1706,8 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Raddrizza prospettiva e salva documento nella libreria in PDF"
             aria-label="Continua"
           >
-            <div className="w-10 h-10 rounded-2xl bg-transparent text-white border-2 border-white flex items-center justify-center shadow-[0_0_16px_rgba(255,255,255,0.3)] hover:bg-white/15 transition-colors">
-              <Check size={20} className="text-white stroke-[3]" />
+            <div className="w-10 h-10 rounded-2xl bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] flex items-center justify-center shadow-accent-glow hover:bg-[#FFE47A] transition-colors">
+              <Check size={20} className="text-slate-950 stroke-[3]" />
             </div>
             <span className="text-[10px] sm:text-[11px] font-black text-white tracking-tight truncate">Fatto</span>
           </button>

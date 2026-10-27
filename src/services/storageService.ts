@@ -156,7 +156,7 @@ export const DEFAULT_SETTINGS: TtsSettings = {
   volume: 1.0,
   autoAdvance: true,
   fontSize: 'normal',
-  highContrastMode: 'black-white',
+  highContrastMode: 'white',
 };
 
 export const storageService = {

@@ -60,23 +60,25 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
   ];
 
   return (
-    <section className="flex flex-col gap-3.5" aria-label="Libreria completa">
-      <div className="flex items-center justify-between gap-3 pt-1">
-        <div className="flex items-center gap-3 min-w-0">
+    <section className="flex flex-col gap-3.5 select-none animate-fade-in text-slate-800 pb-28" aria-label="Libreria completa">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 pt-1 border-b-2 border-dashed border-[#2BA8A2]/30 pb-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           {onBack && (
             <button
               onClick={onBack}
               aria-label="Torna indietro"
-              className="w-11 h-11 rounded-xl border border-white/20 bg-black flex items-center justify-center shrink-0 text-white hover:bg-zinc-900 hover:border-white active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shadow-xs"
+              className="w-10 h-10 rounded-full border border-[#2BA8A2]/30 bg-white flex items-center justify-center shrink-0 text-[#1E8C86] hover:bg-[#E8F6F5] active:scale-95 transition-all shadow-xs"
               title="Torna indietro"
             >
-              <ArrowLeft size={22} className="text-white" />
+              <ArrowLeft size={20} />
             </button>
           )}
           <div className="min-w-0">
-            <h2 className="text-xl font-black text-white flex items-center gap-2 truncate">
-              <Library size={24} className="text-white shrink-0" aria-hidden="true" />
-              Libreria
+            <h2 className="text-2xl font-black text-[#1E8C86] flex items-center gap-2 tracking-tight truncate">
+              <Library size={24} className="text-[#2BA8A2] shrink-0" aria-hidden="true" />
+              <span>Libreria</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FFD23F] shadow-accent-glow inline-block" />
             </h2>
           </div>
         </div>
@@ -85,43 +87,43 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
           <button
             onClick={() => setIsSearchOpen((prev) => !prev)}
             aria-label="Cerca nei libri della libreria"
-            className={`min-h-[44px] px-3.5 rounded-xl border flex items-center gap-1.5 font-bold text-xs transition-all shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+            className={`min-h-[40px] px-4 rounded-full border-2 flex items-center gap-1.5 font-extrabold text-xs transition-all shrink-0 active:scale-95 ${
               isSearchOpen || searchQuery
-                ? 'bg-white text-black border-white'
-                : 'bg-black text-zinc-300 border-white/20 hover:border-white hover:bg-zinc-900'
+                ? 'bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] text-[#1E8C86] border-[#E6B800] shadow-accent-glow'
+                : 'bg-white text-slate-700 border-[#2BA8A2]/30 hover:border-[#2BA8A2] shadow-xs'
             }`}
           >
-            <Search size={16} className={isSearchOpen || searchQuery ? 'text-black' : 'text-white'} aria-hidden="true" />
+            <Search size={15} className={isSearchOpen || searchQuery ? 'text-[#1E8C86]' : 'text-[#2BA8A2]'} aria-hidden="true" />
             <span>Cerca</span>
           </button>
         )}
       </div>
 
-      {/* Input di ricerca espandibile nella libreria */}
+      {/* Input di ricerca espandibile nella libreria (Flip7 Cream Surface) */}
       {isSearchOpen && onSearchChange && (
         <div className="relative animate-fade-in pt-0.5">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1E8C86]" size={18} />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Cerca libro per titolo o autore..."
-            className="w-full bg-black border border-white/20 focus:border-white rounded-xl pl-10 pr-10 py-2.5 text-white placeholder-zinc-500 font-semibold text-sm focus:outline-none focus:ring-1 focus:ring-white"
+            className="w-full bg-[#FFF8E7] border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] rounded-full pl-10 pr-10 py-2.5 text-slate-900 font-bold placeholder-[#1E8C86]/60 text-sm focus:outline-none shadow-xs"
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded bg-zinc-800 text-white flex items-center justify-center text-xs hover:text-white"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#EF6C4A] text-white flex items-center justify-center text-xs active:scale-90 shadow-sm"
             >
-              <X size={14} className="text-white" />
+              <X size={13} strokeWidth={2.5} />
             </button>
           )}
         </div>
       )}
 
       {/* Filter pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-0.5" role="group" aria-label="Filtra per formato">
-        <Filter size={18} className="text-white shrink-0 mr-1" aria-hidden="true" />
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" role="group" aria-label="Filtra per formato">
+        <Filter size={16} className="text-[#1E8C86] shrink-0 mr-1" aria-hidden="true" />
         {formats.map((f) => {
           const isSelected = selectedFormat === f.id;
           return (
@@ -129,10 +131,10 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
               key={f.id}
               onClick={() => setSelectedFormat(f.id)}
               aria-pressed={isSelected}
-              className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors border shrink-0 min-h-[42px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+              className={`px-4 py-1.5 rounded-full font-black text-xs transition-all border shrink-0 min-h-[38px] active:scale-95 ${
                 isSelected
-                  ? 'bg-white text-black border-white shadow-xs font-black'
-                  : 'bg-black text-zinc-300 border-white/20 hover:border-white hover:bg-zinc-900'
+                  ? 'bg-[#1E8C86] text-white border-[#1E8C86] shadow-teal-glow'
+                  : 'bg-white text-slate-600 border-[#2BA8A2]/25 hover:border-[#2BA8A2] hover:text-[#1E8C86] shadow-xs'
               }`}
             >
               <span>{f.label}</span>
@@ -143,11 +145,12 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
 
       {/* Books listing */}
       {filtered.length === 0 ? (
-        <div className="bg-black border border-white/20 rounded-2xl p-8 text-center flex flex-col items-center gap-1.5 shadow-sm">
-          <p className="text-base font-bold text-white">Nessun libro trovato per questo filtro</p>
+        <div className="bg-white border-2 border-dashed border-[#2BA8A2]/30 rounded-3xl p-8 text-center flex flex-col items-center gap-2 shadow-card my-2">
+          <p className="text-base font-black text-slate-800">Nessun libro trovato per questo filtro</p>
+          <p className="text-xs text-slate-500 font-medium">Prova a selezionare &quot;Tutti&quot; o rimuovi la ricerca.</p>
         </div>
       ) : (
-        <div className="bg-black border border-white/20 rounded-2xl overflow-hidden divide-y divide-zinc-850 shadow-sm">
+        <div className="flex flex-col gap-2.5">
           {filtered.map((book) => (
             <BookCard
               key={book.book_id}

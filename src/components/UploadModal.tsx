@@ -380,30 +380,30 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="upload-modal-title"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3.5 sm:p-5 animate-fade-in select-none"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3.5 sm:p-5 animate-fade-in select-none font-sans"
     >
-      <div className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl flex flex-col gap-4 text-white max-h-[92vh] overflow-y-auto">
+      <div className="bg-white border-2 border-[#2BA8A2]/30 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-black border border-white/20 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 flex items-center justify-center text-[#1E8C86] shadow-xs">
               {uploadMode === 'audio' ? (
-                <Headphones size={20} className="text-white" />
+                <Headphones size={20} className="text-[#5DADE2]" />
               ) : uploadMode === 'scanned_pdf' ? (
-                <Camera size={20} className="text-white" />
+                <Camera size={20} className="text-[#EF6C4A]" />
               ) : (
-                <Upload size={20} className="text-white" />
+                <Upload size={20} className="text-[#1E8C86]" />
               )}
             </div>
             <div>
-              <h2 id="upload-modal-title" className="text-base sm:text-lg font-black text-white">
+              <h2 id="upload-modal-title" className="text-base sm:text-lg font-black text-[#1E8C86]">
                 {uploadMode === 'audio'
                   ? 'Trascrivi Audio con Gemini AI'
                   : uploadMode === 'scanned_pdf'
                   ? 'Carica PDF Scansionato'
                   : 'Carica Libro o Documento'}
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-slate-500 font-medium">
                 {uploadMode === 'audio'
                   ? 'Carica MP3/WAV/M4A e convertilo in testo con Gemini AI'
                   : uploadMode === 'scanned_pdf'
@@ -414,7 +414,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-colors shrink-0"
+            className="w-9 h-9 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-[#1E8C86] hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center transition-all shrink-0"
             aria-label="Chiudi"
           >
             <X size={18} />
@@ -423,8 +423,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
         {/* Error message */}
         {error && (
-          <div className="p-3 bg-black border border-white/50 rounded-xl text-white text-xs flex items-center gap-2">
-            <AlertCircle size={16} className="shrink-0 text-white" />
+          <div className="p-3 bg-[#EF6C4A]/10 border-2 border-[#EF6C4A]/30 rounded-2xl text-[#D45233] text-xs flex items-center gap-2 font-bold">
+            <AlertCircle size={16} className="shrink-0 text-[#EF6C4A]" />
             <span>{error}</span>
           </div>
         )}
@@ -448,27 +448,27 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         ) : (
           <div className="flex flex-col gap-4">
             {/* Google Drive Upload Option */}
-            <div className="bg-black border border-white/20 rounded-2xl p-4 flex flex-col gap-3">
+            <div className="bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 rounded-2xl p-4 flex flex-col gap-3 shadow-xs">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-black border border-white/20 flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
-                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
-                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
-                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
-                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
-                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
-                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
+                  <div className="w-10 h-10 rounded-xl bg-white border border-[#2BA8A2]/30 flex items-center justify-center shrink-0 shadow-xs">
+                    <svg className="w-5 h-5 text-[#1E8C86]" viewBox="0 0 87.3 78" fill="none">
+                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#2BA8A2"/>
+                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#3CC4BD"/>
+                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#1E8C86"/>
+                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFD23F"/>
+                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#EF6C4A"/>
+                      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#5DADE2"/>
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
                       <span>Carica da Google Drive</span>
-                      <span className="text-[10px] bg-white text-black font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                      <span className="text-[10px] bg-[#2BA8A2] text-white font-black px-2 py-0.5 rounded-full uppercase">
                         Drive
                       </span>
                     </h3>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-slate-600 font-medium">
                       Importa e aggiungi subito alla libreria da Drive
                     </p>
                   </div>
@@ -476,7 +476,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsDriveOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-transparent border border-white hover:bg-white/10 active:scale-95 text-xs font-bold text-white transition-all shrink-0 flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-full bg-white border-2 border-[#2BA8A2]/40 hover:bg-[#E8F6F5] active:scale-95 text-xs font-black text-[#1E8C86] transition-all shrink-0 flex items-center gap-1.5 shadow-xs"
                 >
                   <Cloud size={14} />
                   <span>Scegli da Drive</span>
@@ -485,14 +485,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             </div>
 
             {/* Modalità Upload File Locale: 3 Tab */}
-            <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-x-auto">
+            <div className="flex items-center gap-1.5 p-1.5 bg-[#EFF8F7] border border-[#2BA8A2]/20 rounded-2xl overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setUploadMode('all')}
-                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
                   uploadMode === 'all'
-                    ? 'bg-white text-black shadow-sm font-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
+                    : 'text-slate-600 hover:text-[#1E8C86]'
                 }`}
               >
                 <BookOpen size={14} />
@@ -502,10 +502,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <button
                 type="button"
                 onClick={() => setUploadMode('scanned_pdf')}
-                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
                   uploadMode === 'scanned_pdf'
-                    ? 'bg-white text-black shadow-sm font-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
+                    : 'text-slate-600 hover:text-[#1E8C86]'
                 }`}
               >
                 <Camera size={14} />
@@ -515,10 +515,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <button
                 type="button"
                 onClick={() => setUploadMode('audio')}
-                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
                   uploadMode === 'audio'
-                    ? 'bg-white text-black shadow-sm font-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
+                    : 'text-slate-600 hover:text-[#1E8C86]'
                 }`}
               >
                 <Headphones size={14} />
@@ -528,13 +528,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
             {/* Specific Audio Settings when in Audio Mode */}
             {uploadMode === 'audio' && (
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5 flex flex-col gap-3">
+              <div className="bg-[#FFF8E7] border-2 border-[#FFD23F] rounded-2xl p-3.5 flex flex-col gap-3 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Sparkles size={14} className="text-white" />
+                  <span className="text-xs font-black text-[#1E8C86] flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-[#FFD23F] fill-[#FFD23F]" />
                     <span>Impostazioni Trascrizione AI</span>
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-black bg-white px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-900 bg-[#FFD23F] px-2 py-0.5 rounded-full shadow-xs">
                     Gemini 3.5 Transcribe
                   </span>
                 </div>
@@ -542,14 +542,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {/* Lingua Audio */}
                   <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1">
-                      <Languages size={12} />
+                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                      <Languages size={12} className="text-[#1E8C86]" />
                       <span>Lingua traccia</span>
                     </label>
                     <select
                       value={audioLanguage}
                       onChange={(e) => setAudioLanguage(e.target.value)}
-                      className="bg-black border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:border-white focus:outline-none"
+                      className="bg-white border-2 border-[#FFD23F]/60 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:border-[#2BA8A2] focus:outline-none"
                     >
                       <option value="ita">Italiano (consigliato)</option>
                       <option value="auto">Rilevamento automatico</option>
@@ -562,14 +562,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
                   {/* Formato Trascrizione */}
                   <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1">
-                      <Sliders size={12} />
+                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                      <Sliders size={12} className="text-[#1E8C86]" />
                       <span>Stile impaginazione</span>
                     </label>
                     <select
                       value={audioFormat}
                       onChange={(e) => setAudioFormat(e.target.value as any)}
-                      className="bg-black border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:border-white focus:outline-none"
+                      className="bg-white border-2 border-[#FFD23F]/60 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:border-[#2BA8A2] focus:outline-none"
                     >
                       <option value="narrative">Narrativa (paragrafi fluidi)</option>
                       <option value="dialogue">Dialoghi / Fedele</option>
@@ -578,7 +578,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                   </div>
                 </div>
 
-                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
                   Supporta MP3, WAV, M4A, AAC, OGG, WebM, FLAC. Gemini AI riconosce la voce, inserisce punteggiatura e genera un libro pronto per la lettura visiva e l'ascolto vocale.
                 </p>
               </div>
@@ -597,7 +597,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               }}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
-              className="border-2 border-dashed border-zinc-700 hover:border-white rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-zinc-950/40 hover:bg-zinc-900/40 text-center group"
+              className="border-2 border-dashed border-[#2BA8A2]/40 hover:border-[#2BA8A2] rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-[#EFF8F7]/60 hover:bg-[#E8F6F5] text-center group"
             >
               {/* Inputs nascosti */}
               <input
@@ -628,30 +628,23 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 className="hidden"
               />
 
-              {uploadMode === 'audio' ? (
-                <Headphones
-                  size={46}
-                  className="text-zinc-500 group-hover:text-white transition-colors"
-                />
-              ) : uploadMode === 'scanned_pdf' ? (
-                <Camera
-                  size={46}
-                  className="text-zinc-500 group-hover:text-white transition-colors"
-                />
-              ) : (
-                <FileText
-                  size={46}
-                  className="text-zinc-500 group-hover:text-white transition-colors"
-                />
-              )}
+              <div className="w-16 h-16 rounded-2xl bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 flex items-center justify-center text-[#1E8C86] group-hover:scale-105 group-hover:bg-[#2BA8A2] group-hover:text-white transition-all shadow-xs">
+                {uploadMode === 'audio' ? (
+                  <Headphones size={32} />
+                ) : uploadMode === 'scanned_pdf' ? (
+                  <Camera size={32} />
+                ) : (
+                  <FileText size={32} />
+                )}
+              </div>
 
               <div>
-                <p className="text-base font-bold text-white">
+                <p className="text-base font-black text-slate-900">
                   {uploadMode === 'audio'
                     ? 'Tocca o trascina qui il tuo file audio'
                     : 'Tocca o trascina qui il tuo file'}
                 </p>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {uploadMode === 'audio'
                     ? 'MP3, WAV, M4A, AAC, OGG, WebM, FLAC'
                     : uploadMode === 'scanned_pdf'
@@ -660,7 +653,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 </p>
               </div>
 
-              <div className="mt-1 bg-white hover:bg-zinc-200 text-black font-black px-5 py-2.5 rounded-xl active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-md">
+              <div className="mt-1 bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black px-6 py-2.5 rounded-full active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-accent-glow">
                 <span>
                   {uploadMode === 'audio'
                     ? 'Scegli audio dal dispositivo'

@@ -43,33 +43,38 @@ export const Header: React.FC<HeaderProps> = ({
   }, [searchQuery]);
 
   return (
-    <header className="sticky top-0 z-30 bg-black border-b border-zinc-800 px-4 py-3 select-none">
+    <header className="sticky top-0 z-30 bg-[#1E8C86] text-white border-b-2 border-[#166E69] px-4 py-3 select-none shadow-teal-glow">
       <div className="max-w-2xl mx-auto flex flex-col gap-2.5">
-        {/* Top bar: Red Acrobat logo on left, Search / Bell / User on right */}
+        {/* Top bar: Flip7 Vintage Vora Logo on left, Search / Bell / User on right */}
         <div className="flex items-center justify-between">
-          {/* Logo e Titolo dell'Applicazione Vora */}
+          {/* Logo e Titolo dell'Applicazione Vora (Flip7 Style) */}
           <div className="flex items-center gap-2.5">
-            <VoraLogo
-              size={34}
-              variant="white-circle"
-              className="w-[34px] h-[34px] text-white shrink-0 drop-shadow-xs"
-              alt="Logo Vora bianco con cerchio bianco"
-            />
-            <div className="flex flex-col">
-              <span className="text-lg font-black text-white tracking-tight leading-none">
-                {title}
+            <div className="w-9 h-9 rounded-xl bg-[#2BA8A2] border border-[#3CC4BD] flex items-center justify-center shadow-sm">
+              <VoraLogo
+                size={26}
+                variant="flip7"
+                showCircle={false}
+                showBottomBar={false}
+                className="shrink-0 drop-shadow-xs"
+                alt="Logo Vora Flip7"
+              />
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-black text-white tracking-wider leading-none">
+                {title.toUpperCase()}
               </span>
+              <span className="w-2 h-2 rounded-full bg-[#FFD23F] inline-block shadow-accent-glow" />
             </div>
           </div>
 
           {/* Right Icons: Search, Notifications, Profile Avatar */}
-          <div className="flex items-center gap-4 text-white">
+          <div className="flex items-center gap-3 text-white">
             <button
               onClick={toggleSearch}
               aria-label={isSearchOpen ? 'Chiudi ricerca' : 'Cerca nei file'}
-              className="text-white hover:text-gray-300 transition-colors p-1 rounded-full active:scale-95"
+              className="w-9 h-9 rounded-full bg-[#2BA8A2]/60 hover:bg-[#2BA8A2] text-white hover:text-[#FFE47A] transition-all flex items-center justify-center active:scale-95 shadow-sm"
             >
-              <Search size={22} />
+              <Search size={19} />
             </button>
 
             {onOpenStats && (
@@ -77,9 +82,9 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onOpenStats}
                 aria-label="Statistiche di lettura"
                 title="Visualizza statistiche di lettura"
-                className="text-white hover:text-gray-300 transition-colors p-1 rounded-full active:scale-95"
+                className="w-9 h-9 rounded-full bg-[#2BA8A2]/60 hover:bg-[#2BA8A2] text-white hover:text-[#FFD23F] transition-all flex items-center justify-center active:scale-95 shadow-sm"
               >
-                <BarChart3 size={22} />
+                <BarChart3 size={19} />
               </button>
             )}
 
@@ -95,11 +100,11 @@ export const Header: React.FC<HeaderProps> = ({
                   ? `Apri notifiche (${unreadNotificationsCount} non lette)`
                   : 'Apri notifiche'
               }
-              className="text-white hover:text-gray-300 transition-colors p-1 rounded-full active:scale-95 relative"
+              className="w-9 h-9 rounded-full bg-[#2BA8A2]/60 hover:bg-[#2BA8A2] text-white hover:text-[#FFD23F] transition-all flex items-center justify-center active:scale-95 relative shadow-sm"
             >
-              <Bell size={22} />
+              <Bell size={19} />
               {unreadNotificationsCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-black text-black ring-2 ring-black">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFD23F] text-[10px] font-black text-[#1E8C86] ring-2 ring-[#1E8C86] shadow-accent-glow animate-pulse">
                   {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                 </span>
               )}
@@ -108,18 +113,18 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenProfile}
               aria-label="Profilo utente mariano"
-              className="w-8 h-8 rounded-full border border-gray-400 bg-zinc-800 text-white flex items-center justify-center hover:border-white transition-colors overflow-hidden active:scale-95"
+              className="w-9 h-9 rounded-full border-2 border-[#FFD23F] bg-[#2BA8A2] text-white flex items-center justify-center hover:bg-[#3CC4BD] transition-all overflow-hidden active:scale-95 shadow-accent-glow"
             >
               <UserIcon size={18} />
             </button>
           </div>
         </div>
 
-        {/* Expandable Search Input (Dark Theme) */}
+        {/* Expandable Search Input (Flip7 Cream Input Surface) */}
         {isSearchOpen && (
           <div className="relative animate-fade-in pt-1">
             <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1E8C86]"
               size={18}
               aria-hidden="true"
             />
@@ -129,8 +134,8 @@ export const Header: React.FC<HeaderProps> = ({
               type="search"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Cerca in tutti i file..."
-              className="w-full bg-black border border-white/20 focus:border-white rounded-xl pl-10 pr-10 py-2.5 text-white placeholder-zinc-400 font-medium text-sm focus:outline-none"
+              placeholder="Cerca per titolo o autore..."
+              className="w-full bg-[#FFF8E7] border-2 border-[#FFD23F] focus:border-[#2BA8A2] text-[#1E8C86] font-bold placeholder-[#1E8C86]/60 rounded-full pl-10 pr-10 py-2.5 text-sm outline-none transition-all shadow-card focus:shadow-focus-teal"
             />
             {searchQuery && (
               <button
@@ -139,9 +144,9 @@ export const Header: React.FC<HeaderProps> = ({
                   inputRef.current?.focus();
                 }}
                 aria-label="Cancella testo"
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-zinc-700 text-white flex items-center justify-center text-xs"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#EF6C4A] text-white flex items-center justify-center text-xs active:scale-90 shadow-sm"
               >
-                <X size={14} />
+                <X size={13} strokeWidth={3} />
               </button>
             )}
           </div>

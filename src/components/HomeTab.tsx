@@ -6,29 +6,19 @@ import { ScanModal } from './ScanModal';
 import { GoogleDriveModal } from './GoogleDriveModal';
 import { PasteAudioModal } from './PasteAudioModal';
 import { fileParser } from '../services/fileParser';
-import { pdfOcrService } from '../services/pdfOcrService';
-import { audioTranscribeService } from '../services/audioTranscribeService';
 import {
   Upload,
   Camera,
-  Shield,
   FileText,
   Plus,
   Layers,
   Volume2,
-  Crown,
-  MoreVertical,
-  Check,
   X,
   Sparkles,
-  Clock,
-  Star,
-  Smartphone,
   AlertCircle,
   Loader2,
   Headphones,
-  BarChart3,
-  ArrowRight,
+  Compass,
 } from 'lucide-react';
 
 interface HomeTabProps {
@@ -58,55 +48,20 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onOpenPdf,
   onOpenReader,
   onOpenScan,
-  onOpenStats,
 }) => {
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadInitialMode, setUploadInitialMode] = useState<UploadModalMode>('all');
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isDriveOpen, setIsDriveOpen] = useState(false);
   const [isPasteAudioOpen, setIsPasteAudioOpen] = useState(false);
-  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
-  const [activeTabFilter, setActiveTabFilter] = useState<'recenti' | 'stella' | 'dispositivo'>('recenti');
-  const [showSortMenu, setShowSortMenu] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
-  const handleDriveFileDownloaded = async (file: File) => {
+  const handleDriveFileImport = async (file: File, title: string, file_type: string) => {
     try {
-      setImportStatus(`Importazione di "${file.name}" nella libreria in corso...`);
+      setImportStatus(`Importazione in corso: ${title}...`);
       setImportError(null);
-
-      const isAudio = audioTranscribeService.isAudioFile(file);
-      if (isAudio) {
-        setImportStatus(`Trascrizione audio di "${file.name}" con Gemini AI in corso...`);
-        const transcribeResult = await audioTranscribeService.transcribeAudio(file, {
-          language: 'ita',
-          format: 'narrative',
-        });
-        const newBook: Book = {
-          book_id: `audio-drive-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          owner_id: 'user-default-1',
-          title: transcribeResult.title,
-          author: 'Google Drive / Trascrizione Gemini AI',
-          file_type: 'audio',
-          size: file.size,
-          pages: transcribeResult.pages,
-          source: 'upload',
-          created_at: new Date().toISOString(),
-          coverColor: '#FFFFFF',
-          currentPage: 0,
-          ocr_engine: transcribeResult.engine,
-          audioUrl: transcribeResult.audioBlobUrl,
-        };
-        onAddBook(newBook);
-        setImportStatus(null);
-        return;
-      }
-
-      const title = file.name.replace(/\.[^/.]+$/, '').trim() || 'Documento Google Drive';
-      const ext = (file.name.split('.').pop() || '').toLowerCase();
-      const file_type: 'pdf' | 'epub' | 'txt' | 'scan' =
-        ext === 'pdf' ? 'pdf' : ext === 'epub' ? 'epub' : 'txt';
 
       let parsed: any = null;
       try {
@@ -147,12 +102,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         pages,
         source: 'upload',
         created_at: new Date().toISOString(),
-        coverColor: '#FFFFFF',
+        coverColor: '#2BA8A2',
         currentPage: 0,
         ocr_engine: parsed?.ocr_engine,
       };
 
-      // Aggiunge direttamente il libro alla libreria e aggiorna lo stato visibile
       onAddBook(newBook);
       setImportStatus(null);
     } catch (err: any) {
@@ -163,7 +117,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     }
   };
 
-  // Filter and deduplicate books based on search query and active tab
+  // Filter and deduplicate books based on search query
   const filteredBooks = React.useMemo(() => {
     const seen = new Set<string>();
     return books.filter((b) => {
@@ -175,181 +129,65 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (b.author && b.author.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      if (!matchesQuery) return false;
-
-      if (activeTabFilter === 'stella') {
-        return (b.size || 0) > 100000 || b.title.toLowerCase().includes('rep') || b.file_type === 'scan';
-      }
-
-      return true;
+      return matchesQuery;
     });
-  }, [books, searchQuery, activeTabFilter]);
+  }, [books, searchQuery]);
 
   return (
-    <div className="flex flex-col text-white select-none animate-fade-in pb-28">
+    <div className="flex flex-col text-slate-800 select-none animate-fade-in pb-28">
       {/* Import status toast */}
       {importStatus && (
-        <div className="mb-2 mx-2 p-3 rounded-xl bg-black border border-white flex items-center gap-2.5 text-xs font-bold text-white shadow-lg animate-pulse">
-          <Loader2 size={16} className="animate-spin shrink-0 text-white" />
+        <div className="mb-3 mx-1 p-3.5 rounded-2xl bg-[#FFD23F] border-2 border-[#E6B800] flex items-center gap-2.5 text-xs font-black text-[#1E8C86] shadow-accent-glow animate-pulse">
+          <Loader2 size={18} className="animate-spin shrink-0 text-[#1E8C86]" />
           <span>{importStatus}</span>
         </div>
       )}
       {importError && (
-        <div className="mb-2 mx-2 p-3 rounded-xl bg-black border border-white/50 flex items-center justify-between gap-2.5 text-xs font-semibold text-white shadow-lg">
+        <div className="mb-3 mx-1 p-3.5 rounded-2xl bg-[#FFF8E7] border-2 border-[#EF6C4A] flex items-center justify-between gap-2.5 text-xs font-bold text-[#D45233] shadow-coral-glow">
           <div className="flex items-center gap-2 min-w-0">
-            <AlertCircle size={16} className="shrink-0 text-white" />
+            <AlertCircle size={18} className="shrink-0 text-[#EF6C4A]" />
             <span className="truncate">{importError}</span>
           </div>
           <button
             onClick={() => setImportError(null)}
-            className="text-zinc-400 hover:text-white shrink-0 p-1"
+            className="text-[#EF6C4A] hover:text-[#D45233] shrink-0 p-1"
           >
-            <X size={14} />
+            <X size={15} strokeWidth={2.5} />
           </button>
         </div>
       )}
-      {/* 1. HERO GREETING (Stile Adobe Acrobat) */}
-      <div className="pt-2 pb-1.5 px-2">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Benvenuto, {userName}
+
+      {/* MESSAGGIO DI BENVENUTO CENTRATO CON MARGINI AUMENTATI */}
+      <div className="py-6 px-4 mt-2 mb-6 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 bg-white/40 rounded-3xl backdrop-blur-xs">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#1E8C86] tracking-tight flex items-center justify-center gap-2">
+          <span>Ciao, {userName}!</span>
+          <span className="inline-block animate-bounce text-2xl">👋</span>
         </h1>
+        <p className="text-sm text-slate-500 font-bold mt-1.5 max-w-sm">
+          Bentornato nella tua libreria vocale
+        </p>
       </div>
 
-      {/* 2. TABS BAR (Recenti, Con stella, Sul dispositivo + menu ⋮) */}
-      <div className="flex items-center justify-between border-b border-zinc-800 px-2 pt-2 pb-1 relative">
-        <div className="flex items-center gap-6 text-sm font-bold">
-          {/* Tab Recenti */}
-          <button
-            onClick={() => setActiveTabFilter('recenti')}
-            className={`pb-2.5 relative transition-colors ${
-              activeTabFilter === 'recenti'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <span>Recenti</span>
-            {activeTabFilter === 'recenti' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-white rounded-full" />
-            )}
-          </button>
-
-          {/* Tab Con stella */}
-          <button
-            onClick={() => setActiveTabFilter('stella')}
-            className={`pb-2.5 relative transition-colors ${
-              activeTabFilter === 'stella'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <span>Con stella</span>
-            {activeTabFilter === 'stella' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-white rounded-full" />
-            )}
-          </button>
-
-          {/* Tab Sul dispositivo */}
-          <button
-            onClick={() => setActiveTabFilter('dispositivo')}
-            className={`pb-2.5 relative transition-colors ${
-              activeTabFilter === 'dispositivo'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <span>Sul dispositivo</span>
-            {activeTabFilter === 'dispositivo' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-white rounded-full" />
-            )}
-          </button>
-        </div>
-
-        {/* Tre puntini verticali per opzioni ed elenco in bianco */}
-        <div className="relative">
-          <button
-            onClick={() => setShowSortMenu((prev) => !prev)}
-            aria-label="Opzioni visualizzazione elenco"
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors text-white hover:bg-zinc-800 active:scale-95 ${
-              showSortMenu ? 'bg-zinc-800' : ''
-            }`}
-          >
-            <MoreVertical size={18} className="text-white" />
-          </button>
-
-          {showSortMenu && (
-            <>
-              {/* Backdrop to close on click outside */}
-              <div
-                className="fixed inset-0 z-20"
-                onClick={() => setShowSortMenu(false)}
-              />
-
-              <div className="absolute right-0 top-11 bg-black border border-white/20 rounded-2xl p-2 z-30 shadow-2xl flex flex-col gap-1 min-w-[210px] animate-fade-in select-none">
-                <div className="px-2.5 py-1.5 border-b border-zinc-800 mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white">
-                    Opzioni visualizzazione
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setActiveTabFilter('recenti');
-                    setShowSortMenu(false);
-                  }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-zinc-900 rounded-xl transition-colors group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Clock size={15} className="text-white" />
-                    <span className="text-white">Ordina per data recente</span>
-                  </div>
-                  {activeTabFilter === 'recenti' && (
-                    <Check size={14} className="text-white" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTabFilter('stella');
-                    setShowSortMenu(false);
-                  }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-zinc-900 rounded-xl transition-colors group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Star size={15} className="text-white" />
-                    <span className="text-white">Mostra solo con stella</span>
-                  </div>
-                  {activeTabFilter === 'stella' && (
-                    <Check size={14} className="text-white" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTabFilter('dispositivo');
-                    setShowSortMenu(false);
-                  }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 text-left text-xs font-bold text-white hover:bg-zinc-900 rounded-xl transition-colors group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Smartphone size={15} className="text-white" />
-                    <span className="text-white">Sul dispositivo</span>
-                  </div>
-                  {activeTabFilter === 'dispositivo' && (
-                    <Check size={14} className="text-white" />
-                  )}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* 4. DOCUMENT LIST (Stile Adobe Acrobat) */}
-      <div className="flex flex-col divide-y divide-zinc-800 mt-1">
+      {/* ELENCO DEI LIBRI */}
+      <div className="flex flex-col gap-2.5">
         {filteredBooks.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center gap-2 text-white">
-            <FileText size={38} className="text-white mb-2" />
-            <p className="text-sm font-bold text-white">Nessun file trovato</p>
+          <div className="p-10 text-center flex flex-col items-center justify-center gap-2 bg-white rounded-3xl border-2 border-dashed border-[#2BA8A2]/30 shadow-card my-2">
+            <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 text-[#1E8C86] flex items-center justify-center mb-1">
+              <FileText size={28} />
+            </div>
+            <p className="text-base font-black text-slate-900">Nessun file trovato</p>
+            <p className="text-xs text-slate-500 max-w-xs font-medium">
+              Carica un libro PDF o scansiona una pagina con la fotocamera per iniziare a leggere.
+            </p>
+            <button
+              onClick={() => {
+                setUploadInitialMode('all');
+                setIsUploadOpen(true);
+              }}
+              className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] text-[#1E8C86] font-black text-xs shadow-accent-glow active:scale-95 transition-all"
+            >
+              Carica ora
+            </button>
           </div>
         ) : (
           filteredBooks.map((book) => (
@@ -365,56 +203,59 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         )}
       </div>
 
-      {/* 5. FLOATING ACTION BUTTON (FAB) - Sfondo trasparente con bordo bianco */}
+      {/* 5. FLOATING ACTION BUTTON (FAB) - Flip7 Gold CTA with Glow */}
       {!hideFab && (
         <button
           onClick={() => setIsQuickActionsOpen((prev) => !prev)}
           aria-label={isQuickActionsOpen ? "Chiudi menu azioni" : "Apri tutte le azioni rapide"}
           aria-expanded={isQuickActionsOpen}
-          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-black/50 backdrop-blur-md hover:bg-white/15 active:scale-95 text-white flex items-center justify-center shadow-2xl transition-all duration-300 border-2 border-white ${
-            isQuickActionsOpen ? 'rotate-45 z-50' : ''
+          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] text-[#1E8C86] flex items-center justify-center shadow-accent-glow border-2 border-[#E6B800] active:scale-95 transition-all duration-300 ${
+            isQuickActionsOpen ? 'rotate-45 z-50 bg-[#EF6C4A] text-white border-white shadow-coral-glow' : ''
           }`}
           title={isQuickActionsOpen ? "Chiudi" : "Tutte le azioni rapide"}
         >
-          <Plus size={28} strokeWidth={2.6} className="text-white transition-transform duration-300" />
+          <Plus size={28} strokeWidth={3} className="transition-transform duration-300" />
         </button>
       )}
 
-      {/* ===================== MODALE AZIONI RAPIDE (TUTTE LE VOCI SOTTO BENVENUTO) ===================== */}
+      {/* ===================== MODALE AZIONI RAPIDE (FLIP7 RETRO-PLAYFUL STYLE) ===================== */}
       {isQuickActionsOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-actions-title"
-          className="fixed inset-0 z-40 bg-black/85 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in"
+          className="fixed inset-0 z-40 bg-[#1E8C86]/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in"
           onClick={() => setIsQuickActionsOpen(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-black border border-zinc-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto"
+            className="bg-white border-2 border-[#2BA8A2]/30 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto animate-slide-up"
           >
             {/* Header del modale Azioni Rapide */}
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-zinc-900 border border-white flex items-center justify-center shrink-0">
-                  <Sparkles size={22} className="text-white" />
+                <div className="w-11 h-11 rounded-2xl bg-[#E8F6F5] border border-[#2BA8A2]/40 text-[#1E8C86] flex items-center justify-center shrink-0 shadow-xs">
+                  <Sparkles size={22} className="text-[#FFD23F] fill-[#FFD23F]" />
                 </div>
                 <div>
-                  <h3 id="quick-actions-title" className="text-lg font-black text-white leading-snug">
+                  <h3 id="quick-actions-title" className="text-lg font-black text-slate-900 leading-snug">
                     Cosa vorresti fare?
                   </h3>
+                  <span className="text-xs text-slate-500 font-semibold">
+                    Scegli una delle azioni rapide
+                  </span>
                 </div>
               </div>
               <button
                 onClick={() => setIsQuickActionsOpen(false)}
-                className="w-9 h-9 rounded-xl bg-transparent text-white border border-white flex items-center justify-center hover:bg-white/15 transition-colors"
+                className="w-9 h-9 rounded-full bg-[#EFF8F7] text-slate-600 hover:bg-[#EF6C4A] hover:text-white flex items-center justify-center transition-colors active:scale-95 shadow-xs"
                 aria-label="Chiudi azioni"
               >
-                <X size={18} />
+                <X size={18} strokeWidth={2.5} />
               </button>
             </div>
 
-            {/* Griglia delle azioni rapide come icone con sfondo trasparente e bordi bianchi */}
+            {/* Griglia delle azioni rapide Flip7 con glow e bordi sinistri */}
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 py-1">
               {/* Voce 1: Carica File */}
               <button
@@ -424,18 +265,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#FFE47A]/30 hover:to-[#FFD23F]/40 border-2 border-[#FFD23F] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-accent-glow"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <Upload size={24} />
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                    👑
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-white border border-[#FFD23F] text-[#1E8C86] flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <Upload size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-bold text-white leading-tight">
+                <span className="text-xs font-black leading-tight text-slate-900">
                   Carica file
                 </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
                   PDF / Libri
                 </span>
               </button>
@@ -448,18 +286,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('audio');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#5DADE2]/20 hover:to-[#5DADE2]/35 border-2 border-[#5DADE2] text-[#2980B9] transition-all active:scale-95 group text-center shadow-card hover:shadow-sky-glow"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <Headphones size={24} />
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                    👑
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-[#5DADE2] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <Headphones size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-bold text-white leading-tight">
+                <span className="text-xs font-black leading-tight text-slate-900">
                   Trascrivi audio
                 </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
                   Gemini AI
                 </span>
               </button>
@@ -475,18 +310,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setIsScanOpen(true);
                   }
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#FF8A6A]/20 hover:to-[#FF8A6A]/35 border-2 border-[#EF6C4A] text-[#D45233] transition-all active:scale-95 group text-center shadow-card hover:shadow-coral-glow"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <Camera size={24} />
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                    👑
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <Camera size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-bold text-white leading-tight">
-                  Scansiona OCR
+                <span className="text-xs font-black leading-tight text-slate-900">
+                  Scansione OCR
                 </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
                   Fotocamera
                 </span>
               </button>
@@ -498,15 +330,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsPasteAudioOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#E8F6F5] hover:to-[#2BA8A2]/25 border-2 border-[#2BA8A2] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-teal-glow"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <Volume2 size={24} />
+                <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <Volume2 size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-bold text-white leading-tight">
+                <span className="text-xs font-black leading-tight text-slate-900">
                   Ascolta audio
                 </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
                   Incolla testo
                 </span>
               </button>
@@ -519,18 +351,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#FFE47A]/30 hover:to-[#FFD23F]/40 border-2 border-[#FFD23F] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-accent-glow"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <Layers size={24} />
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white text-black font-black flex items-center justify-center text-[9px] shadow-xs">
-                    👑
-                  </span>
+                <div className="w-12 h-12 rounded-xl bg-white border border-[#FFD23F] text-[#1E8C86] flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <Layers size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-bold text-white leading-tight">
+                <span className="text-xs font-black leading-tight text-slate-900">
                   Combina file
                 </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
+                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
                   Unisci pagine
                 </span>
               </button>
@@ -542,74 +371,59 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsDriveOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-transparent hover:bg-white/10 border border-white transition-all active:scale-95 group text-center focus:outline-none"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#E8F6F5] hover:to-[#2BA8A2]/25 border-2 border-[#2BA8A2] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-teal-glow"
               >
-                <div className="relative w-14 h-14 rounded-2xl bg-transparent border border-white text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-105 transition-transform">
-                  <svg className="w-6 h-6 text-white" viewBox="0 0 87.3 78" fill="none">
+                <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <svg className="w-5 h-5" viewBox="0 0 87.3 78" fill="none">
                     <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
                     <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>
                     <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
-                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#FFFFFF"/>
-                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#FFFFFF"/>
-                    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#FFFFFF"/>
                   </svg>
-                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full bg-white text-black font-extrabold text-[8px] uppercase">
-                    ☁
-                  </span>
                 </div>
-                <span className="text-xs font-bold text-white leading-tight">
+                <span className="text-xs font-black leading-tight text-slate-900">
                   Google Drive
                 </span>
-                <span className="text-[10px] text-zinc-400 mt-1 leading-none">
-                  Cloud storage
+                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                  Account Cloud
                 </span>
               </button>
             </div>
-
-            {/* Pulsante Chiudi con sfondo trasparente e bordo bianco */}
-            <button
-              type="button"
-              onClick={() => setIsQuickActionsOpen(false)}
-              className="w-full py-3 rounded-2xl bg-transparent border border-white hover:bg-white/15 text-white font-bold text-xs transition-colors active:scale-98 mt-1"
-            >
-              Chiudi
-            </button>
           </div>
         </div>
       )}
 
-      {/* Modali */}
+      {/* Modali di sistema */}
       <UploadModal
         isOpen={isUploadOpen}
         initialMode={uploadInitialMode}
         onClose={() => setIsUploadOpen(false)}
         onBookAdded={onAddBook}
-        onScanResultsReady={onScanResultsReady}
       />
+
       <ScanModal
         isOpen={isScanOpen}
-        initialOpenLiveCamera={true}
         onClose={() => setIsScanOpen(false)}
         onBookAdded={onAddBook}
-        onScanResultsReady={onScanResultsReady}
+        onScanResultsReady={(session) => {
+          setIsScanOpen(false);
+          if (onScanResultsReady) onScanResultsReady(session);
+        }}
       />
+
       <GoogleDriveModal
         isOpen={isDriveOpen}
         onClose={() => setIsDriveOpen(false)}
-        onFileDownloaded={handleDriveFileDownloaded}
+        onFileDownloaded={async (file) => handleDriveFileImport(file, file.name, file.name.split('.').pop() || 'pdf')}
       />
+
       <PasteAudioModal
         isOpen={isPasteAudioOpen}
         onClose={() => setIsPasteAudioOpen(false)}
-        onOpenReader={(book) => {
-          if (onOpenReader) {
-            onOpenReader(book);
-          } else if (onOpenBook) {
-            onOpenBook(book);
-          }
+        onOpenReader={(b) => {
+          if (onOpenReader) onOpenReader(b);
+          else if (onOpenBook) onOpenBook(b);
         }}
         onAddBook={onAddBook}
-        existingBooks={books}
       />
     </div>
   );
