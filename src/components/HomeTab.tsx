@@ -158,12 +158,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       )}
 
       {/* MESSAGGIO DI BENVENUTO CENTRATO CON MARGINI AUMENTATI */}
-      <div className="py-6 px-4 mt-2 mb-6 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 bg-white/40 rounded-3xl backdrop-blur-xs">
-        <h1 className="text-3xl sm:text-4xl font-black text-[#1E8C86] tracking-tight flex items-center justify-center gap-2">
+      <div className="py-6 px-4 mt-2 mb-6 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-[#2BA8A2]/50 bg-white/40 dark:bg-[#162322]/80 rounded-3xl backdrop-blur-xs">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#1E8C86] dark:text-[#3CC4BD] tracking-tight flex items-center justify-center gap-2">
           <span>Ciao, {userName}!</span>
           <span className="inline-block animate-bounce text-2xl">👋</span>
         </h1>
-        <p className="text-sm text-slate-500 font-bold mt-1.5 max-w-sm">
+        <p className="text-sm text-slate-500 dark:text-slate-300 font-bold mt-1.5 max-w-sm">
           Bentornato nella tua libreria vocale
         </p>
       </div>
@@ -171,12 +171,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       {/* ELENCO DEI LIBRI */}
       <div className="flex flex-col gap-2.5">
         {filteredBooks.length === 0 ? (
-          <div className="p-10 text-center flex flex-col items-center justify-center gap-2 bg-white rounded-3xl border-2 border-dashed border-[#2BA8A2]/30 shadow-card my-2">
-            <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 text-[#1E8C86] flex items-center justify-center mb-1">
+          <div className="p-10 text-center flex flex-col items-center justify-center gap-2 bg-white dark:bg-[#162322] rounded-3xl border-2 border-dashed border-[#2BA8A2]/30 shadow-card my-2 text-slate-900 dark:text-white">
+            <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] dark:bg-[#1E3634] border-2 border-[#2BA8A2]/30 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center mb-1">
               <FileText size={28} />
             </div>
-            <p className="text-base font-black text-slate-900">Nessun file trovato</p>
-            <p className="text-xs text-slate-500 max-w-xs font-medium">
+            <p className="text-base font-black text-slate-900 dark:text-white">Nessun file trovato</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs font-medium">
               Carica un libro PDF o scansiona una pagina con la fotocamera per iniziare a leggere.
             </p>
             <button

@@ -43,10 +43,23 @@ interface ContrastOption {
 
 const CONTRAST_THEME_OPTIONS: ContrastOption[] = [
   {
+    id: 'dark',
+    title: 'Modalità Scura (Dark Mode)',
+    badge: 'Predefinita & Comfort Visivo',
+    description: 'Sfondo antracite profondo con testo nitido e accenti verde acqua/oro. Riduce l\'affaticamento degli occhi.',
+    swatchBg: 'bg-[#121212]',
+    swatchText: 'text-white',
+    swatchBorder: 'border-[#2BA8A2]',
+    previewBg: 'bg-[#121212]',
+    previewText: 'text-white',
+    previewBorder: 'border-zinc-800',
+    previewAccent: 'text-[#3CC4BD]',
+  },
+  {
     id: 'black-white',
-    title: 'Testo Bianco su Sfondo Nero',
-    badge: 'Predefinito & Massimo Contrasto',
-    description: 'Sfondo nero puro (#000000) e testo bianco brillante (#FFFFFF). Contrasto perfetto per la leggibilità e l\'accessibilità.',
+    title: 'Testo Bianco su Sfondo Nero (E-Ink)',
+    badge: 'Massimo Contrasto Assoluto',
+    description: 'Sfondo nero puro (#000000) e testo bianco brillante (#FFFFFF). Contrasto massimo per l\'accessibilità.',
     swatchBg: 'bg-black',
     swatchText: 'text-white',
     swatchBorder: 'border-white',
@@ -56,23 +69,10 @@ const CONTRAST_THEME_OPTIONS: ContrastOption[] = [
     previewAccent: 'text-white',
   },
   {
-    id: 'dark',
-    title: 'Modalità Notte Soft',
-    badge: 'Contrasto Morbido',
-    description: 'Sfondo antracite profondo con testo bianco nitido e bordi zinc per sessioni di lettura prolungata.',
-    swatchBg: 'bg-[#121212]',
-    swatchText: 'text-white',
-    swatchBorder: 'border-zinc-700',
-    previewBg: 'bg-[#121212]',
-    previewText: 'text-white',
-    previewBorder: 'border-zinc-800',
-    previewAccent: 'text-zinc-300',
-  },
-  {
     id: 'white',
-    title: 'Monocromatico Inverso (Nero su Bianco)',
-    badge: 'Classico E-Ink',
-    description: 'Sfondo bianco puro con testo nero assoluto per una visualizzazione classica ad alta risoluzione.',
+    title: 'Modalità Chiara (Luminosa)',
+    badge: 'Classica',
+    description: 'Sfondo chiaro e testo scuro per una visualizzazione tradizionale.',
     swatchBg: 'bg-white',
     swatchText: 'text-black',
     swatchBorder: 'border-zinc-400',
@@ -111,7 +111,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
   const isCurrentVoiceAi = ttsService.isAiVoice(settings.voiceUri);
 
-  const currentContrast = settings.highContrastMode || 'black-white';
+  const currentContrast = settings.highContrastMode || 'dark';
   const activeThemeOption =
     CONTRAST_THEME_OPTIONS.find(
       (opt) =>

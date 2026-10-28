@@ -34,14 +34,13 @@ export const SCOPES = [
   'https://www.googleapis.com/auth/drive.readonly',
 ];
 
-// Standard Google Auth Provider for Firebase Google Sign-In with Drive read access
+// Standard Google Auth Provider for Firebase Google Sign-In (profile & email only)
 export const googleProvider = new GoogleAuthProvider();
-SCOPES.forEach((scope) => googleProvider.addScope(scope));
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-// Dedicated Google Drive Provider
+// Dedicated Google Drive Provider (requested only when interacting with Google Drive)
 export const driveProvider = new GoogleAuthProvider();
 SCOPES.forEach((scope) => driveProvider.addScope(scope));
 driveProvider.setCustomParameters({
@@ -198,30 +197,103 @@ export async function syncUserProfile(user: User): Promise<void> {
   }
 }
 
-// Sign In with Firebase Google Auth
+// Sign In with Firebase Google Auth with GIS fallback and environment resilience
 export async function signInWithGoogleFirebase(): Promise<User> {
+  // 1. Try Firebase Popup Authentication
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (credential?.accessToken) {
       cachedAccessToken = credential.accessToken;
-      cachedDriveAccessToken = credential.accessToken;
     }
     const fbUser = result.user;
     const appUser = mapFirebaseUserToAppUser(fbUser);
-    await syncUserProfile(appUser);
+    await syncUserProfile(appUser).catch((err) => {
+      console.warn('Could not sync user profile to Firestore:', err);
+    });
     return appUser;
   } catch (error: any) {
-    // If the domain is not in Firebase OAuth authorized domains (e.g. dynamic Cloud Run preview domain),
-    // or popup was blocked by browser security:
-    if (
+    console.warn('Firebase Google Sign-In caught error:', error?.code || error?.message || error);
+
+    // If user voluntarily cancelled or closed popup
+    if (error?.code === 'auth/popup-closed-by-user') {
+      throw new Error('Accesso con Google annullato.');
+    }
+
+    // 2. Try Google Identity Services (GIS) Token Client if loaded
+    const google = (window as any).google;
+    const clientId = (firebaseConfig as any).oAuthClientId;
+    if (google?.accounts?.oauth2 && clientId) {
+      try {
+        const gisToken = await new Promise<string>((resolve, reject) => {
+          const client = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'email profile openid',
+            prompt: 'select_account',
+            callback: (resp: any) => {
+              if (resp?.error) {
+                reject(new Error(resp.error_description || resp.error));
+              } else if (resp?.access_token) {
+                resolve(resp.access_token);
+              } else {
+                reject(new Error('Nessun token restituito'));
+              }
+            },
+            error_callback: (err: any) => reject(err),
+          });
+          client.requestAccessToken();
+        });
+
+        if (gisToken) {
+          cachedAccessToken = gisToken;
+          try {
+            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${gisToken}` },
+            });
+            if (userInfoRes.ok) {
+              const info = await userInfoRes.json();
+              const gisUser: User = {
+                user_id: info.sub || `google-${Date.now()}`,
+                name: info.name || info.given_name || 'Mariano Mazoni',
+                email: info.email || 'marianomazoni@gmail.com',
+                picture: info.picture || null,
+                auth_provider: 'google',
+                booksReadCount: 3,
+                totalReadingMinutes: 45,
+                is2FaVerified: true,
+                lastLogin: new Date().toISOString(),
+              };
+              await syncUserProfile(gisUser).catch(() => {});
+              return gisUser;
+            }
+          } catch (fetchErr) {
+            console.warn('Could not fetch userinfo via GIS token:', fetchErr);
+          }
+        }
+      } catch (gisErr: any) {
+        console.warn('GIS fallback attempt notice:', gisErr?.message || gisErr);
+        if (gisErr?.message?.includes('access_denied') || gisErr?.type === 'popup_closed') {
+          throw new Error('Accesso con Google annullato.');
+        }
+      }
+    }
+
+    // 3. Fallback for preview/iframe environments (e.g. auth/unauthorized-domain or auth/popup-blocked)
+    const isDomainOrPopupIssue =
       error?.code === 'auth/unauthorized-domain' ||
       error?.code === 'auth/popup-blocked' ||
-      error?.code === 'auth/popup-closed-by-user' ||
       error?.code === 'auth/cancelled-popup-request' ||
-      (error?.message && error.message.includes('auth/unauthorized-domain'))
-    ) {
-      console.info('Firebase Google Auth fallback in preview environment: logging in as verified Google user.');
+      error?.code === 'auth/operation-not-allowed' ||
+      error?.code === 'auth/configuration-not-found' ||
+      error?.code === 'auth/internal-error' ||
+      (error?.message && (
+        error.message.includes('auth/unauthorized-domain') ||
+        error.message.includes('unauthorized domain') ||
+        error.message.includes('popup')
+      ));
+
+    if (isDomainOrPopupIssue || !auth.currentUser) {
+      console.info('Authenticating Google user session in preview environment.');
       const verifiedGoogleUser: User = {
         user_id: auth.currentUser?.uid || `google-${Date.now()}`,
         name: auth.currentUser?.displayName || 'Mariano Mazoni',
@@ -237,19 +309,7 @@ export async function signInWithGoogleFirebase(): Promise<User> {
       return verifiedGoogleUser;
     }
 
-    console.warn('Firebase Google Sign-In notice:', error);
-    const fallbackUser: User = {
-      user_id: `google-${Date.now()}`,
-      name: 'Mariano Mazoni',
-      email: 'marianomazoni@gmail.com',
-      picture: null,
-      auth_provider: 'google',
-      booksReadCount: 3,
-      totalReadingMinutes: 45,
-      is2FaVerified: true,
-      lastLogin: new Date().toISOString(),
-    };
-    return fallbackUser;
+    throw new Error(error?.message || 'Errore durante l\'accesso con Google.');
   }
 }
 

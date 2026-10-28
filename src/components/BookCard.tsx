@@ -90,7 +90,7 @@ export const BookCard: React.FC<BookCardProps> = ({
             onOpen(book);
           }
         }}
-        className={`bg-white hover:bg-[#F9FDFC] active:scale-[0.99] rounded-2xl mb-2.5 p-3.5 sm:p-4 flex items-center justify-between gap-3.5 transition-all cursor-pointer group select-none shadow-card hover:shadow-card-hover border-l-[6px] border-y border-r border-[#2BA8A2]/10 ${getBorderColorClass()}`}
+        className={`bg-white dark:bg-[#142322] hover:bg-[#F9FDFC] dark:hover:bg-[#1B2F2E] active:scale-[0.99] rounded-2xl mb-2.5 p-3.5 sm:p-4 flex items-center justify-between gap-3.5 transition-all cursor-pointer group select-none shadow-card hover:shadow-card-hover border-l-[6px] border-y border-r border-[#2BA8A2]/10 dark:border-white/10 ${getBorderColorClass()}`}
         aria-labelledby={`book-title-${book.book_id}`}
       >
         {/* Book Info Column */}
@@ -98,55 +98,64 @@ export const BookCard: React.FC<BookCardProps> = ({
           {/* Title: Bold Text */}
           <h3
             id={`book-title-${book.book_id}`}
-            className="text-sm sm:text-base font-extrabold text-slate-900 truncate leading-snug tracking-tight group-hover:text-[#1E8C86] transition-colors"
+            className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white truncate leading-snug tracking-tight group-hover:text-[#1E8C86] dark:group-hover:text-[#3CC4BD] transition-colors"
           >
             {book.title}
           </h3>
 
           {/* Subtitle / Details: Clean typographic separators */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium truncate mt-1">
-            <span className="font-extrabold text-[#1E8C86] uppercase tracking-wider text-[11px]">
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-white font-medium truncate mt-1">
+            {book.author && (
+              <>
+                <span className="font-bold text-slate-800 dark:text-white truncate max-w-[130px] sm:max-w-[200px]">
+                  {book.author}
+                </span>
+                <span className="text-slate-400 dark:text-white/60">·</span>
+              </>
+            )}
+
+            <span className="font-extrabold text-[#1E8C86] dark:text-[#3CC4BD] uppercase tracking-wider text-[11px]">
               {getFileTypeLabel()}
             </span>
 
-              <span className="text-slate-400">·</span>
+            <span className="text-slate-400 dark:text-white/60">·</span>
 
-              {/* Data */}
-              <span className="text-slate-600 font-semibold">
-                {formatDate(book.created_at)}
-              </span>
+            {/* Data */}
+            <span className="text-slate-600 dark:text-white font-semibold">
+              {formatDate(book.created_at)}
+            </span>
 
-              <span className="text-slate-400">·</span>
+            <span className="text-slate-400 dark:text-white/60">·</span>
 
-              {/* Dimensione file */}
-              <span className="text-slate-600 font-semibold">
-                {formatSize(book.size)}
-              </span>
+            {/* Dimensione file */}
+            <span className="text-slate-600 dark:text-white font-semibold">
+              {formatSize(book.size)}
+            </span>
 
-              {/* Se in lettura: badge oro/crema Flip7 */}
-              {book.currentPage !== undefined && book.currentPage > 0 && (
-                <>
-                  <span className="text-slate-400">·</span>
-                  <span className="text-[#1E8C86] font-bold bg-[#FFF8E7] border border-[#FFD23F] px-2 py-0.5 rounded-full text-[10px] shadow-xs">
-                    Pag. {book.currentPage + 1}/{book.pages.length}
-                  </span>
-                </>
-              )}
+            {/* Se in lettura: badge oro/crema Flip7 */}
+            {book.currentPage !== undefined && book.currentPage > 0 && (
+              <>
+                <span className="text-slate-400 dark:text-white/60">·</span>
+                <span className="text-[#1E8C86] dark:text-[#FFD23F] font-bold bg-[#FFF8E7] dark:bg-slate-800 border border-[#FFD23F] dark:border-[#FFD23F]/60 px-2 py-0.5 rounded-full text-[10px] shadow-xs">
+                  Pag. {book.currentPage + 1}/{book.pages.length}
+                </span>
+              </>
+            )}
 
-              {/* Segnalibri salvati */}
-              {book.bookmarks && book.bookmarks.length > 0 && (
-                <>
-                  <span className="text-slate-400">·</span>
-                  <span
-                    className="text-[#1E8C86] font-bold inline-flex items-center gap-1 bg-[#E8F6F5] px-2 py-0.5 rounded-full text-[10px]"
-                    title={`${book.bookmarks.length} segnalibri salvati`}
-                  >
-                    <BookmarkIcon size={10} className="fill-[#1E8C86]" />
-                    <span>{book.bookmarks.length}</span>
-                  </span>
-                </>
-              )}
-            </div>
+            {/* Segnalibri salvati */}
+            {book.bookmarks && book.bookmarks.length > 0 && (
+              <>
+                <span className="text-slate-400 dark:text-white/60">·</span>
+                <span
+                  className="text-[#1E8C86] dark:text-[#3CC4BD] font-bold inline-flex items-center gap-1 bg-[#E8F6F5] dark:bg-[#1E3634] px-2 py-0.5 rounded-full text-[10px]"
+                  title={`${book.bookmarks.length} segnalibri salvati`}
+                >
+                  <BookmarkIcon size={10} className="fill-[#1E8C86] dark:fill-[#3CC4BD]" />
+                  <span>{book.bookmarks.length}</span>
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Right: Tre puntini verticali ⋮ */}
@@ -158,8 +167,8 @@ export const BookCard: React.FC<BookCardProps> = ({
           }}
           aria-label={`Opzioni per ${book.title}`}
           aria-expanded={showOptions}
-          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all text-slate-600 hover:text-[#1E8C86] hover:bg-[#E8F6F5] active:scale-95 ${
-            showOptions ? 'bg-[#E8F6F5] text-[#1E8C86]' : ''
+          className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all text-slate-600 dark:text-slate-300 hover:text-[#1E8C86] dark:hover:text-[#3CC4BD] hover:bg-[#E8F6F5] dark:hover:bg-slate-800 active:scale-95 ${
+            showOptions ? 'bg-[#E8F6F5] dark:bg-slate-800 text-[#1E8C86] dark:text-[#3CC4BD]' : ''
           }`}
         >
           <MoreVertical size={18} />
@@ -364,25 +373,25 @@ export const BookCard: React.FC<BookCardProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border-2 border-[#2BA8A2]/30 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-[#142322] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/50 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto"
           >
             {/* Header Dettagli */}
             <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] text-[#1E8C86] border border-[#2BA8A2]/40 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-[#1E3634] text-[#1E8C86] dark:text-[#3CC4BD] border border-[#2BA8A2]/40 flex items-center justify-center shrink-0">
                   <Info size={20} />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
                     Dettagli del file
                   </h3>
-                  <span className="text-xs text-slate-500 font-medium">Informazioni e metadati</span>
+                  <span className="text-xs text-slate-500 dark:text-white/80 font-medium">Informazioni e metadati</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowDetailsModal(false)}
-                className="w-8 h-8 rounded-full bg-[#EFF8F7] text-slate-600 hover:bg-[#EF6C4A] hover:text-white flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-[#EFF8F7] dark:bg-[#1E3634] text-slate-600 dark:text-white hover:bg-[#EF6C4A] hover:text-white flex items-center justify-center transition-colors"
                 aria-label="Chiudi dettagli"
               >
                 <X size={16} />
@@ -392,15 +401,15 @@ export const BookCard: React.FC<BookCardProps> = ({
             {/* Schede con Metadati */}
             <div className="flex flex-col gap-3">
               {/* Box Titolo */}
-              <div className="bg-[#EFF8F7] border border-[#2BA8A2]/20 rounded-2xl p-3.5">
-                <span className="block text-[10px] font-extrabold text-[#1E8C86] uppercase tracking-wider mb-1">
+              <div className="bg-[#EFF8F7] dark:bg-[#1B2F2D] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3.5">
+                <span className="block text-[10px] font-extrabold text-[#1E8C86] dark:text-[#3CC4BD] uppercase tracking-wider mb-1">
                   Titolo documento
                 </span>
-                <p className="text-sm font-black text-slate-900 break-words leading-snug">
+                <p className="text-sm font-black text-slate-900 dark:text-white break-words leading-snug">
                   {book.title}
                 </p>
                 {book.author && (
-                  <p className="text-xs text-slate-600 font-semibold mt-1">
+                  <p className="text-xs text-slate-600 dark:text-white font-semibold mt-1">
                     Autore: {book.author}
                   </p>
                 )}
@@ -408,70 +417,70 @@ export const BookCard: React.FC<BookCardProps> = ({
 
               {/* Formato, Pagine e Dimensione - Box Grid */}
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="bg-white border-2 border-[#2BA8A2]/20 rounded-2xl p-3 text-center shadow-xs">
-                  <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+                <div className="bg-white dark:bg-[#1B2F2D] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3 text-center shadow-xs">
+                  <span className="block text-[10px] font-extrabold text-slate-500 dark:text-white/70 uppercase tracking-wider mb-1">
                     Formato
                   </span>
-                  <span className="inline-block text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/40 text-[#1E8C86]">
+                  <span className="inline-block text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-[#142322] border border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD]">
                     {getFileTypeLabel()}
                   </span>
                 </div>
 
-                <div className="bg-white border-2 border-[#2BA8A2]/20 rounded-2xl p-3 text-center shadow-xs">
-                  <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+                <div className="bg-white dark:bg-[#1B2F2D] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3 text-center shadow-xs">
+                  <span className="block text-[10px] font-extrabold text-slate-500 dark:text-white/70 uppercase tracking-wider mb-1">
                     Pagine
                   </span>
-                  <span className="block text-sm font-black text-slate-900">
+                  <span className="block text-sm font-black text-slate-900 dark:text-white">
                     {book.pages.length}
                   </span>
                 </div>
 
-                <div className="bg-white border-2 border-[#2BA8A2]/20 rounded-2xl p-3 text-center shadow-xs">
-                  <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+                <div className="bg-white dark:bg-[#1B2F2D] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3 text-center shadow-xs">
+                  <span className="block text-[10px] font-extrabold text-slate-500 dark:text-white/70 uppercase tracking-wider mb-1">
                     Dimensione
                   </span>
-                  <span className="block text-xs font-bold text-slate-700">
+                  <span className="block text-xs font-bold text-slate-700 dark:text-white">
                     {formatSize(book.size)}
                   </span>
                 </div>
               </div>
 
               {/* Posizione del file */}
-              <div className="bg-[#EFF8F7] border border-[#2BA8A2]/20 rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+              <div className="bg-[#EFF8F7] dark:bg-[#1B2F2D] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
                 <div>
-                  <span className="block text-[10px] font-extrabold text-[#1E8C86] uppercase tracking-wider">
+                  <span className="block text-[10px] font-extrabold text-[#1E8C86] dark:text-[#3CC4BD] uppercase tracking-wider">
                     Posizione archiviazione
                   </span>
-                  <span className="block text-xs font-bold text-slate-800 mt-0.5">
+                  <span className="block text-xs font-bold text-slate-800 dark:text-white mt-0.5">
                     I miei file · Google Drive & Locale
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white text-[#1E8C86] border border-[#2BA8A2]/30 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-[#142322] text-[#1E8C86] dark:text-[#3CC4BD] border border-[#2BA8A2]/30 flex items-center justify-center shrink-0">
                   <FileText size={16} />
                 </div>
               </div>
 
               {/* Motore OCR / Elaborazione */}
               {book.ocr_engine && (
-                <div className="bg-[#EFF8F7] border border-[#2BA8A2]/20 rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+                <div className="bg-[#EFF8F7] dark:bg-[#1B2F2D] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
                   <div>
-                    <span className="block text-[10px] font-extrabold text-[#1E8C86] uppercase tracking-wider">
+                    <span className="block text-[10px] font-extrabold text-[#1E8C86] dark:text-[#3CC4BD] uppercase tracking-wider">
                       Motore di Elaborazione
                     </span>
-                    <span className="block text-xs font-bold text-slate-800 mt-0.5">
+                    <span className="block text-xs font-bold text-slate-800 dark:text-white mt-0.5">
                       {book.ocr_engine}
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white text-[#1E8C86] border border-[#2BA8A2]/30 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white dark:bg-[#142322] text-[#1E8C86] dark:text-[#3CC4BD] border border-[#2BA8A2]/30 flex items-center justify-center shrink-0">
                     <Cpu size={16} />
                   </div>
                 </div>
               )}
 
               {/* Data di Aggiunta */}
-              <div className="bg-[#EFF8F7] border border-[#2BA8A2]/20 rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-xs">
-                <span className="font-extrabold text-slate-500">Data documento</span>
-                <span className="font-extrabold text-slate-900">
+              <div className="bg-[#EFF8F7] dark:bg-[#1B2F2D] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-xs">
+                <span className="font-extrabold text-slate-500 dark:text-white/70">Data documento</span>
+                <span className="font-extrabold text-slate-900 dark:text-white">
                   {formatDate(book.created_at)}
                 </span>
               </div>
@@ -482,7 +491,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               <button
                 type="button"
                 onClick={() => setShowDetailsModal(false)}
-                className="min-h-[46px] rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-extrabold transition-all active:scale-95 shadow-sm"
+                className="min-h-[46px] rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#1B2F2D] hover:bg-slate-50 dark:hover:bg-[#233C3A] text-slate-700 dark:text-white text-xs font-extrabold transition-all active:scale-95 shadow-sm"
               >
                 Chiudi
               </button>

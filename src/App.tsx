@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { Book, User, TtsSettings, ScanSessionData, AppNotification } from './types';
+import { Book, User, TtsSettings, ScanSessionData, AppNotification, ContrastThemeMode } from './types';
 import { storageService, DEFAULT_SETTINGS } from './services/storageService';
 import { SAMPLE_BOOKS } from './data/sampleBooks';
 import { Navbar, TabType } from './components/Navbar';
@@ -20,15 +20,22 @@ import { SplashScreen } from './components/SplashScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { ReadingStatsModal } from './components/ReadingStatsModal';
 import { StatsTab } from './components/StatsTab';
-import { signOutFirebase, subscribeToAuthState } from './services/firebase';
+import { signOutFirebase, subscribeToAuthState, clearGoogleDriveAccessToken } from './services/firebase';
 
 export function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [showLogin, setShowLogin] = useState(true);
+  const [showLogin, setShowLogin] = useState(() => !storageService.isAuthenticated());
   const [currentTab, setCurrentTab] = useState<TabType>('home');
   const [books, setBooks] = useState<Book[]>([]);
   const [user, setUser] = useState<User>(storageService.getUser());
-  const [settings, setSettings] = useState<TtsSettings>(storageService.getSettings());
+  const [settings, setSettings] = useState<TtsSettings>(() => {
+    const s = storageService.getSettings();
+    if (!s.highContrastMode || s.highContrastMode === 'white') {
+      s.highContrastMode = 'dark';
+      storageService.saveSettings(s);
+    }
+    return s;
+  });
   const [activeBook, setActiveBook] = useState<Book | null>(null);
   const [activePdfBook, setActivePdfBook] = useState<Book | null>(null);
   const [bookForOptions, setBookForOptions] = useState<Book | null>(null);
@@ -65,6 +72,7 @@ export function App() {
         setUser(fbUser);
         storageService.saveUser(fbUser);
         storageService.setAuthenticated(true);
+        setShowLogin(false);
       }
     });
     return () => unsubscribe();
@@ -105,11 +113,12 @@ export function App() {
 
   const handleLogout = useCallback(() => {
     signOutFirebase().catch(() => {});
+    clearGoogleDriveAccessToken();
     storageService.logout();
     setUser(storageService.getUser());
     setShowLogin(true);
     setCurrentTab('home');
-    showToast('Disconnessione effettuata. Accedi con Google.');
+    showToast('Disconnessione effettuata.');
   }, [showToast]);
 
   const handleMarkAsRead = useCallback((id: string) => {
@@ -288,6 +297,29 @@ export function App() {
     storageService.saveSettings(newSettings);
   };
 
+  const isDarkMode =
+    settings.highContrastMode === 'dark' ||
+    settings.highContrastMode === 'black-white' ||
+    settings.highContrastMode === 'black-yellow';
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const handleToggleDarkMode = useCallback(() => {
+    const nextMode: ContrastThemeMode = isDarkMode ? 'white' : 'dark';
+    const updated: TtsSettings = {
+      ...settings,
+      highContrastMode: nextMode,
+    };
+    handleUpdateSettings(updated);
+    showToast(nextMode === 'dark' ? 'Modalità scura attivata 🌙' : 'Modalità chiara attivata ☀️');
+  }, [isDarkMode, settings, showToast]);
+
   const handleUpdateUser = (newUser: User) => {
     setUser(newUser);
     storageService.saveUser(newUser);
@@ -300,7 +332,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EFF8F7] text-slate-800 flex flex-col font-sans selection:bg-[#FFD23F] selection:text-[#1E8C86]">
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-[#0E1716] text-slate-100' : 'bg-[#EFF8F7] text-slate-800'} flex flex-col font-sans selection:bg-[#FFD23F] selection:text-[#1E8C86] transition-colors duration-200`}>
       {/* Toast Notification - Flip7 Pill Style */}
       {toastMessage && (
         <div
@@ -314,13 +346,14 @@ export function App() {
 
       {/* 1. Splash Screen all'avvio dell'applicazione */}
       {showSplash ? (
-        <SplashScreen onDismiss={() => setShowSplash(false)} />
+        <SplashScreen onDismiss={() => setShowSplash(false)} isDarkMode={isDarkMode} />
       ) : showLogin ? (
         /* 2. Login Screen subito dopo lo splash screen e prima di arrivare alla home */
         <LoginScreen
           onLoginSuccess={handleLoginSuccess}
           onSkip={handleSkipLogin}
           initialEmail={user.email}
+          isDarkMode={isDarkMode}
         />
       ) : (
         /* 3. Applicazione principale (Home, Lettore, Notifiche, ecc.) */
@@ -401,6 +434,8 @@ export function App() {
               onOpenNotifications={() => setIsNotificationsOpen(true)}
               onOpenStats={() => handleSelectTab('stats')}
               unreadNotificationsCount={notifications.filter((n) => !n.read).length}
+              isDarkMode={isDarkMode}
+              onToggleDarkMode={handleToggleDarkMode}
             />
           )}
 
@@ -480,7 +515,7 @@ export function App() {
           </main>
 
           {/* Bottom Navigation con scan.ocr al posto del profilo */}
-          <Navbar currentTab={currentTab} onSelectTab={handleSelectTab} />
+          <Navbar currentTab={currentTab} onSelectTab={handleSelectTab} isDarkMode={isDarkMode} />
 
           {/* Modale Scan.ocr globale */}
           <ScanModal

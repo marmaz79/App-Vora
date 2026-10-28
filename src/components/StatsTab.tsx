@@ -559,11 +559,11 @@ export const StatsTab: React.FC<StatsTabProps> = ({
                             </span>
                           )}
                         </div>
-                        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 truncate mt-1">
+                        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white truncate mt-1">
                           {stat.title}
                         </h3>
                         {stat.author && (
-                          <p className="text-xs text-slate-500 font-semibold truncate">{stat.author}</p>
+                          <p className="text-xs text-slate-500 dark:text-white font-semibold truncate">{stat.author}</p>
                         )}
                       </div>
 

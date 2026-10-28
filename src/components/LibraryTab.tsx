@@ -60,7 +60,7 @@ export const LibraryTab: React.FC<LibraryTabProps> = ({
   ];
 
   return (
-    <section className="flex flex-col gap-3.5 select-none animate-fade-in text-slate-800 pb-28" aria-label="Libreria completa">
+    <section className="flex flex-col gap-3.5 select-none animate-fade-in text-slate-800 dark:text-slate-100 pb-28" aria-label="Libreria completa">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 pt-1 border-b-2 border-dashed border-[#2BA8A2]/30 pb-2.5">
         <div className="flex items-center gap-2.5 min-w-0">

@@ -6,9 +6,10 @@ export type TabType = 'home' | 'library' | 'scan' | 'stats' | 'settings' | 'prof
 interface NavbarProps {
   currentTab: TabType;
   onSelectTab: (tab: TabType) => void;
+  isDarkMode?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isDarkMode = false }) => {
   const tabs = [
     { id: 'home' as TabType, label: 'Home', icon: Home },
     { id: 'library' as TabType, label: 'Libreria', icon: Library },
@@ -21,7 +22,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab }) => {
     <nav
       role="navigation"
       aria-label="Navigazione principale"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#1E8C86] border-t-2 border-[#166E69] pb-safe shadow-teal-glow select-none"
+      className={`fixed bottom-0 left-0 right-0 z-40 ${
+        isDarkMode ? 'bg-[#0D2624] border-[#091D1C]' : 'bg-[#1E8C86] border-[#166E69]'
+      } border-t-2 pb-safe shadow-teal-glow select-none transition-colors`}
     >
       <div className="max-w-2xl mx-auto flex items-center justify-around h-20 px-2">
         {tabs.map((tab) => {
