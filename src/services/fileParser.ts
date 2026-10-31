@@ -143,11 +143,15 @@ export const fileParser = {
         try {
           const scanSession = await pdfOcrService.convertScannedPdf(file, { onProgress });
           if (scanSession && scanSession.pages && scanSession.pages.length > 0) {
+            const validImages = scanSession.imageUrls?.filter(
+              (u): u is string => typeof u === 'string' && u.length > 0
+            );
             return {
               title,
-              file_type: 'scan',
+              file_type: 'pdf',
               size: file.size,
               pages: scanSession.pages,
+              imageUrls: validImages && validImages.length > 0 ? validImages : undefined,
               source: 'scan',
               ocr_engine: scanSession.engine || 'Gemini AI Vision',
             };

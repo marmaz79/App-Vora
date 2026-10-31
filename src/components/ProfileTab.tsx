@@ -7,7 +7,7 @@ interface ProfileTabProps {
   user: User;
   books: Book[];
   onUpdateUser: (user: User) => void;
-  onResetSampleBooks: () => void;
+  onClearSampleBooks?: () => void;
   onShowSplash?: () => void;
   onBack?: () => void;
   onOpenLogin?: () => void;
@@ -19,7 +19,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   user,
   books,
   onUpdateUser,
-  onResetSampleBooks,
+  onClearSampleBooks,
   onShowSplash,
   onBack,
   onOpenLogin,
@@ -119,7 +119,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 min-h-[46px] bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] text-[#1E8C86] font-black text-sm rounded-full transition-all active:scale-95 shadow-accent-glow border-2 border-[#E6B800]"
+                className="flex-1 min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] font-black text-sm rounded-full transition-all active:scale-95 shadow-accent-glow border-2 border-[#E6B800]"
               >
                 Salva modifiche
               </button>
@@ -156,7 +156,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <button
                 type="button"
                 onClick={onOpenLogin}
-                className="min-h-[42px] bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] text-[#1E8C86] font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all shadow-accent-glow border-2 border-[#E6B800] active:scale-95 px-4"
+                className="min-h-[42px] bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all shadow-accent-glow border-2 border-[#E6B800] active:scale-95 px-4"
               >
                 <LogIn size={15} />
                 <span>Accedi o Registrati</span>
@@ -194,7 +194,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <button
           type="button"
           onClick={onOpenStats}
-          className="w-full bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] text-[#1E8C86] font-black text-sm p-4 rounded-2xl flex items-center justify-between transition-all shadow-accent-glow active:scale-98 border-2 border-[#E6B800]"
+          className="w-full bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] font-black text-sm p-4 rounded-2xl flex items-center justify-between transition-all shadow-accent-glow active:scale-98 border-2 border-[#E6B800]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white text-[#1E8C86] flex items-center justify-center shadow-xs">
@@ -235,14 +235,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <span>Mostra schermata di benvenuto</span>
           </button>
         )}
-        <button
-          onClick={onResetSampleBooks}
-          className="min-h-[44px] bg-white hover:bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 text-slate-700 font-bold text-xs rounded-full flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
-          aria-label="Ripristina i libri di esempio della letteratura italiana"
-        >
-          <RotateCcw size={16} className="text-[#1E8C86]" />
-          <span>Ripristina libri classici di esempio (Pinocchio, Manzoni, Rodari)</span>
-        </button>
+        {onClearSampleBooks && (
+          <button
+            onClick={onClearSampleBooks}
+            className="min-h-[44px] bg-white hover:bg-red-50 border-2 border-red-200 text-red-700 font-bold text-xs rounded-full flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
+            aria-label="Elimina i libri di esempio"
+          >
+            <RotateCcw size={16} className="text-red-500" />
+            <span>Elimina tutti i libri di esempio</span>
+          </button>
+        )}
       </div>
     </section>
   );

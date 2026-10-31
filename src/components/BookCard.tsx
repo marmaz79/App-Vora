@@ -502,7 +502,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   setShowDetailsModal(false);
                   onOpen(book);
                 }}
-                className="min-h-[46px] rounded-full bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] text-[#1E8C86] text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-accent-glow border-2 border-[#E6B800]"
+                className="min-h-[46px] rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-accent-glow border-2 border-[#E6B800]"
               >
                 <BookOpen size={16} />
                 <span>Apri Documento</span>

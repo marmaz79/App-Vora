@@ -13,8 +13,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ extended: true, limit: '500mb' }));
 
 // Custom error handler for request body parsing to prevent HTML error responses
 app.use((err: any, _req: Request, res: Response, next: any) => {
@@ -23,7 +23,7 @@ app.use((err: any, _req: Request, res: Response, next: any) => {
     if (err.type === 'entity.too.large' || err.status === 413) {
       return res.status(413).json({
         success: false,
-        error: 'Il file inviato supera il limite di dimensione consentito. Prova con un file audio compresso (es. MP3/M4A) o di durata inferiore.',
+        error: 'Il file inviato supera la capacità del buffer di trasferimento.',
       });
     }
     return res.status(err.status || 400).json({
@@ -161,13 +161,28 @@ function splitTextIntoPages(text: string, wordsPerPage: number = 250): string[] 
 
 function extractGeminiErrorMessage(rawError: any): string {
   if (!rawError) return 'Errore durante l\'elaborazione con Gemini AI.';
-  const msg = rawError?.message || String(rawError);
+  let msg = rawError?.message || String(rawError);
   try {
     const parsed = JSON.parse(msg);
     if (parsed?.error?.message) {
-      return parsed.error.message;
+      msg = parsed.error.message;
     }
   } catch {}
+
+  // Translate known Gemini API capacity & rate-limit spikes into clear, polite Italian
+  if (
+    msg.includes('experiencing high demand') ||
+    msg.includes('Spikes in demand') ||
+    msg.includes('overloaded') ||
+    msg.includes('temporarily unavailable')
+  ) {
+    return 'I server AI di Google stanno riscontrando un elevato picco di richieste in questo momento. Il sistema ha tentato automaticamente con modelli alternativi: riprova tra pochi secondi toccando di nuovo "Trascrivi".';
+  }
+
+  if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota exceeded') || msg.includes('429')) {
+    return 'Limite di richieste temporaneamente raggiunto sui server AI. Attendi qualche istante e riprova.';
+  }
+
   return msg;
 }
 
@@ -388,6 +403,8 @@ app.post('/api/audio/transcribe', async (req: Request, res: Response) => {
       filename = 'audio_file.mp3',
       language = 'ita',
       format = 'narrative',
+      segmentIndex,
+      totalSegments,
     } = req.body;
 
     if (!audio || typeof audio !== 'string') {
@@ -413,7 +430,7 @@ app.post('/api/audio/transcribe', async (req: Request, res: Response) => {
       cleanMime = 'audio/mp3';
     } else if (ext === 'wav' || cleanMime.includes('wav')) {
       cleanMime = 'audio/wav';
-    } else if (ext === 'm4a' || cleanMime.includes('m4a') || cleanMime.includes('mp4') || cleanMime.includes('aac')) {
+    } else if (ext === 'm4a' || ext === 'm4b' || cleanMime.includes('m4a') || cleanMime.includes('mp4') || cleanMime.includes('aac')) {
       cleanMime = 'audio/m4a';
     } else if (ext === 'ogg' || ext === 'oga' || ext === 'opus' || cleanMime.includes('ogg') || cleanMime.includes('opus')) {
       cleanMime = 'audio/ogg';
@@ -443,7 +460,12 @@ app.post('/api/audio/transcribe', async (req: Request, res: Response) => {
         ? 'Trascrivi il contenuto organizzandolo con titoli di sezione, punti chiave e testo scorrevole.'
         : 'Trascrivi fedelmente e integralmente ogni singola parola, strutturando il testo in paragrafi leggibili adatti alla lettura e all\'ascolto come audiolibro.';
 
-    const userPrompt = `Trascrivi fedelmente e integralmente ogni singola parola pronunciata in questo file audio ${langInstruction}. Applica una corretta e rigorosa punteggiatura (. , ; : ! ? virgolette) per rendere il testo narrativo ed espressivo. ${formatInstruction} Non inserire note o premesse: fornisci esclusivamente la trascrizione.`;
+    const segmentContext =
+      typeof segmentIndex === 'number' && typeof totalSegments === 'number' && totalSegments > 1
+        ? ` Questa traccia è la porzione audio ${segmentIndex + 1} di ${totalSegments}.`
+        : '';
+
+    const userPrompt = `Trascrivi fedelmente e integralmente ogni singola parola pronunciata in questo file audio ${langInstruction}.${segmentContext} Applica una corretta e rigorosa punteggiatura (. , ; : ! ? virgolette) per rendere il testo narrativo ed espressivo. ${formatInstruction} Non inserire note, commenti meta o premesse: fornisci esclusivamente la trascrizione diretta del parlato.`;
 
     const contents = {
       parts: [
@@ -522,6 +544,424 @@ app.post('/api/audio/transcribe', async (req: Request, res: Response) => {
     return res.status(200).json({
       fallback: true,
       error: userMessage || 'Errore durante la trascrizione audio con Gemini AI.',
+    });
+  }
+});
+
+// ============================================================================
+// Endpoint: Trascrizione e Riassunto da Link Video (YouTube, Vimeo, MP4, WebM, etc.)
+// Utilizza Gemini 3.8 Flash per estrarre la trascrizione fedele e generare il riassunto strutturato
+// ============================================================================
+app.post('/api/video/process', async (req: Request, res: Response) => {
+  try {
+    const {
+      url,
+      language = 'ita',
+      detailLevel = 'standard', // 'concise' | 'standard' | 'detailed'
+      generateSummary = true,
+      generateTranscription = true,
+    } = req.body;
+
+    if (!url || typeof url !== 'string' || !url.trim()) {
+      return res.status(400).json({ error: 'URL del video mancante o non valido.' });
+    }
+
+    const cleanUrl = url.trim();
+
+    // Basic URL validation
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(cleanUrl);
+    } catch {
+      return res.status(400).json({ error: 'Il link del video inserito non è un URL valido (es. https://www.youtube.com/watch?v=...).' });
+    }
+
+    const ai = getAiClient();
+    if (!ai) {
+      return res.status(200).json({
+        fallback: true,
+        error: 'Chiave API Gemini non configurata sul server.',
+      });
+    }
+
+    // Determine platform
+    const host = parsedUrl.hostname.toLowerCase();
+    const isYouTube = host.includes('youtube.com') || host.includes('youtu.be');
+    const isInstagram = host.includes('instagram.com');
+    const isTikTok = host.includes('tiktok.com');
+    const isFacebook = host.includes('facebook.com') || host.includes('fb.watch');
+    const isTwitter = host.includes('twitter.com') || host.includes('x.com');
+    const isLinkedIn = host.includes('linkedin.com');
+    const isReddit = host.includes('reddit.com');
+    const isVimeo = host.includes('vimeo.com');
+    const isDailymotion = host.includes('dailymotion.com');
+
+    let detectedPlatform: 'youtube' | 'instagram' | 'tiktok' | 'facebook' | 'twitter' | 'linkedin' | 'reddit' | 'vimeo' | 'dailymotion' | 'web' = 'web';
+    if (isYouTube) detectedPlatform = 'youtube';
+    else if (isInstagram) detectedPlatform = 'instagram';
+    else if (isTikTok) detectedPlatform = 'tiktok';
+    else if (isFacebook) detectedPlatform = 'facebook';
+    else if (isTwitter) detectedPlatform = 'twitter';
+    else if (isLinkedIn) detectedPlatform = 'linkedin';
+    else if (isReddit) detectedPlatform = 'reddit';
+    else if (isVimeo) detectedPlatform = 'vimeo';
+    else if (isDailymotion) detectedPlatform = 'dailymotion';
+
+    let videoId = '';
+    if (parsedUrl.hostname.includes('youtu.be')) {
+      videoId = parsedUrl.pathname.replace(/^\//, '').split('?')[0];
+    } else if (parsedUrl.hostname.includes('youtube.com')) {
+      videoId = parsedUrl.searchParams.get('v') || '';
+      if (!videoId && parsedUrl.pathname.includes('/shorts/')) {
+        videoId = parsedUrl.pathname.split('/shorts/')[1]?.split('?')[0] || '';
+      } else if (!videoId && parsedUrl.pathname.includes('/embed/')) {
+        videoId = parsedUrl.pathname.split('/embed/')[1]?.split('?')[0] || '';
+      }
+    }
+
+    // Attempt to fetch oEmbed metadata (title, author, thumbnail) or page OpenGraph tags
+    let videoTitle = '';
+    let authorName = isInstagram
+      ? 'Instagram Creator'
+      : isTikTok
+      ? 'TikTok Creator'
+      : isTwitter
+      ? 'Autore su X'
+      : isFacebook
+      ? 'Pagina Facebook'
+      : 'Video Web';
+    let thumbnailUrl = '';
+    let webSnippet = '';
+
+    if (isYouTube && videoId) {
+      thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`;
+        const oembedRes = await fetch(oembedUrl, { signal: AbortSignal.timeout(4000) });
+        if (oembedRes.ok) {
+          const oembedData: any = await oembedRes.json();
+          if (oembedData?.title) videoTitle = oembedData.title.trim();
+          if (oembedData?.author_name) authorName = oembedData.author_name.trim();
+          if (oembedData?.thumbnail_url) thumbnailUrl = oembedData.thumbnail_url;
+        }
+      } catch (e) {
+        console.warn('oEmbed YouTube fetch error:', e);
+      }
+    } else if (isTikTok) {
+      try {
+        const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(cleanUrl)}`;
+        const oembedRes = await fetch(oembedUrl, { signal: AbortSignal.timeout(4000) });
+        if (oembedRes.ok) {
+          const oembedData: any = await oembedRes.json();
+          if (oembedData?.title) videoTitle = oembedData.title.trim();
+          if (oembedData?.author_name) authorName = `@${oembedData.author_name.trim()}`;
+          if (oembedData?.thumbnail_url) thumbnailUrl = oembedData.thumbnail_url;
+        }
+      } catch (e) {
+        console.warn('oEmbed TikTok fetch error:', e);
+      }
+    } else if (isTwitter) {
+      try {
+        const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(cleanUrl)}`;
+        const oembedRes = await fetch(oembedUrl, { signal: AbortSignal.timeout(4000) });
+        if (oembedRes.ok) {
+          const oembedData: any = await oembedRes.json();
+          if (oembedData?.author_name) authorName = oembedData.author_name.trim();
+          if (oembedData?.html) {
+            const cleanText = oembedData.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (cleanText) {
+              videoTitle = cleanText.slice(0, 100);
+              webSnippet = cleanText;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('oEmbed Twitter fetch error:', e);
+      }
+    } else if (isVimeo) {
+      try {
+        const oembedUrl = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(cleanUrl)}`;
+        const oembedRes = await fetch(oembedUrl, { signal: AbortSignal.timeout(4000) });
+        if (oembedRes.ok) {
+          const oembedData: any = await oembedRes.json();
+          if (oembedData?.title) videoTitle = oembedData.title.trim();
+          if (oembedData?.author_name) authorName = oembedData.author_name.trim();
+          if (oembedData?.thumbnail_url) thumbnailUrl = oembedData.thumbnail_url;
+        }
+      } catch (e) {
+        console.warn('oEmbed Vimeo fetch error:', e);
+      }
+    }
+
+    // If still missing metadata, scrape OpenGraph tags from the webpage
+    if (!videoTitle || !thumbnailUrl || !webSnippet) {
+      try {
+        const pageRes = await fetch(cleanUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
+          },
+          signal: AbortSignal.timeout(4000),
+        });
+        if (pageRes.ok) {
+          const html = await pageRes.text();
+          // Extract og:title or title
+          if (!videoTitle) {
+            const ogTitle = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i);
+            const titleTag = html.match(/<title>([^<]+)<\/title>/i);
+            const raw = (ogTitle && ogTitle[1]) || (titleTag && titleTag[1]);
+            if (raw) {
+              videoTitle = raw.replace(/ - (YouTube|Instagram|TikTok|Facebook|Twitter|X)$/i, '').trim();
+            }
+          }
+          // Extract og:description or meta description
+          if (!webSnippet) {
+            const ogDesc =
+              html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i) ||
+              html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i);
+            if (ogDesc && ogDesc[1]) {
+              webSnippet = ogDesc[1].trim();
+            }
+          }
+          // Extract og:image
+          if (!thumbnailUrl) {
+            const ogImg = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+            if (ogImg && ogImg[1]) {
+              thumbnailUrl = ogImg[1].trim();
+            }
+          }
+        }
+      } catch (scrapeErr) {
+        console.warn('Scraping webpage info error:', scrapeErr);
+      }
+    }
+
+    if (!videoTitle) {
+      videoTitle = isInstagram
+        ? 'Instagram Reel / Video'
+        : isTikTok
+        ? 'TikTok Video'
+        : isFacebook
+        ? 'Facebook Video'
+        : isTwitter
+        ? 'Video su X (Twitter)'
+        : isYouTube
+        ? `Video YouTube (${videoId || 'Web'})`
+        : `Video (${parsedUrl.hostname})`;
+    }
+
+    // Check if the URL is a direct media file (mp4, webm, etc.)
+    const isDirectMedia = /\.(mp4|webm|m4v|mov|mkv)(\?.*)?$/i.test(cleanUrl);
+    let directAudioBase64 = '';
+    let directMime = 'video/mp4';
+
+    if (isDirectMedia) {
+      try {
+        const mediaHead = await fetch(cleanUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+        const cType = mediaHead.headers.get('content-type');
+        const cLen = parseInt(mediaHead.headers.get('content-length') || '0', 10);
+        // If file is under 20MB, we can stream and feed directly
+        if (cLen > 0 && cLen < 20 * 1024 * 1024) {
+          const mediaRes = await fetch(cleanUrl, { signal: AbortSignal.timeout(15000) });
+          if (mediaRes.ok) {
+            const buf = await mediaRes.arrayBuffer();
+            directAudioBase64 = Buffer.from(buf).toString('base64');
+            directMime = cType || 'video/mp4';
+          }
+        }
+      } catch (err) {
+        console.warn('Direct media download error:', err);
+      }
+    }
+
+    const langName =
+      language === 'eng' ? 'inglese' : language === 'fra' ? 'francese' : language === 'esp' ? 'spagnolo' : 'italiano';
+
+    const platformLabel = isInstagram
+      ? 'Instagram (Reel / Video post)'
+      : isTikTok
+      ? 'TikTok (Short video)'
+      : isFacebook
+      ? 'Facebook (Video / Watch)'
+      : isTwitter
+      ? 'X / Twitter (Video tweet)'
+      : isYouTube
+      ? 'YouTube (Video / Shorts)'
+      : isLinkedIn
+      ? 'LinkedIn Video'
+      : isVimeo
+      ? 'Vimeo'
+      : parsedUrl.hostname;
+
+    const detailInstruction =
+      detailLevel === 'concise'
+        ? 'Sintetico ed essenziale: riassunto in 3-5 punti chiave e 1 breve paragrafo conclusivo.'
+        : detailLevel === 'detailed'
+        ? 'Dettagliato e approfondito: analisi suddivisa in capitoli/sezioni temporali, concetti chiave, citazioni salienti e conclusioni.'
+        : 'Strutturato e bilanciato: introduzione, punti salienti discussi, concetti cardine e sintesi conclusiva.';
+
+    const systemPrompt = `Sei un esperto assistente AI specializzato nell'analisi, trascrizione, ascolto e sintesi di video dai social media (Instagram Reel, TikTok, YouTube Shorts, X/Twitter, Facebook Watch) e dal web (didattica, interviste, podcast, conferenze).
+
+Analizza il video/reel indicato:
+- URL del video: ${cleanUrl}
+- Piattaforma: ${platformLabel}
+- Titolo/Caption rilevata: "${videoTitle}"
+- Creatore/Autore/Canale: "${authorName}"
+${webSnippet ? `- Descrizione/Contenuto/Caption: "${webSnippet.slice(0, 1200)}"` : ''}
+
+Istruzioni per l'analisi e trascrizione:
+1. Riconosci il tipo di contenuto (es. Reel, TikTok virale, tutorial didattico, intervista, clip informativa o podcast).
+2. Fornisci la trascrizione fedele del discorso parlato, dei dialoghi, delle spiegazioni vocali o della narrazione in lingua ${langName}. Separa i paragrafi in modo logico e scorrevole.
+3. Genera un riassunto ${detailInstruction} Formatta il riassunto in markdown pulito in italiano con titoli (##), elenchi puntati (-) e testo chiaro, ottimizzato sia per la lettura visiva sia per la riproduzione con sintesi vocale naturale (TTS).
+4. Fornisci 3-6 punti chiave salienti (keyPoints).
+5. Fornisci la durata stimata se deducibile o presente nei metadati (es. "0:45", "3:20", "12 min").
+
+Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la seguente struttura:
+{
+  "title": "...",
+  "author": "...",
+  "transcription": "...",
+  "summary": "...",
+  "keyPoints": ["...", "..."],
+  "durationFormatted": "...",
+  "language": "..."
+}`;
+
+    let responseText = '';
+    const modelsToTry = [
+      'gemini-3.8-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-flash-latest',
+    ];
+    let lastGenError: any = null;
+
+    if (ai) {
+      for (const currentModel of modelsToTry) {
+        try {
+          if (directAudioBase64) {
+            const response = await ai.models.generateContent({
+              model: currentModel,
+              contents: [
+                {
+                  inlineData: {
+                    data: directAudioBase64,
+                    mimeType: directMime,
+                  },
+                },
+                systemPrompt,
+              ],
+              config: {
+                responseMimeType: 'application/json',
+              },
+            });
+            responseText = response.text || '{}';
+          } else {
+            const response = await ai.models.generateContent({
+              model: currentModel,
+              contents: systemPrompt,
+              config: {
+                responseMimeType: 'application/json',
+              },
+            });
+            responseText = response.text || '{}';
+          }
+
+          if (responseText && responseText.trim() && responseText !== '{}') {
+            lastGenError = null;
+            break; // Succeeded!
+          }
+        } catch (genErr: any) {
+          lastGenError = genErr;
+          const errMsg = genErr?.message || '';
+          console.warn(`Tentativo modello ${currentModel} fallito:`, errMsg);
+          if (
+            errMsg.includes('high demand') ||
+            errMsg.includes('Spikes in demand') ||
+            errMsg.includes('429') ||
+            errMsg.includes('overloaded') ||
+            errMsg.includes('503')
+          ) {
+            // Wait 1.2s before trying the next model
+            await new Promise((r) => setTimeout(r, 1200));
+          }
+        }
+      }
+    }
+
+    let parsed: any = {};
+    if (responseText && responseText.trim()) {
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        const match = responseText.match(/\{[\s\S]*\}/);
+        if (match) {
+          try {
+            parsed = JSON.parse(match[0]);
+          } catch {}
+        }
+      }
+    }
+
+    // If Gemini models are completely overloaded by Google traffic spikes, generate a fallback summary from video metadata
+    const finalTitle = parsed.title?.trim() || videoTitle || 'Video Trascritto';
+    const finalAuthor = parsed.author?.trim() || authorName || 'Video Web';
+    let transcriptionText = cleanExtractedText(parsed.transcription || '');
+    let summaryText = (parsed.summary || '').trim();
+    const keyPoints: string[] = Array.isArray(parsed.keyPoints) && parsed.keyPoints.length > 0
+      ? parsed.keyPoints.filter(Boolean)
+      : [
+          `Analisi e contenuti principali del video "${finalTitle}"`,
+          `Autore/Canale: ${finalAuthor}`,
+          `Piattaforma sorgente: ${isYouTube ? 'YouTube' : parsedUrl.hostname}`,
+        ];
+
+    if (!transcriptionText && !summaryText) {
+      if (webSnippet) {
+        summaryText = `## Riassunto Video: ${finalTitle}\n\n**Canale:** ${finalAuthor}\n\n${webSnippet}\n\n### Punti in Evidenza\n${keyPoints.map((k) => `- ${k}`).join('\n')}`;
+        transcriptionText = `Trascrizione e contenuti esposti in "${finalTitle}" (${finalAuthor}):\n\n${webSnippet}\n\nLink originale: ${cleanUrl}`;
+      } else {
+        summaryText = `## Video: ${finalTitle}\n\n**Autore:** ${finalAuthor}\n**Fonte:** ${cleanUrl}\n\nQuesto video è stato importato con successo nella tua libreria Vora. I server AI sono attualmente sotto picco di carico, ma i metadati, la copertina e il documento sono stati acquisiti ed è possibile ascoltarlo con la sintesi vocale.`;
+        transcriptionText = `Trascrizione documento video:\nTitolo: ${finalTitle}\nAutore: ${finalAuthor}\nLink: ${cleanUrl}\n\nDocumento pronto per la lettura vocale in Vora.`;
+      }
+    } else if (!transcriptionText && summaryText) {
+      transcriptionText = summaryText;
+    } else if (!summaryText && transcriptionText) {
+      summaryText = `## Riassunto: ${finalTitle}\n\n${keyPoints.length > 0 ? keyPoints.map((kp) => `- ${kp}`).join('\n') : transcriptionText.slice(0, 500)}`;
+    }
+
+    // Split transcription and summary into readable pages
+    const transcriptionPages = splitTextIntoPages(transcriptionText);
+    const summaryPages = splitTextIntoPages(summaryText);
+
+    // Full book combining summary + transcription
+    const combinedFullText = `# ${finalTitle}\nAutore: ${finalAuthor}\nFonte: ${cleanUrl}\n\n## SINTESI E PUNTI CHIAVE\n\n${summaryText}\n\n---\n\n## TRASCRIZIONE COMPLETA\n\n${transcriptionText}`;
+    const combinedPages = splitTextIntoPages(combinedFullText);
+
+    return res.json({
+      success: true,
+      url: cleanUrl,
+      title: finalTitle,
+      author: finalAuthor,
+      thumbnailUrl,
+      videoId,
+      platform: detectedPlatform,
+      transcription: transcriptionText,
+      transcriptionPages,
+      summary: summaryText,
+      summaryPages,
+      combinedPages,
+      keyPoints,
+      duration: parsed.durationFormatted || '',
+      language: parsed.language || language,
+      wordsCount: combinedFullText.split(/\s+/).filter(Boolean).length,
+    });
+  } catch (err: any) {
+    console.error('Errore /api/video/process:', err);
+    const userMessage = extractGeminiErrorMessage(err);
+    return res.status(200).json({
+      fallback: true,
+      error: userMessage || 'Errore durante la trascrizione o il riassunto del video.',
     });
   }
 });
@@ -839,10 +1279,14 @@ app.post('/api/ai/smart-crop', async (req: Request, res: Response) => {
       });
     }
 
-    const prompt = `Sei l'algoritmo di Computer Vision di CamScanner per il rilevamento prospettico di documenti.
-Identifica i 4 vertici esatti (quadrilatero prospettico) del foglio di carta, pagina di libro, scontrino o documento fotografato.
-Escludi lo sfondo esterno (tavolo, scrivania, pavimento, coperte, bordi scuri, dita che tengono il foglio).
-Restituisci un oggetto JSON con le coordinate normalizzate del documento (valori compresi rigorosamente tra 0.00 e 1.00):
+    const prompt = `Sei l'algoritmo avanzato di Computer Vision per il ritaglio di fogli di libri e documenti cartacei.
+Il tuo compito fondamentale è: RITAGLIARE ESATTAMENTE AI BORDI DEL FOGLIO DEL LIBRO, LASCIANDO COMPLETAMENTE FUORI TUTTO IL RESTO.
+Regole tassative:
+1. Escludi rigorosamente qualsiasi elemento di sfondo: tavolo, scrivania in legno o metallo, pavimenti, lenzuola, bordi scuri, dita, ombre esterne e copertina rigida esterna.
+2. I 4 vertici ("corners": tl, tr, br, bl) devono posizionarsi ESATTAMENTE lungo i 4 angoli del foglio di carta, oppure leggermente all'interno (1% di margine interno di sicurezza), MAI all'esterno sulla superficie del tavolo.
+3. Se il foglio è inclinato o in prospettiva, segui con assoluta precisione l'orientamento dei bordi del foglio.
+4. "cropBox" deve delimitare l'area del foglio escludendo ogni porzione di tavolo o sfondo.
+Restituisci un oggetto JSON valido con coordinate normalizzate (0.00-1.00):
 {
   "corners": {
     "tl": { "x": <float 0.0-1.0: angolo superiore sinistro X>, "y": <float 0.0-1.0: angolo superiore sinistro Y> },
@@ -851,10 +1295,10 @@ Restituisci un oggetto JSON con le coordinate normalizzate del documento (valori
     "bl": { "x": <float 0.0-1.0: angolo inferiore sinistro X>, "y": <float 0.0-1.0: angolo inferiore sinistro Y> }
   },
   "cropBox": {
-    "x": <float da 0.0 a 0.8: margine sinistro del documento>,
-    "y": <float da 0.0 a 0.8: margine superiore del documento>,
-    "width": <float da 0.2 a 1.0: larghezza del documento>,
-    "height": <float da 0.2 a 1.0: altezza del documento>
+    "x": <float 0.0-0.8: margine sinistro>,
+    "y": <float 0.0-0.8: margine superiore>,
+    "width": <float 0.2-1.0: larghezza>,
+    "height": <float 0.2-1.0: altezza>
   },
   "confidence": <float da 0.0 a 1.0>
 }
@@ -902,7 +1346,7 @@ Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
     const clamp = (v: any, fallback: number) =>
       typeof v === 'number' && !isNaN(v) ? Math.max(0.0, Math.min(1.0, v)) : fallback;
 
-    const corners = {
+    const rawCorners = {
       tl: {
         x: clamp(parsed.corners?.tl?.x, x),
         y: clamp(parsed.corners?.tl?.y, y),
@@ -921,6 +1365,22 @@ Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
       },
     };
 
+    // Inset di sicurezza verso il centro del foglio per escludere totalmente il tavolo circostante
+    const centerX = (rawCorners.tl.x + rawCorners.tr.x + rawCorners.br.x + rawCorners.bl.x) / 4;
+    const centerY = (rawCorners.tl.y + rawCorners.tr.y + rawCorners.br.y + rawCorners.bl.y) / 4;
+    const insetRatio = 0.012; // 1.2% verso l'interno della pagina
+    const applyInset = (pt: { x: number; y: number }) => ({
+      x: Number(Math.max(0.005, Math.min(0.995, pt.x + (centerX - pt.x) * insetRatio)).toFixed(4)),
+      y: Number(Math.max(0.005, Math.min(0.995, pt.y + (centerY - pt.y) * insetRatio)).toFixed(4)),
+    });
+
+    const corners = {
+      tl: applyInset(rawCorners.tl),
+      tr: applyInset(rawCorners.tr),
+      br: applyInset(rawCorners.br),
+      bl: applyInset(rawCorners.bl),
+    };
+
     return res.json({
       success: true,
       corners,
@@ -931,7 +1391,7 @@ Restituisci ESCLUSIVAMENTE l'oggetto JSON valido.`;
         height: Number(height.toFixed(4)),
       },
       confidence: parsed.confidence || 0.95,
-      engine: 'Gemini 3.8 Flash CamScanner Perspective Vision',
+      engine: 'Gemini 3.8 Flash Perspective Vision',
     });
   } catch (err: any) {
     console.error('Errore /api/ai/smart-crop:', err);

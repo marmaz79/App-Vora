@@ -52,7 +52,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     const now = new Date();
     const dateStr = now.toLocaleDateString('it-IT');
     const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    return `CamScanner ${dateStr} ${timeStr}`;
+    return `Scansione ${dateStr} ${timeStr}`;
   });
   const [multiShotMode, setMultiShotMode] = useState<boolean>(true);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
@@ -500,14 +500,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
         book_id: `scan-pdf-${Date.now()}-${uniqueSuffix}`,
         owner_id: 'local-user',
         title,
-        author: 'CamScanner Vora',
+        author: 'Scanner Vora',
         file_type: 'pdf', // Salva il libro nella libreria in PDF!
         source: 'scan',
         size: totalSize,
         pages: extractedPages.length > 0 ? extractedPages : ['Documento PDF scansionato pronto per la lettura.'],
         currentPage: 0,
         created_at: now.toISOString(),
-        ocr_engine: 'CamScanner OCR',
+        ocr_engine: 'Vora OCR',
         coverColor: '#FFFFFF',
         imageUrls: imageUrls,
       };
@@ -696,11 +696,12 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-lg" />
 
                   {/* Animated Laser Scanning Line */}
-                  <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_12px_#FFFFFF] animate-pulse top-1/2 -translate-y-1/2" />
+                  <div className="absolute left-2 right-2 h-0.5 bg-white/80 shadow-[0_0_8px_#FFFFFF] animate-pulse top-1/2 -translate-y-1/2" />
 
                   {/* Center hint badge */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-[11px] font-bold text-white whitespace-nowrap shadow-md">
-                    Inquadra la pagina del libro
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full border border-white/25 text-[11px] font-bold text-white whitespace-nowrap shadow-md flex items-center gap-1.5">
+                    <Sparkles size={12} className="text-[#FFD23F]" />
+                    <span>Inquadra il foglio: ritaglio e pulizia automatici</span>
                   </div>
                 </div>
               </div>
@@ -716,9 +717,9 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                     {cameraActive ? 'Fotocamera Live' : 'Fotocamera Pronta'}
                   </span>
                 </div>
-                <div className="hidden sm:flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-[11px] font-bold text-white shadow-md">
-                  <Crop size={12} className="text-white" />
-                  <span>Ritaglio auto: Attivo</span>
+                <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-[11px] font-bold text-white shadow-md">
+                  <Sparkles size={12} className="text-[#FFD23F]" />
+                  <span>Ritaglio & Pulizia attivi</span>
                 </div>
               </div>
 

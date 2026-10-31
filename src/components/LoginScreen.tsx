@@ -308,7 +308,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full min-h-[46px] bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all mt-1 cursor-pointer flex items-center justify-center gap-2 shadow-accent-glow border-2 border-[#E6B800] disabled:opacity-70"
+                className="w-full min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all mt-1 cursor-pointer flex items-center justify-center gap-2 shadow-accent-glow border-2 border-[#E6B800] disabled:opacity-70"
               >
                 {isLoading ? (
                   <>
@@ -477,7 +477,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full min-h-[46px] bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer shadow-accent-glow border-2 border-[#E6B800] flex items-center justify-center gap-2"
+                className="w-full min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer shadow-accent-glow border-2 border-[#E6B800] flex items-center justify-center gap-2"
               >
                 {isLoading ? <Loader2 size={16} className="animate-spin text-[#1E8C86]" /> : <span>Crea account</span>}
               </button>
@@ -538,7 +538,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               <button
                 type="submit"
-                className="w-full min-h-[46px] bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] hover:bg-[#FFD23F] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer shadow-accent-glow border-2 border-[#E6B800]"
+                className="w-full min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer shadow-accent-glow border-2 border-[#E6B800]"
               >
                 Invia link di reimpostazione
               </button>

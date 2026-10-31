@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import { Book, User, TtsSettings, ScanSessionData, AppNotification, ContrastThemeMode } from './types';
 import { storageService, DEFAULT_SETTINGS } from './services/storageService';
-import { SAMPLE_BOOKS } from './data/sampleBooks';
 import { Navbar, TabType } from './components/Navbar';
 import { Header } from './components/Header';
 import { HomeTab } from './components/HomeTab';
@@ -325,10 +324,13 @@ export function App() {
     storageService.saveUser(newUser);
   };
 
-  const handleResetSampleBooks = () => {
-    storageService.saveBooks(SAMPLE_BOOKS);
-    setBooks(SAMPLE_BOOKS);
-    showToast('Libri classici di esempio ripristinati!');
+  const handleClearSampleBooks = () => {
+    const remaining = storageService.getBooks().filter(
+      (b) => b.source !== 'sample' && !b.book_id.startsWith('sample-')
+    );
+    storageService.saveBooks(remaining);
+    setBooks(remaining);
+    showToast('Tutti i libri di esempio sono stati eliminati!');
   };
 
   return (
@@ -504,7 +506,7 @@ export function App() {
                 user={user}
                 books={books}
                 onUpdateUser={handleUpdateUser}
-                onResetSampleBooks={handleResetSampleBooks}
+                onClearSampleBooks={handleClearSampleBooks}
                 onShowSplash={() => setShowSplash(true)}
                 onBack={handleBackToPrevious}
                 onOpenLogin={() => setShowLogin(true)}

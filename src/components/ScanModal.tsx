@@ -376,19 +376,19 @@ export const ScanModal: React.FC<ScanModalProps> = ({
       aria-labelledby="scan-modal-title"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto font-sans select-none"
     >
-      <div className="bg-white border-2 border-[#2BA8A2]/30 rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-card flex flex-col gap-4 my-8 text-slate-800 max-h-[92vh] overflow-y-auto">
+      <div className="bg-white dark:bg-[#122220] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-card flex flex-col gap-4 my-8 text-slate-800 dark:text-slate-100 max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3.5">
+        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 text-[#EF6C4A] flex items-center justify-center shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#E8F6F5] dark:bg-[#1A3331] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#EF6C4A] flex items-center justify-center shadow-xs">
               <Camera size={26} />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 id="scan-modal-title" className="text-xl font-black text-[#1E8C86]">
+                <h2 id="scan-modal-title" className="text-xl font-black text-[#1E8C86] dark:text-[#3CC4BD]">
                   Scansione OCR
                 </h2>
-                <span className="bg-[#E8F6F5] text-[#1E8C86] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 border border-[#2BA8A2]/30">
+                <span className="bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40">
                   <Cpu size={11} />
                   Motore Locale (Tesseract)
                 </span>
@@ -398,7 +398,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Chiudi finestra di scansione"
-            className="w-9 h-9 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-[#1E8C86] flex items-center justify-center hover:bg-[#2BA8A2]/20 transition-all active:scale-95"
+            className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-[#1A3331] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] transition-all active:scale-95"
           >
             <X size={18} />
           </button>
@@ -406,15 +406,15 @@ export const ScanModal: React.FC<ScanModalProps> = ({
 
         {/* OCR Engine Info */}
         <div>
-          <label className="block text-xs font-black text-[#1E8C86] mb-1.5">
+          <label className="block text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] mb-1.5">
             Motore di Riconoscimento OCR:
           </label>
-          <div className="p-3.5 rounded-2xl border-2 border-[#2BA8A2]/20 bg-[#E8F6F5] text-slate-800 flex items-center justify-between shadow-xs">
+          <div className="p-3.5 rounded-2xl border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 bg-[#E8F6F5] dark:bg-[#162725] text-slate-800 dark:text-slate-100 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">
-              <Cpu size={18} className="text-[#1E8C86]" />
+              <Cpu size={18} className="text-[#1E8C86] dark:text-[#3CC4BD]" />
               <div>
-                <span className="text-xs font-black block text-slate-900">Tesseract OCR (Locale WebAssembly)</span>
-                <span className="text-[11px] text-slate-600 font-medium">Riconoscimento ottico offline direttamente nel browser</span>
+                <span className="text-xs font-black block text-slate-900 dark:text-white">Tesseract OCR (Locale WebAssembly)</span>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Riconoscimento ottico offline direttamente nel browser</span>
               </div>
             </div>
             <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#2BA8A2] text-white shadow-teal-glow">
@@ -424,10 +424,10 @@ export const ScanModal: React.FC<ScanModalProps> = ({
         </div>
 
         {/* OCR Options Bar */}
-        <div className="bg-[#FFF8E7] border-2 border-[#FFD23F] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-800 shadow-xs">
+        <div className="bg-[#FFF8E7] dark:bg-[#162725] border-2 border-[#FFD23F] dark:border-[#FFD23F]/50 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-800 dark:text-slate-100 shadow-xs">
           <div className="flex items-center gap-2">
-            <Languages size={16} className="text-[#1E8C86] shrink-0" />
-            <label htmlFor="ocr-lang-select" className="text-slate-800 font-bold">
+            <Languages size={16} className="text-[#1E8C86] dark:text-[#3CC4BD] shrink-0" />
+            <label htmlFor="ocr-lang-select" className="text-slate-800 dark:text-slate-200 font-bold">
               Lingua:
             </label>
             <select
@@ -435,7 +435,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               value={ocrLanguage}
               onChange={(e) => setOcrLanguage(e.target.value as OcrLanguage)}
               disabled={loading}
-              className="bg-white border-2 border-[#FFD23F]/60 text-slate-900 rounded-xl px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-[#2BA8A2]"
+              className="bg-white dark:bg-[#122220] border-2 border-[#FFD23F]/60 dark:border-[#FFD23F]/40 text-slate-900 dark:text-white rounded-xl px-2.5 py-1 text-xs font-bold focus:outline-none focus:border-[#2BA8A2]"
             >
               <option value="ita">Italiano (ita)</option>
               <option value="eng">Inglese (eng)</option>
@@ -561,16 +561,16 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               type="button"
               onClick={() => setShowLiveCamera(true)}
               disabled={loading}
-              className="min-h-[70px] bg-white border-2 border-[#2BA8A2]/20 hover:border-[#2BA8A2] hover:bg-[#EFF8F7]/50 rounded-2xl flex items-center gap-3 p-3 text-left shadow-xs active:scale-95 transition-all disabled:opacity-50 group"
+              className="min-h-[70px] bg-white dark:bg-[#162725] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 hover:border-[#2BA8A2] hover:bg-[#EFF8F7]/50 dark:hover:bg-[#1B322F] rounded-2xl flex items-center gap-3 p-3 text-left shadow-xs active:scale-95 transition-all disabled:opacity-50 group"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#E8F6F5] border border-[#2BA8A2]/30 text-[#EF6C4A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-[#E8F6F5] dark:bg-[#122220] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#EF6C4A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <Camera size={22} />
               </div>
               <div className="min-w-0">
-                <span className="block text-sm font-black text-slate-900 transition-colors truncate">
+                <span className="block text-sm font-black text-slate-900 dark:text-white transition-colors truncate">
                   Scatta foto
                 </span>
-                <span className="block text-xs text-slate-500 font-medium truncate">
+                <span className="block text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
                   Apri fotocamera
                 </span>
               </div>
@@ -580,14 +580,14 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               type="button"
               onClick={() => fileInputGalleryRef.current?.click()}
               disabled={loading}
-              className="min-h-[70px] bg-white border-2 border-[#2BA8A2]/20 hover:border-[#2BA8A2] hover:bg-[#EFF8F7]/50 rounded-2xl flex items-center gap-3 p-3 text-left shadow-xs active:scale-95 transition-all disabled:opacity-50 group"
+              className="min-h-[70px] bg-white dark:bg-[#162725] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 hover:border-[#2BA8A2] hover:bg-[#EFF8F7]/50 dark:hover:bg-[#1B322F] rounded-2xl flex items-center gap-3 p-3 text-left shadow-xs active:scale-95 transition-all disabled:opacity-50 group"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#E8F6F5] border border-[#2BA8A2]/30 text-[#5DADE2] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-[#E8F6F5] dark:bg-[#122220] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#5DADE2] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <ImageIcon size={22} />
               </div>
               <div className="min-w-0">
-                <span className="block text-sm font-black text-slate-900 truncate">Carica foto</span>
-                <span className="block text-xs text-slate-500 font-medium truncate">Dalla galleria</span>
+                <span className="block text-sm font-black text-slate-900 dark:text-white truncate">Carica foto</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400 font-medium truncate">Dalla galleria</span>
               </div>
             </button>
 
@@ -595,17 +595,17 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               type="button"
               onClick={() => fileInputPdfRef.current?.click()}
               disabled={loading}
-              className="min-h-[70px] bg-white border-2 border-[#2BA8A2]/20 hover:border-[#2BA8A2] hover:bg-[#EFF8F7]/50 rounded-2xl flex items-center gap-3 p-3 text-left shadow-xs active:scale-95 transition-all disabled:opacity-50 group"
+              className="min-h-[70px] bg-white dark:bg-[#162725] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 hover:border-[#2BA8A2] hover:bg-[#EFF8F7]/50 dark:hover:bg-[#1B322F] rounded-2xl flex items-center gap-3 p-3 text-left shadow-xs active:scale-95 transition-all disabled:opacity-50 group"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#E8F6F5] border border-[#2BA8A2]/30 text-[#1E8C86] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-[#E8F6F5] dark:bg-[#122220] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <FileText size={22} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="block text-sm font-black text-slate-900 truncate transition-colors">PDF scansione</span>
+                  <span className="block text-sm font-black text-slate-900 dark:text-white truncate transition-colors">PDF scansione</span>
                   <span className="text-[9px] bg-[#2BA8A2] text-white font-black px-1.5 py-0.2 rounded-full">OCR</span>
                 </div>
-                <span className="block text-xs text-slate-500 font-medium truncate">Converti in testo</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400 font-medium truncate">Converti in testo</span>
               </div>
             </button>
           </div>
@@ -637,7 +637,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
 
         {/* Thumbnail Preview of Scanned Photo if present */}
         {previewImageUrl && (
-          <div className="flex items-center gap-3 p-2.5 bg-[#E8F6F5] border-2 border-[#2BA8A2]/30 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-3 p-2.5 bg-[#E8F6F5] dark:bg-[#162725] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 rounded-2xl shadow-xs">
             <img
               src={previewImageUrl}
               alt="Anteprima pagina scansionata"
@@ -645,7 +645,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-xs font-black text-slate-900 truncate">
+                <p className="text-xs font-black text-slate-900 dark:text-white truncate">
                   Pagina scansionata
                 </p>
                 {isAiOptimized && (
@@ -654,7 +654,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 {lastConfidence !== null
                   ? `${currentEngineLabel} · Confidenza: ${lastConfidence}%`
                   : 'Immagine in caricamento'}
@@ -672,7 +672,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
 
         {/* Document Title input */}
         <div>
-          <label htmlFor="scan-title" className="block text-xs font-black text-[#1E8C86] mb-1">
+          <label htmlFor="scan-title" className="block text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] mb-1">
             Titolo del documento
           </label>
           <input
@@ -681,17 +681,17 @@ export const ScanModal: React.FC<ScanModalProps> = ({
             value={scanTitle}
             onChange={(e) => setScanTitle(e.target.value)}
             placeholder="Es. Capitolo 1 - Il Piccolo Principe"
-            className="w-full bg-[#FFF8E7]/50 border-2 border-[#2BA8A2]/20 focus:border-[#2BA8A2] rounded-xl px-4 py-2.5 text-slate-900 placeholder-slate-400 font-bold text-sm focus:outline-none transition-all"
+            className="w-full bg-[#FFF8E7]/50 dark:bg-[#162725] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 focus:border-[#2BA8A2] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-bold text-sm focus:outline-none transition-all"
           />
         </div>
 
         {/* Extracted Text Area with AI Optimization Toolkit */}
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-            <label htmlFor="page-text" className="text-xs font-black text-[#1E8C86] flex items-center gap-1.5">
+            <label htmlFor="page-text" className="text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] flex items-center gap-1.5">
               <span>Testo Estratto (Pagina {scannedPages.length + 1})</span>
               {lastConfidence !== null && (
-                <span className="text-[10px] bg-[#E8F6F5] text-[#1E8C86] border border-[#2BA8A2]/30 font-black px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 font-black px-2 py-0.5 rounded-full">
                   {lastConfidence}% confidenza
                 </span>
               )}
@@ -702,7 +702,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
                 type="button"
                 onClick={handleRestoreRawText}
                 disabled={isEnhancingAi}
-                className="inline-flex items-center gap-1 text-[11px] font-black text-[#1E8C86] bg-[#E8F6F5] hover:bg-[#2BA8A2]/20 border border-[#2BA8A2]/30 px-2.5 py-1 rounded-full transition-all active:scale-95 shadow-xs"
+                className="inline-flex items-center gap-1 text-[11px] font-black text-[#1E8C86] dark:text-[#3CC4BD] bg-[#E8F6F5] dark:bg-[#1A3331] hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 px-2.5 py-1 rounded-full transition-all active:scale-95 shadow-xs"
                 title="Annulla le modifiche e ripristina il testo originale grezzo"
               >
                 <RotateCcw size={12} />
@@ -717,18 +717,18 @@ export const ScanModal: React.FC<ScanModalProps> = ({
             value={currentText}
             onChange={(e) => setCurrentText(e.target.value)}
             placeholder="Il testo estratto dalla foto apparirà qui. Puoi leggerlo, ascoltarlo, ottimizzarlo con AI o modificarlo direttamente..."
-            className="w-full bg-[#FFF8E7]/50 border-2 border-[#2BA8A2]/20 focus:border-[#2BA8A2] rounded-2xl p-3.5 text-slate-900 font-medium text-xs leading-relaxed focus:outline-none placeholder-slate-400 transition-all resize-none"
+            className="w-full bg-[#FFF8E7]/50 dark:bg-[#162725] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 focus:border-[#2BA8A2] rounded-2xl p-3.5 text-slate-900 dark:text-white font-medium text-xs leading-relaxed focus:outline-none placeholder-slate-400 dark:placeholder-slate-500 transition-all resize-none"
           />
-          <div className="flex justify-between items-center text-[11px] text-slate-500 mt-1 font-medium">
+          <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
             <span className="flex items-center gap-1.5">
               <span>
                 {currentText.trim() ? `${currentText.trim().split(/\s+/).length} parole` : '0 parole'}
               </span>
               {isAiOptimized && (
-                <span className="text-[#1E8C86] font-black">· Testo perfezionato da AI</span>
+                <span className="text-[#1E8C86] dark:text-[#3CC4BD] font-black">· Testo perfezionato da AI</span>
               )}
             </span>
-            <span className="font-bold text-slate-600">
+            <span className="font-bold text-slate-600 dark:text-slate-300">
               Pagine salvate: {scannedPages.length}
             </span>
           </div>
@@ -736,22 +736,22 @@ export const ScanModal: React.FC<ScanModalProps> = ({
 
         {/* Already saved pages list */}
         {scannedPages.length > 0 && (
-          <div className="border-2 border-[#2BA8A2]/20 rounded-2xl p-3 bg-[#E8F6F5]/40 flex flex-col gap-2 max-h-36 overflow-y-auto">
-            <span className="text-xs font-black text-[#1E8C86] flex items-center gap-1.5">
-              <FileCheck2 size={14} className="text-[#1E8C86]" />
+          <div className="border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3 bg-[#E8F6F5]/40 dark:bg-[#162725] flex flex-col gap-2 max-h-36 overflow-y-auto">
+            <span className="text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] flex items-center gap-1.5">
+              <FileCheck2 size={14} className="text-[#1E8C86] dark:text-[#3CC4BD]" />
               Pagine pronte nel documento ({scannedPages.length})
             </span>
             <div className="flex flex-col gap-1.5">
               {scannedPages.map((page, idx) => (
                 <div
                   key={idx}
-                  className="bg-white border border-[#2BA8A2]/20 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2 shadow-xs"
+                  className="bg-white dark:bg-[#122220] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2 shadow-xs"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="bg-[#E8F6F5] border border-[#2BA8A2]/30 text-[#1E8C86] font-black px-2 py-0.5 rounded-full text-[10px]">
+                    <span className="bg-[#E8F6F5] dark:bg-[#1A3331] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] font-black px-2 py-0.5 rounded-full text-[10px]">
                       #{idx + 1}
                     </span>
-                    <span className="text-slate-800 font-medium truncate">
+                    <span className="text-slate-800 dark:text-slate-200 font-medium truncate">
                       {page.slice(0, 48)}...
                     </span>
                   </div>
@@ -769,13 +769,13 @@ export const ScanModal: React.FC<ScanModalProps> = ({
         )}
 
         {/* Footer Actions */}
-        <div className="flex flex-col gap-2.5 pt-2 border-t-2 border-dashed border-[#2BA8A2]/20">
+        <div className="flex flex-col gap-2.5 pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30">
           {onScanResultsReady && (scannedPages.length > 0 || currentText.trim()) && (
             <button
               type="button"
               onClick={handleOpenInResultsPage}
               disabled={loading}
-              className="w-full min-h-[44px] bg-[#E8F6F5] text-[#1E8C86] border-2 border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 font-black py-2.5 px-4 rounded-full text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
+              className="w-full min-h-[44px] bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] font-black py-2.5 px-4 rounded-full text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95"
             >
               <BookOpen size={16} />
               <span>Mostra risultati nella pagina dedicata</span>
@@ -786,7 +786,7 @@ export const ScanModal: React.FC<ScanModalProps> = ({
             type="button"
             onClick={handleAddPage}
             disabled={!currentText.trim() || loading}
-            className="w-full bg-white hover:bg-[#E8F6F5] border-2 border-[#2BA8A2]/40 text-[#1E8C86] font-black py-2.5 px-4 rounded-full text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-xs active:scale-95"
+            className="w-full bg-white dark:bg-[#1A3331] hover:bg-[#E8F6F5] dark:hover:bg-[#234542] border-2 border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] font-black py-2.5 px-4 rounded-full text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-xs active:scale-95"
           >
             <Sparkles size={16} />
             <span>Aggiungi questa pagina e fanne un'altra</span>
@@ -834,14 +834,14 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               book_id: `scan-pdf-${Date.now()}-${uniqueSuffix}`,
               owner_id: 'user-default-1',
               title,
-              author: 'CamScanner Vora',
+              author: 'Scanner Vora',
               file_type: 'pdf', // Salva il libro nella libreria in PDF!
               source: 'scan',
               size: processedFile.size || 180000,
               pages: finalPages,
               currentPage: 0,
               created_at: now.toISOString(),
-              ocr_engine: 'CamScanner Vision',
+              ocr_engine: 'Vora Vision',
               coverColor: '#FFFFFF',
               imageUrls: [processedUrl],
             };
@@ -867,14 +867,14 @@ export const ScanModal: React.FC<ScanModalProps> = ({
               book_id: `scan-pdf-${Date.now()}-${uniqueSuffix}`,
               owner_id: 'user-default-1',
               title,
-              author: 'CamScanner Vora',
+              author: 'Scanner Vora',
               file_type: 'pdf', // Salva il libro nella libreria in PDF!
               source: 'scan',
               size: processedFile.size || 180000,
               pages: finalPages,
               currentPage: 0,
               created_at: now.toISOString(),
-              ocr_engine: 'CamScanner Vision',
+              ocr_engine: 'Vora Vision',
               coverColor: '#FFFFFF',
               imageUrls: [processedUrl],
             };

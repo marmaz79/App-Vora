@@ -80,7 +80,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
         if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
           await navigator.share({
             title: documentTitle,
-            text: `Documento scansionato CamScanner (${pages.length} pagine)`,
+            text: `Documento scansionato (${pages.length} pagine)`,
             files: filesToShare,
           });
           return;
@@ -99,7 +99,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Modalità Griglia Documento CamScanner"
+      aria-label="Modalità Griglia Documento"
       className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
       {/* 1. TOP BAR (Stile Esatto CamScanner) */}
@@ -295,7 +295,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
               <div>
                 <p className="text-base font-bold text-white">Nessuna pagina scansionata</p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Scatta la prima foto per visualizzarla nella griglia CamScanner.
+                  Scatta la prima foto per visualizzarla nella griglia.
                 </p>
               </div>
               <button

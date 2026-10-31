@@ -24,8 +24,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDismiss, isDarkMod
       onClick={onDismiss}
       className={`fixed inset-0 z-[100] ${
         isDarkMode
-          ? 'bg-gradient-to-b from-[#091515] via-[#0E2625] to-[#071312]'
-          : 'bg-gradient-to-b from-[#1E8C86] via-[#2BA8A2] to-[#166E69]'
+          ? 'bg-[#0E1716]'
+          : 'bg-[#1E8C86]'
       } text-white flex flex-col items-center justify-center p-6 select-none cursor-pointer animate-fade-in overflow-hidden transition-colors`}
     >
       {/* Background ambient warm glows */}

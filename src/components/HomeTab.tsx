@@ -5,6 +5,7 @@ import { UploadModal, UploadModalMode } from './UploadModal';
 import { ScanModal } from './ScanModal';
 import { GoogleDriveModal } from './GoogleDriveModal';
 import { PasteAudioModal } from './PasteAudioModal';
+import { VideoTranscribeModal } from './VideoTranscribeModal';
 import { fileParser } from '../services/fileParser';
 import {
   Upload,
@@ -19,6 +20,7 @@ import {
   Loader2,
   Headphones,
   Compass,
+  Video,
 } from 'lucide-react';
 
 interface HomeTabProps {
@@ -55,6 +57,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isDriveOpen, setIsDriveOpen] = useState(false);
   const [isPasteAudioOpen, setIsPasteAudioOpen] = useState(false);
+  const [isVideoTranscribeOpen, setIsVideoTranscribeOpen] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
@@ -158,7 +161,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       )}
 
       {/* MESSAGGIO DI BENVENUTO CENTRATO CON MARGINI AUMENTATI */}
-      <div className="py-6 px-4 mt-2 mb-6 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-[#2BA8A2]/50 bg-white/40 dark:bg-[#162322]/80 rounded-3xl backdrop-blur-xs">
+      <div className="py-6 px-4 mt-2 mb-4 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-[#2BA8A2]/50 bg-white/40 dark:bg-[#162322]/80 rounded-3xl backdrop-blur-xs">
         <h1 className="text-3xl sm:text-4xl font-black text-[#1E8C86] dark:text-[#3CC4BD] tracking-tight flex items-center justify-center gap-2">
           <span>Ciao, {userName}!</span>
           <span className="inline-block animate-bounce text-2xl">👋</span>
@@ -184,7 +187,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 setUploadInitialMode('all');
                 setIsUploadOpen(true);
               }}
-              className="mt-2 px-5 py-2 rounded-full bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] text-[#1E8C86] font-black text-xs shadow-accent-glow active:scale-95 transition-all"
+              className="mt-2 px-5 py-2 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] font-black text-xs shadow-accent-glow active:scale-95 transition-all"
             >
               Carica ora
             </button>
@@ -209,7 +212,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           onClick={() => setIsQuickActionsOpen((prev) => !prev)}
           aria-label={isQuickActionsOpen ? "Chiudi menu azioni" : "Apri tutte le azioni rapide"}
           aria-expanded={isQuickActionsOpen}
-          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-gradient-to-r from-[#FFD23F] to-[#FFE47A] text-[#1E8C86] flex items-center justify-center shadow-accent-glow border-2 border-[#E6B800] active:scale-95 transition-all duration-300 ${
+          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] flex items-center justify-center shadow-accent-glow border-2 border-[#E6B800] active:scale-95 transition-all duration-300 ${
             isQuickActionsOpen ? 'rotate-45 z-50 bg-[#EF6C4A] text-white border-white shadow-coral-glow' : ''
           }`}
           title={isQuickActionsOpen ? "Chiudi" : "Tutte le azioni rapide"}
@@ -224,38 +227,38 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-actions-title"
-          className="fixed inset-0 z-40 bg-[#1E8C86]/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in"
+          className="fixed inset-0 z-40 bg-slate-900/60 dark:bg-black/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 animate-fade-in"
           onClick={() => setIsQuickActionsOpen(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border-2 border-[#2BA8A2]/30 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto animate-slide-up"
+            className="bg-white dark:bg-[#122220] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-slate-100 mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto animate-slide-up"
           >
             {/* Header del modale Azioni Rapide */}
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3.5">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#E8F6F5] border border-[#2BA8A2]/40 text-[#1E8C86] flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-[#1A3331] border border-[#2BA8A2]/40 dark:border-[#2BA8A2]/50 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center shrink-0 shadow-xs">
                   <Sparkles size={22} className="text-[#FFD23F] fill-[#FFD23F]" />
                 </div>
                 <div>
-                  <h3 id="quick-actions-title" className="text-lg font-black text-slate-900 leading-snug">
+                  <h3 id="quick-actions-title" className="text-lg font-black text-slate-900 dark:text-white leading-snug">
                     Cosa vorresti fare?
                   </h3>
-                  <span className="text-xs text-slate-500 font-semibold">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
                     Scegli una delle azioni rapide
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setIsQuickActionsOpen(false)}
-                className="w-9 h-9 rounded-full bg-[#EFF8F7] text-slate-600 hover:bg-[#EF6C4A] hover:text-white flex items-center justify-center transition-colors active:scale-95 shadow-xs"
+                className="w-9 h-9 rounded-full bg-[#EFF8F7] dark:bg-[#1A3331] text-slate-600 dark:text-[#3CC4BD] hover:bg-[#EF6C4A] hover:text-white flex items-center justify-center transition-colors active:scale-95 shadow-xs"
                 aria-label="Chiudi azioni"
               >
                 <X size={18} strokeWidth={2.5} />
               </button>
             </div>
 
-            {/* Griglia delle azioni rapide Flip7 con glow e bordi sinistri */}
+            {/* Griglia delle azioni rapide Flip7 con glow e bordi */}
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 py-1">
               {/* Voce 1: Carica File */}
               <button
@@ -265,15 +268,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#FFE47A]/30 hover:to-[#FFD23F]/40 border-2 border-[#FFD23F] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-accent-glow"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#FFE47A]/30 border-2 border-[#FFD23F] dark:border-[#FFD23F]/50 text-[#1E8C86] dark:text-[#3CC4BD] transition-all active:scale-95 group text-center shadow-card hover:shadow-accent-glow"
               >
-                <div className="w-12 h-12 rounded-xl bg-white border border-[#FFD23F] text-[#1E8C86] flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#122220] border border-[#FFD23F] dark:border-[#FFD23F]/50 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Upload size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-black leading-tight text-slate-900">
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
                   Carica file
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
                   PDF / Libri
                 </span>
               </button>
@@ -286,15 +289,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('audio');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#5DADE2]/20 hover:to-[#5DADE2]/35 border-2 border-[#5DADE2] text-[#2980B9] transition-all active:scale-95 group text-center shadow-card hover:shadow-sky-glow"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#5DADE2]/20 border-2 border-[#5DADE2] dark:border-[#5DADE2]/50 text-[#2980B9] dark:text-[#5DADE2] transition-all active:scale-95 group text-center shadow-card hover:shadow-sky-glow"
               >
                 <div className="w-12 h-12 rounded-xl bg-[#5DADE2] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Headphones size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-black leading-tight text-slate-900">
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
                   Trascrivi audio
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
                   Gemini AI
                 </span>
               </button>
@@ -310,15 +313,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setIsScanOpen(true);
                   }
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#FF8A6A]/20 hover:to-[#FF8A6A]/35 border-2 border-[#EF6C4A] text-[#D45233] transition-all active:scale-95 group text-center shadow-card hover:shadow-coral-glow"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#FF8A6A]/20 border-2 border-[#EF6C4A] dark:border-[#EF6C4A]/50 text-[#D45233] dark:text-[#FFA894] transition-all active:scale-95 group text-center shadow-card hover:shadow-coral-glow"
               >
                 <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Camera size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-black leading-tight text-slate-900">
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
                   Scansione OCR
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
                   Fotocamera
                 </span>
               </button>
@@ -330,15 +333,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsPasteAudioOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#E8F6F5] hover:to-[#2BA8A2]/25 border-2 border-[#2BA8A2] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-teal-glow"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#E8F6F5] dark:hover:bg-[#1E3634] border-2 border-[#2BA8A2] dark:border-[#2BA8A2]/50 text-[#1E8C86] dark:text-[#3CC4BD] transition-all active:scale-95 group text-center shadow-card hover:shadow-teal-glow"
               >
                 <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Volume2 size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-black leading-tight text-slate-900">
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
                   Ascolta audio
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
                   Incolla testo
                 </span>
               </button>
@@ -351,27 +354,47 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#FFE47A]/30 hover:to-[#FFD23F]/40 border-2 border-[#FFD23F] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-accent-glow"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#FFE47A]/30 border-2 border-[#FFD23F] dark:border-[#FFD23F]/50 text-[#1E8C86] dark:text-[#3CC4BD] transition-all active:scale-95 group text-center shadow-card hover:shadow-accent-glow"
               >
-                <div className="w-12 h-12 rounded-xl bg-white border border-[#FFD23F] text-[#1E8C86] flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#122220] border border-[#FFD23F] dark:border-[#FFD23F]/50 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Layers size={22} strokeWidth={2.4} />
                 </div>
-                <span className="text-xs font-black leading-tight text-slate-900">
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
                   Combina file
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
                   Unisci pagine
                 </span>
               </button>
 
-              {/* Voce 6: Google Drive */}
+              {/* Voce 6: Link Video (Trascrizione & Riassunto AI) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuickActionsOpen(false);
+                  setIsVideoTranscribeOpen(true);
+                }}
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#FF8A6A]/20 border-2 border-[#EF6C4A] dark:border-[#EF6C4A]/50 text-[#D45233] dark:text-[#FFA894] transition-all active:scale-95 group text-center shadow-card hover:shadow-coral-glow"
+              >
+                <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                  <Video size={22} strokeWidth={2.4} />
+                </div>
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
+                  Trascrivi e riassumi
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                  Video & Social (Reel/YT)
+                </span>
+              </button>
+
+              {/* Voce 7: Google Drive */}
               <button
                 type="button"
                 onClick={() => {
                   setIsQuickActionsOpen(false);
                   setIsDriveOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-[#FFF8E7] to-[#E8F6F5] hover:to-[#2BA8A2]/25 border-2 border-[#2BA8A2] text-[#1E8C86] transition-all active:scale-95 group text-center shadow-card hover:shadow-teal-glow"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162725] hover:bg-[#E8F6F5] dark:hover:bg-[#1E3634] border-2 border-[#2BA8A2] dark:border-[#2BA8A2]/50 text-[#1E8C86] dark:text-[#3CC4BD] transition-all active:scale-95 group text-center shadow-card hover:shadow-teal-glow"
               >
                 <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <svg className="w-5 h-5" viewBox="0 0 87.3 78" fill="none">
@@ -380,10 +403,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 10.15z" fill="#FFFFFF"/>
                   </svg>
                 </div>
-                <span className="text-xs font-black leading-tight text-slate-900">
+                <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
                   Google Drive
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
                   Account Cloud
                 </span>
               </button>
@@ -398,6 +421,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         initialMode={uploadInitialMode}
         onClose={() => setIsUploadOpen(false)}
         onBookAdded={onAddBook}
+        onOpenVideoTranscribe={() => {
+          setIsUploadOpen(false);
+          setIsVideoTranscribeOpen(true);
+        }}
       />
 
       <ScanModal
@@ -424,6 +451,16 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           else if (onOpenBook) onOpenBook(b);
         }}
         onAddBook={onAddBook}
+      />
+
+      <VideoTranscribeModal
+        isOpen={isVideoTranscribeOpen}
+        onClose={() => setIsVideoTranscribeOpen(false)}
+        onAddBook={onAddBook}
+        onOpenReader={(b) => {
+          if (onOpenReader) onOpenReader(b);
+          else if (onOpenBook) onOpenBook(b);
+        }}
       />
     </div>
   );

@@ -27,14 +27,14 @@ export const ReadingStatsModal: React.FC<ReadingStatsModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#EFF8F7] border-2 border-[#2BA8A2]/30 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-card text-slate-800 overflow-hidden animate-fade-in relative"
+        className="bg-[#EFF8F7] dark:bg-[#0E1716] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-card text-slate-800 dark:text-slate-100 overflow-hidden animate-fade-in relative"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute top-4 right-4 z-20">
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white border border-[#2BA8A2]/30 text-[#1E8C86] hover:bg-[#E8F6F5] flex items-center justify-center shadow-xs active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full bg-white dark:bg-[#162322] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#E8F6F5] dark:hover:bg-[#1E3634] flex items-center justify-center shadow-xs active:scale-95 transition-all"
             aria-label="Chiudi statistiche"
           >
             <X size={18} />

@@ -203,66 +203,234 @@ export function calculatePresetQuad(
   }
 }
 
-// Algoritmo locale ultra-rapido per individuare la carta nella foto
-function detectPaperBoundsLocal(canvas: HTMLCanvasElement): CropBox {
+/**
+ * Rilevamento avanzato e rigoroso dei contorni del foglio del libro.
+ * Segmenta la pagina di carta dallo sfondo (tavolo, scrivania, legno, dita),
+ * identifica i 4 vertici esatti (TL, TR, BR, BL) ed applica un inset di sicurezza
+ * verso l'interno per escludere totalmente il tavolo circostante.
+ */
+function detectPaperCornersAdvanced(canvas: HTMLCanvasElement): QuadCorners {
   const w = canvas.width;
   const h = canvas.height;
-  if (!w || !h) return { x: 0.04, y: 0.04, width: 0.92, height: 0.92 };
+  const defaultQuad: QuadCorners = {
+    tl: { x: 0.02, y: 0.02 },
+    tr: { x: 0.98, y: 0.02 },
+    br: { x: 0.98, y: 0.98 },
+    bl: { x: 0.02, y: 0.98 },
+  };
 
-  const thumbW = 200;
-  const thumbH = Math.max(100, Math.round((h / w) * thumbW));
+  if (!w || !h) return defaultQuad;
+
+  const sampleW = 240;
+  const sampleH = Math.max(120, Math.round((h / w) * sampleW));
   const off = document.createElement('canvas');
-  off.width = thumbW;
-  off.height = thumbH;
+  off.width = sampleW;
+  off.height = sampleH;
   const ctx = off.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return { x: 0.04, y: 0.04, width: 0.92, height: 0.92 };
+  if (!ctx) return defaultQuad;
 
-  ctx.drawImage(canvas, 0, 0, thumbW, thumbH);
-  const imgData = ctx.getImageData(0, 0, thumbW, thumbH);
-  const d = imgData.data;
+  ctx.drawImage(canvas, 0, 0, sampleW, sampleH);
+  const imgData = ctx.getImageData(0, 0, sampleW, sampleH);
+  const data = imgData.data;
 
-  let totalLum = 0;
-  const lums: number[] = new Array(thumbW * thumbH);
-  for (let i = 0; i < d.length; i += 4) {
-    const l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    lums[i / 4] = l;
-    totalLum += l;
+  const totalPixels = sampleW * sampleH;
+  const lums = new Float32Array(totalPixels);
+  const sats = new Float32Array(totalPixels);
+
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    lums[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+    const maxVal = Math.max(r, g, b);
+    const minVal = Math.min(r, g, b);
+    sats[p] = maxVal > 0 ? (maxVal - minVal) / maxVal : 0;
   }
-  const avgLum = totalLum / lums.length;
-  const paperThreshold = Math.max(70, Math.min(210, avgLum * 0.90));
 
-  const rowCounts = new Array(thumbH).fill(0);
-  const colCounts = new Array(thumbW).fill(0);
+  // 1. Campionamento dello sfondo perimetrale (margine esterno 5%)
+  const marginX = Math.max(2, Math.floor(sampleW * 0.05));
+  const marginY = Math.max(2, Math.floor(sampleH * 0.05));
+  let bgLumSum = 0;
+  let bgSatSum = 0;
+  let bgCount = 0;
 
-  for (let y = 0; y < thumbH; y++) {
-    for (let x = 0; x < thumbW; x++) {
-      if (lums[y * thumbW + x] >= paperThreshold) {
-        rowCounts[y]++;
-        colCounts[x]++;
+  for (let y = 0; y < sampleH; y++) {
+    for (let x = 0; x < sampleW; x++) {
+      if (x < marginX || x >= sampleW - marginX || y < marginY || y >= sampleH - marginY) {
+        const p = y * sampleW + x;
+        bgLumSum += lums[p];
+        bgSatSum += sats[p];
+        bgCount++;
+      }
+    }
+  }
+  const bgMeanLum = bgCount > 0 ? bgLumSum / bgCount : 100;
+  const bgMeanSat = bgCount > 0 ? bgSatSum / bgCount : 0.3;
+
+  // 2. Campionamento del centro del foglio (rettangolo centrale 40%)
+  const cx0 = Math.floor(sampleW * 0.3);
+  const cx1 = Math.floor(sampleW * 0.7);
+  const cy0 = Math.floor(sampleH * 0.3);
+  const cy1 = Math.floor(sampleH * 0.7);
+  let centerLumSum = 0;
+  let centerCount = 0;
+
+  for (let y = cy0; y < cy1; y++) {
+    for (let x = cx0; x < cx1; x++) {
+      centerLumSum += lums[y * sampleW + x];
+      centerCount++;
+    }
+  }
+  const centerMeanLum = centerCount > 0 ? centerLumSum / centerCount : 180;
+
+  // 3. Calcolo soglia di separazione foglio vs tavolo/sfondo
+  let isPaper: (p: number) => boolean;
+
+  if (centerMeanLum > bgMeanLum + 8) {
+    // Caso standard: foglio di carta chiaro su tavolo scuro / in legno
+    const lumThreshold = bgMeanLum + (centerMeanLum - bgMeanLum) * 0.36;
+    const maxAllowedSat = Math.max(0.35, bgMeanSat * 0.85);
+    isPaper = (p: number) => {
+      return lums[p] >= lumThreshold || (lums[p] >= bgMeanLum + 10 && sats[p] <= maxAllowedSat);
+    };
+  } else if (bgMeanLum > centerMeanLum + 15) {
+    // Foglio scuro su tavolo chiaro
+    const lumThreshold = centerMeanLum + (bgMeanLum - centerMeanLum) * 0.40;
+    isPaper = (p: number) => lums[p] <= lumThreshold;
+  } else {
+    // Contrasto basso: calcolo soglia adattiva
+    let sumLum = 0;
+    for (let i = 0; i < totalPixels; i++) sumLum += lums[i];
+    const mean = sumLum / totalPixels;
+    const threshold = Math.max(80, Math.min(220, mean * 0.95));
+    isPaper = (p: number) => lums[p] >= threshold;
+  }
+
+  // 4. Scansione profilo righe e colonne per delimitare il foglio
+  const rowPaperCounts = new Int32Array(sampleH);
+  const colPaperCounts = new Int32Array(sampleW);
+  const minPointsPerRow: number[] = new Array(sampleH).fill(-1);
+  const maxPointsPerRow: number[] = new Array(sampleH).fill(-1);
+
+  for (let y = 0; y < sampleH; y++) {
+    const rowOffset = y * sampleW;
+    for (let x = 0; x < sampleW; x++) {
+      if (isPaper(rowOffset + x)) {
+        rowPaperCounts[y]++;
+        colPaperCounts[x]++;
+        if (minPointsPerRow[y] === -1) minPointsPerRow[y] = x;
+        maxPointsPerRow[y] = x;
       }
     }
   }
 
+  // Il foglio di un libro occupa una porzione consistente della larghezza e dell'altezza
+  const rowThreshold = Math.max(10, Math.floor(sampleW * 0.30));
+  const colThreshold = Math.max(10, Math.floor(sampleH * 0.30));
+
   let minY = 0;
-  while (minY < thumbH - 10 && rowCounts[minY] < thumbW * 0.18) minY++;
-  let maxY = thumbH - 1;
-  while (maxY > minY + 10 && rowCounts[maxY] < thumbW * 0.18) maxY--;
+  while (minY < sampleH - 15 && rowPaperCounts[minY] < rowThreshold) minY++;
+  let maxY = sampleH - 1;
+  while (maxY > minY + 15 && rowPaperCounts[maxY] < rowThreshold) maxY--;
 
   let minX = 0;
-  while (minX < thumbW - 10 && colCounts[minX] < thumbH * 0.18) minX++;
-  let maxX = thumbW - 1;
-  while (maxX > minX + 10 && colCounts[maxX] < thumbH * 0.18) maxX--;
+  while (minX < sampleW - 15 && colPaperCounts[minX] < colThreshold) minX++;
+  let maxX = sampleW - 1;
+  while (maxX > minX + 15 && colPaperCounts[maxX] < colThreshold) maxX--;
 
-  const normX = Math.max(0.01, Math.min(0.8, (minX / thumbW) - 0.015));
-  const normY = Math.max(0.01, Math.min(0.8, (minY / thumbH) - 0.015));
-  const normW = Math.max(0.2, Math.min(1 - normX, ((maxX - minX) / thumbW) + 0.03));
-  const normH = Math.max(0.2, Math.min(1 - normY, ((maxY - minY) / thumbH) + 0.03));
+  // Verifica validità della regione rilevata
+  if (maxX - minX < sampleW * 0.25 || maxY - minY < sampleH * 0.25) {
+    // Se non si distingue chiaramente, usa margini di sicurezza interni al 2.5%
+    return {
+      tl: { x: 0.025, y: 0.025 },
+      tr: { x: 0.975, y: 0.025 },
+      br: { x: 0.975, y: 0.975 },
+      bl: { x: 0.025, y: 0.975 },
+    };
+  }
+
+  // 5. Ricerca angoli geometrici precisi (TL, TR, BR, BL) all'interno del foglio
+  let tlScore = Infinity;
+  let trScore = Infinity;
+  let brScore = Infinity;
+  let blScore = Infinity;
+
+  let bestTL = { x: minX, y: minY };
+  let bestTR = { x: maxX, y: minY };
+  let bestBR = { x: maxX, y: maxY };
+  let bestBL = { x: minX, y: maxY };
+
+  for (let y = minY; y <= maxY; y++) {
+    const leftX = minPointsPerRow[y];
+    const rightX = maxPointsPerRow[y];
+    if (leftX === -1 || rightX === -1) continue;
+
+    // TL: minimizza x + y
+    const scoreTL = leftX + y;
+    if (scoreTL < tlScore) {
+      tlScore = scoreTL;
+      bestTL = { x: leftX, y };
+    }
+
+    // TR: minimizza (sampleW - x) + y
+    const scoreTR = (sampleW - rightX) + y;
+    if (scoreTR < trScore) {
+      trScore = scoreTR;
+      bestTR = { x: rightX, y };
+    }
+
+    // BR: minimizza (sampleW - x) + (sampleH - y)
+    const scoreBR = (sampleW - rightX) + (sampleH - y);
+    if (scoreBR < brScore) {
+      brScore = scoreBR;
+      bestBR = { x: rightX, y };
+    }
+
+    // BL: minimizza x + (sampleH - y)
+    const scoreBL = leftX + (sampleH - y);
+    if (scoreBL < blScore) {
+      blScore = scoreBL;
+      bestBL = { x: leftX, y };
+    }
+  }
+
+  // Normalizza le coordinate tra 0 e 1
+  const normTL = { x: bestTL.x / sampleW, y: bestTL.y / sampleH };
+  const normTR = { x: bestTR.x / sampleW, y: bestTR.y / sampleH };
+  const normBR = { x: bestBR.x / sampleW, y: bestBR.y / sampleH };
+  const normBL = { x: bestBL.x / sampleW, y: bestBL.y / sampleH };
+
+  // 6. Inset di sicurezza interno verso il baricentro del foglio
+  // Questo elimina completamente tavolo, venature di legno, ombre esterne o bordi sfocati!
+  const centerX = (normTL.x + normTR.x + normBR.x + normBL.x) / 4;
+  const centerY = (normTL.y + normTR.y + normBR.y + normBL.y) / 4;
+  const insetFactor = 0.016; // 1.6% verso il centro del foglio
+
+  const applyInwardInset = (pt: { x: number; y: number }) => ({
+    x: Number(Math.max(0.005, Math.min(0.995, pt.x + (centerX - pt.x) * insetFactor)).toFixed(4)),
+    y: Number(Math.max(0.005, Math.min(0.995, pt.y + (centerY - pt.y) * insetFactor)).toFixed(4)),
+  });
 
   return {
-    x: Number(normX.toFixed(4)),
-    y: Number(normY.toFixed(4)),
-    width: Number(normW.toFixed(4)),
-    height: Number(normH.toFixed(4)),
+    tl: applyInwardInset(normTL),
+    tr: applyInwardInset(normTR),
+    br: applyInwardInset(normBR),
+    bl: applyInwardInset(normBL),
+  };
+}
+
+// Algoritmo locale ultra-rapido per individuare la carta nella foto escludendo lo sfondo
+function detectPaperBoundsLocal(canvas: HTMLCanvasElement): CropBox {
+  const quad = detectPaperCornersAdvanced(canvas);
+  const minX = Math.min(quad.tl.x, quad.bl.x);
+  const maxX = Math.max(quad.tr.x, quad.br.x);
+  const minY = Math.min(quad.tl.y, quad.tr.y);
+  const maxY = Math.max(quad.bl.y, quad.br.y);
+  return {
+    x: Number(minX.toFixed(4)),
+    y: Number(minY.toFixed(4)),
+    width: Number(Math.max(0.1, maxX - minX).toFixed(4)),
+    height: Number(Math.max(0.1, maxY - minY).toFixed(4)),
   };
 }
 
@@ -403,16 +571,16 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   const [brightness] = useState<number>(10);
   const [contrast] = useState<number>(25);
 
-  // Modalità: subito attiva la modalità ritaglio prospettico a 8 punti di CamScanner
-  const [showCropMode, setShowCropMode] = useState<boolean>(true);
+  // Modalità: mostra subito la pagina ritagliata e pulita automaticamente
+  const [showCropMode, setShowCropMode] = useState<boolean>(false);
   const [selectedPreset, setSelectedPreset] = useState<AutoCropOption>('ai_auto');
 
-  // I 4 vertici del quadrilatero prospettico CamScanner (TL, TR, BR, BL)
+  // I 4 vertici del quadrilatero prospettico (TL, TR, BR, BL)
   const [corners, setCorners] = useState<QuadCorners>({
-    tl: { x: 0.04, y: 0.04 },
-    tr: { x: 0.96, y: 0.04 },
-    br: { x: 0.96, y: 0.96 },
-    bl: { x: 0.04, y: 0.96 },
+    tl: { x: 0.02, y: 0.02 },
+    tr: { x: 0.98, y: 0.02 },
+    br: { x: 0.98, y: 0.98 },
+    bl: { x: 0.02, y: 0.98 },
   });
   const [aiDetectedCorners, setAiDetectedCorners] = useState<QuadCorners | null>(null);
 
@@ -653,7 +821,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
 
     const rot = typeof currentRot === 'number' ? currentRot : rotationRef.current;
     setIsAiDetecting(true);
-    setAiStatusMessage('Rilevamento contorni CamScanner in corso...');
+    setAiStatusMessage('Rilevamento contorni del documento in corso...');
 
     const isSideways = rot === 90 || rot === 270;
     const rotW = isSideways ? img.naturalHeight : img.naturalWidth;
@@ -671,20 +839,20 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       rotCtx.restore();
     }
 
-    // 1. Rilevamento locale istantaneo
+    // 1. Rilevamento locale istantaneo ai bordi del foglio
     let bestQuad: QuadCorners = {
-      tl: { x: 0.04, y: 0.04 },
-      tr: { x: 0.96, y: 0.04 },
-      br: { x: 0.96, y: 0.96 },
-      bl: { x: 0.04, y: 0.96 },
+      tl: { x: 0.02, y: 0.02 },
+      tr: { x: 0.98, y: 0.02 },
+      br: { x: 0.98, y: 0.98 },
+      bl: { x: 0.02, y: 0.98 },
     };
     try {
-      const localBox = detectPaperBoundsLocal(rotCanvas);
-      bestQuad = boxToQuad(localBox);
+      bestQuad = detectPaperCornersAdvanced(rotCanvas);
       setCorners(bestQuad);
       setAiDetectedCorners(bestQuad);
+      setAiStatusMessage('✓ Bordi del foglio ritagliati automaticamente');
     } catch (e) {
-      console.warn('Errore locale CamScanner:', e);
+      console.warn('Errore locale ritaglio foglio:', e);
     }
 
     // 2. Perfezionamento con Gemini CamScanner Perspective Vision
@@ -722,7 +890,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
           bestQuad = data.corners;
           setCorners(bestQuad);
           setAiDetectedCorners(bestQuad);
-          setAiStatusMessage('✓ 4 vertici documento rilevati con CamScanner AI');
+          setAiStatusMessage('✓ 4 vertici documento rilevati con precisione');
         } else if (data?.cropBox && typeof data.cropBox.x === 'number') {
           bestQuad = boxToQuad(data.cropBox);
           setCorners(bestQuad);
@@ -798,11 +966,12 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     img.onload = () => {
       imgRef.current = img;
 
-      // Attiva subito la modalità ritaglio CamScanner con gli 8 punti
-      setShowCropMode(true);
+      // Mostra subito la pagina ritagliata e pulita automaticamente con filtro Magic Color
+      setShowCropMode(false);
       setSelectedPreset('ai_auto');
+      setSelectedFilter('magic_color');
 
-      // Calcola subito il riquadro iniziale
+      // Calcola subito i bordi del foglio isolandoli dal tavolo circostante
       const rotCanvas = document.createElement('canvas');
       rotCanvas.width = img.naturalWidth;
       rotCanvas.height = img.naturalHeight;
@@ -811,10 +980,10 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         rotCtx.drawImage(img, 0, 0);
       }
       try {
-        const localBox = detectPaperBoundsLocal(rotCanvas);
-        const initialQuad = boxToQuad(localBox);
-        setCorners(initialQuad);
-        setAiDetectedCorners(initialQuad);
+        const detectedQuad = detectPaperCornersAdvanced(rotCanvas);
+        setCorners(detectedQuad);
+        setAiDetectedCorners(detectedQuad);
+        setAiStatusMessage('✓ Ritaglio bordi & Pulizia automatica attivi');
       } catch (e) {
         console.warn('Errore ritaglio locale iniziale:', e);
       }
@@ -1082,7 +1251,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               const fallbackBlob = new Blob([ab], { type: mimeString });
               const fallbackFile = new File(
                 [fallbackBlob],
-                `camscanner-pulita-${Date.now()}.jpg`,
+                `scansione-pulita-${Date.now()}.jpg`,
                 { type: 'image/jpeg' }
               );
               resolve({ file: fallbackFile, url: dataUrl });
@@ -1090,7 +1259,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             }
             const processedFile = new File(
               [blob],
-              `camscanner-pulita-${Date.now()}.jpg`,
+              `scansione-pulita-${Date.now()}.jpg`,
               { type: 'image/jpeg' }
             );
             resolve({ file: processedFile, url: dataUrl });
@@ -1134,7 +1303,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     {
       id: 'ai_auto' as AutoCropOption,
       label: 'Rileva Auto',
-      badge: 'CamScanner',
+      badge: 'Smart AI',
       desc: 'Rilevamento prospettico intelligente dei 4 angoli',
       icon: Sparkles,
     },
@@ -1187,14 +1356,14 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Editor CamScanner - Ritaglio Prospettico a 8 Punti"
+      aria-label="Editor Scansione - Ritaglio Prospettico a 8 Punti"
       className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
-      {/* 1. Header superiore CamScanner */}
+      {/* 1. Header superiore Scanner */}
       <header className="bg-[#1E8C86] border-b border-[#1E8C86]/50 text-white px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20 shadow-md">
         <div className="flex items-center gap-2">
           <Wand2 size={18} className="text-[#FFD23F] shrink-0" />
-          <h2 className="text-sm font-bold text-white tracking-wide">CamScanner</h2>
+          <h2 className="text-sm font-bold text-white tracking-wide">Scanner Documenti</h2>
           <span className="text-[11px] font-bold bg-[#2BA8A2] px-2.5 py-0.5 rounded-full text-white border border-white/20 whitespace-nowrap shadow-xs">
             Pagina {pageIndex + 1} {totalPages > 1 ? `di ${totalPages}` : ''}
           </span>
@@ -1588,6 +1757,29 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             ref={previewCanvasRef}
             className="max-h-[60vh] sm:max-h-[66vh] max-w-full object-contain shadow-2xl rounded-lg"
           />
+
+          {/* Badge di stato Ritaglio & Pulizia Automatica */}
+          {aiStatusMessage && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-black/95 border border-white px-3 py-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs font-bold text-white animate-fade-in pointer-events-none whitespace-nowrap">
+              {isAiDetecting ? (
+                <Loader2 size={13} className="animate-spin text-white" />
+              ) : (
+                <CheckCheck size={13} className="text-emerald-400" />
+              )}
+              <span>{aiStatusMessage}</span>
+            </div>
+          )}
+
+          {/* Pulsante rapido per regolare il ritaglio se necessario */}
+          <button
+            type="button"
+            onClick={() => setShowCropMode(true)}
+            className="absolute bottom-3 right-3 z-30 bg-black/80 hover:bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/30 backdrop-blur-md flex items-center gap-1.5 shadow-lg active:scale-95 transition-all cursor-pointer"
+            title="Modifica manualmente gli 8 punti di ritaglio"
+          >
+            <Crop size={13} className="text-white" />
+            <span>Regola ritaglio</span>
+          </button>
         </div>
       </main>
 
@@ -1644,7 +1836,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               setShowCropMode(false);
             }}
             className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
-            title="Filtro Magic Color CamScanner (Sbiancamento carta)"
+            title="Filtro Magic Color (Sbiancamento carta)"
             aria-label="Magic Color"
           >
             <div

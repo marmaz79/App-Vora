@@ -1,5 +1,4 @@
 import { Book, User, TtsSettings, AppNotification, Bookmark, BookReadingStat } from '../types';
-import { SAMPLE_BOOKS } from '../data/sampleBooks';
 import { fileParser } from './fileParser';
 
 const BOOKS_KEY = 'vora_books_v1';
@@ -99,28 +98,7 @@ function isCorruptedPage(text: string): boolean {
 }
 
 function repairBook(book: Book): Book {
-  // If it's a sample book (by ID or title), restore pristine content from SAMPLE_BOOKS
-  const originalSample = SAMPLE_BOOKS.find(
-    (s) =>
-      s.book_id === book.book_id ||
-      s.title.toLowerCase() === book.title.toLowerCase() ||
-      (book.source === 'sample' && s.title.toLowerCase().includes(book.title.toLowerCase()))
-  );
-  if (originalSample) {
-    return {
-      ...book,
-      title: originalSample.title,
-      author: originalSample.author,
-      file_type: originalSample.file_type,
-      size: originalSample.size,
-      source: 'sample',
-      coverColor: originalSample.coverColor,
-      pages: [...originalSample.pages],
-      bookmarks: book.bookmarks && book.bookmarks.length > 0 ? book.bookmarks : originalSample.bookmarks || [],
-    };
-  }
-
-  // Otherwise, thoroughly sanitize and re-paginate
+  // Thoroughly sanitize and re-paginate
   const fullText = (book.pages || []).map((p) => fileParser.cleanCorruptedText(p)).filter(Boolean).join('\n\n');
   if (fullText.trim().length > 20) {
     const cleanPages = fileParser.splitIntoPages(fullText);
@@ -164,21 +142,46 @@ export const storageService = {
     try {
       const data = localStorage.getItem(BOOKS_KEY);
       if (!data) {
-        localStorage.setItem(BOOKS_KEY, JSON.stringify(SAMPLE_BOOKS));
-        return SAMPLE_BOOKS;
+        localStorage.setItem(BOOKS_KEY, JSON.stringify([]));
+        return [];
       }
       let rawBooks: Book[] = JSON.parse(data);
-      if (!Array.isArray(rawBooks) || rawBooks.length === 0) {
-        localStorage.setItem(BOOKS_KEY, JSON.stringify(SAMPLE_BOOKS));
-        return SAMPLE_BOOKS;
+      if (!Array.isArray(rawBooks)) {
+        localStorage.setItem(BOOKS_KEY, JSON.stringify([]));
+        return [];
       }
 
       let needsSave = false;
 
+      // Filtra ed elimina completamente qualsiasi libro di esempio
+      const isSampleBook = (b: any): boolean => {
+        if (!b) return true;
+        if (b.source === 'sample') return true;
+        if (typeof b.book_id === 'string' && b.book_id.startsWith('sample-')) return true;
+        const title = (b.title || '').toLowerCase().trim();
+        if (
+          title === 'le avventure di pinocchio' ||
+          title === 'la divina commedia - inferno' ||
+          title === 'il piccolo principe' ||
+          (b.source !== 'upload' && b.source !== 'scan' && (title.includes('pinocchio') || title.includes('divina commedia') || title.includes('piccolo principe')))
+        ) {
+          return true;
+        }
+        return false;
+      };
+
+      const userBooksOnly = rawBooks.filter((b) => {
+        if (isSampleBook(b)) {
+          needsSave = true;
+          return false;
+        }
+        return true;
+      });
+
       // Deduplicate by book_id to fix any existing corrupt or duplicate keys in storage
       const seenRawIds = new Set<string>();
       const dedupedRaw: Book[] = [];
-      for (const b of rawBooks) {
+      for (const b of userBooksOnly) {
         if (!b || !b.book_id) continue;
         if (!seenRawIds.has(b.book_id)) {
           seenRawIds.add(b.book_id);
@@ -188,32 +191,36 @@ export const storageService = {
         }
       }
 
-      // Ensure that all sample books are present and fully populated with clean text
       const sanitized = dedupedRaw.map((b) => {
-        const isSample = b.source === 'sample' || SAMPLE_BOOKS.some((s) => s.book_id === b.book_id || s.title.toLowerCase() === b.title.toLowerCase());
+        let current = b;
         const hasCorruptedPages = !b.pages || b.pages.length === 0 || b.pages.some((p) => isCorruptedPage(p));
 
-        if (isSample || hasCorruptedPages) {
-          const repaired = repairBook(b);
-          // Check if repaired changed anything
-          if (hasCorruptedPages || repaired.pages.length !== b.pages?.length) {
+        if (hasCorruptedPages) {
+          current = repairBook(b);
+          if (hasCorruptedPages || current.pages.length !== b.pages?.length) {
             needsSave = true;
           }
-          return repaired;
         }
-        return b;
-      });
 
-      // Ensure default sample books exist if the library doesn't have them
-      SAMPLE_BOOKS.forEach((sample) => {
-        const exists = sanitized.some((b) => b.title.toLowerCase() === sample.title.toLowerCase() || b.book_id === sample.book_id);
-        if (!exists) {
-          sanitized.push(sample);
+        // Togli la scritta CamScanner da titoli, autori o motori OCR esistenti
+        let updated = current;
+        if (updated.title && /camscanner/i.test(updated.title)) {
+          updated = { ...updated, title: updated.title.replace(/camscanner/gi, 'Scansione') };
           needsSave = true;
         }
+        if (updated.author && /camscanner/i.test(updated.author)) {
+          updated = { ...updated, author: updated.author.replace(/camscanner/gi, 'Scanner').trim() || 'Scanner Vora' };
+          needsSave = true;
+        }
+        if (updated.ocr_engine && /camscanner/i.test(updated.ocr_engine)) {
+          updated = { ...updated, ocr_engine: updated.ocr_engine.replace(/camscanner/gi, 'Vora') };
+          needsSave = true;
+        }
+
+        return updated;
       });
 
-      if (needsSave) {
+      if (needsSave || rawBooks.length !== sanitized.length) {
         localStorage.setItem(BOOKS_KEY, JSON.stringify(sanitized));
       }
 
@@ -230,17 +237,16 @@ export const storageService = {
 
       return withBookmarks;
     } catch {
-      return SAMPLE_BOOKS;
+      return [];
     }
   },
 
   getSanitizedBook(book: Book): Book {
     if (!book) return book;
-    const isSample = book.source === 'sample' || SAMPLE_BOOKS.some((s) => s.book_id === book.book_id || s.title.toLowerCase() === book.title.toLowerCase());
     const hasCorruptedPages = !book.pages || book.pages.length === 0 || book.pages.some((p) => isCorruptedPage(p));
     const bookmarks = this.getBookmarks(book.book_id);
 
-    if (isSample || hasCorruptedPages) {
+    if (hasCorruptedPages) {
       const repaired = repairBook(book);
       this.updateBookContent(repaired.book_id, repaired.pages);
       return { ...repaired, bookmarks };

@@ -183,6 +183,33 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
     }
   }, [initialNightMode]);
 
+  // Modalità Notte Adobe per foto e scansioni di documenti (inversione intelligente del contrasto)
+  const [invertScansMode, setInvertScansMode] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('vora_pdf_invert_scans');
+      if (stored !== null) return stored === 'true';
+      return true; // Predefinito attivo per garantire l'effetto Adobe Night Mode
+    } catch {
+      return true;
+    }
+  });
+
+  const handleToggleInvertScans = () => {
+    setInvertScansMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('vora_pdf_invert_scans', next ? 'true' : 'false');
+      } catch {}
+      setBookmarkNotice(
+        next
+          ? '🌙 Modalità notte Adobe attiva: sfondo scuro e testo chiaro applicati alle foto'
+          : '☀️ Colori originali delle scansioni e foto ripristinati'
+      );
+      setTimeout(() => setBookmarkNotice(null), 3000);
+      return next;
+    });
+  };
+
   const handleToggleNightMode = () => {
     setIsNightMode((prev) => {
       const next = !prev;
@@ -191,7 +218,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
       } catch {}
       setBookmarkNotice(
         next
-          ? '🌙 Modalità notte attivata in tutto il libro'
+          ? '🌙 Modalità notte Adobe attivata in tutto il PDF (anche per foto e scansioni)'
           : '☀️ Modalità giorno ripristinata'
       );
       setTimeout(() => setBookmarkNotice(null), 3000);
@@ -554,17 +581,69 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 >
                   {book.imageUrls && book.imageUrls[index] ? (
                     <div className="w-full flex flex-col items-center gap-3">
-                      <img
-                        src={book.imageUrls[index]}
-                        alt={`Scansione pagina ${index + 1}`}
-                        className={`w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all ${
-                          isFullscreen ? 'max-h-[75vh] sm:max-h-[85vh]' : 'max-h-[640px] sm:max-h-[760px]'
-                        } ${
-                          isNightMode
-                            ? 'border-zinc-800 invert brightness-90 contrast-125'
-                            : 'border-zinc-200'
+                      {/* Badge e controllo rapido Modalità Notte Adobe su foto/scansioni */}
+                      <div className="w-full flex items-center justify-between px-1 text-[11px] select-none">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold transition-all ${
+                              isNightMode && invertScansMode
+                                ? 'bg-zinc-900 border-zinc-700 text-zinc-200'
+                                : isNightMode
+                                  ? 'bg-zinc-900 border-zinc-700 text-zinc-400'
+                                  : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+                            }`}
+                          >
+                            <Moon
+                              size={11}
+                              className={isNightMode && invertScansMode ? 'fill-current text-white' : 'text-zinc-400'}
+                            />
+                            {isNightMode
+                              ? invertScansMode
+                                ? 'Modalità Notte Adobe (Scansione invertita)'
+                                : 'Scansione a colori originali'
+                              : 'Scansione originale'}
+                          </span>
+                        </div>
+                        {isNightMode && (
+                          <button
+                            type="button"
+                            onClick={handleToggleInvertScans}
+                            className="text-[11px] font-bold text-zinc-300 hover:text-white underline decoration-zinc-600 underline-offset-2 flex items-center gap-1 transition-colors active:scale-95 py-0.5 px-1"
+                            title={
+                              invertScansMode
+                                ? 'Disattiva inversione Adobe e mostra i colori originali della foto'
+                                : 'Attiva inversione notturna Adobe (sfondo scuro e testo chiaro)'
+                            }
+                          >
+                            {invertScansMode ? 'Mostra foto originale' : 'Applica filtro notte Adobe'}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Immagine con filtro notturno Adobe ad alto contrasto */}
+                      <div
+                        className={`w-full flex justify-center p-2 rounded-xl transition-all duration-300 ${
+                          isNightMode && invertScansMode ? 'bg-black/95' : 'bg-transparent'
                         }`}
-                      />
+                      >
+                        <img
+                          src={book.imageUrls[index]}
+                          alt={`Scansione pagina ${index + 1}`}
+                          style={{
+                            filter:
+                              isNightMode && invertScansMode
+                                ? 'invert(1) hue-rotate(180deg) contrast(1.18) brightness(0.92)'
+                                : 'none',
+                          }}
+                          className={`w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all duration-300 ${
+                            isFullscreen ? 'max-h-[75vh] sm:max-h-[85vh]' : 'max-h-[640px] sm:max-h-[760px]'
+                          } ${
+                            isNightMode
+                              ? 'border-zinc-800'
+                              : 'border-zinc-200'
+                          }`}
+                        />
+                      </div>
                       {pageText && pageText.trim() && !pageText.startsWith('[Pagina') && (
                         <div
                           className={`w-full mt-3 p-3 rounded-lg border text-xs whitespace-pre-wrap select-text ${
@@ -670,17 +749,69 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               >
                 {book.imageUrls && book.imageUrls[currentPage] ? (
                   <div className="w-full flex flex-col items-center gap-3">
-                    <img
-                      src={book.imageUrls[currentPage]}
-                      alt={`Scansione pagina ${currentPage + 1}`}
-                      className={`w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all ${
-                        isFullscreen ? 'max-h-[75vh] sm:max-h-[85vh]' : 'max-h-[640px] sm:max-h-[760px]'
-                      } ${
-                        isNightMode
-                          ? 'border-zinc-800 invert brightness-90 contrast-125'
-                          : 'border-zinc-200'
+                    {/* Badge e controllo rapido Modalità Notte Adobe su foto/scansioni */}
+                    <div className="w-full flex items-center justify-between px-1 text-[11px] select-none">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold transition-all ${
+                            isNightMode && invertScansMode
+                              ? 'bg-zinc-900 border-zinc-700 text-zinc-200'
+                              : isNightMode
+                                ? 'bg-zinc-900 border-zinc-700 text-zinc-400'
+                                : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+                          }`}
+                        >
+                          <Moon
+                            size={11}
+                            className={isNightMode && invertScansMode ? 'fill-current text-white' : 'text-zinc-400'}
+                          />
+                          {isNightMode
+                            ? invertScansMode
+                              ? 'Modalità Notte Adobe (Scansione invertita)'
+                              : 'Scansione a colori originali'
+                            : 'Scansione originale'}
+                        </span>
+                      </div>
+                      {isNightMode && (
+                        <button
+                          type="button"
+                          onClick={handleToggleInvertScans}
+                          className="text-[11px] font-bold text-zinc-300 hover:text-white underline decoration-zinc-600 underline-offset-2 flex items-center gap-1 transition-colors active:scale-95 py-0.5 px-1"
+                          title={
+                            invertScansMode
+                              ? 'Disattiva inversione Adobe e mostra i colori originali della foto'
+                              : 'Attiva inversione notturna Adobe (sfondo scuro e testo chiaro)'
+                          }
+                        >
+                          {invertScansMode ? 'Mostra foto originale' : 'Applica filtro notte Adobe'}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Immagine con filtro notturno Adobe ad alto contrasto */}
+                    <div
+                      className={`w-full flex justify-center p-2 rounded-xl transition-all duration-300 ${
+                        isNightMode && invertScansMode ? 'bg-black/95' : 'bg-transparent'
                       }`}
-                    />
+                    >
+                      <img
+                        src={book.imageUrls[currentPage]}
+                        alt={`Scansione pagina ${currentPage + 1}`}
+                        style={{
+                          filter:
+                            isNightMode && invertScansMode
+                              ? 'invert(1) hue-rotate(180deg) contrast(1.18) brightness(0.92)'
+                              : 'none',
+                        }}
+                        className={`w-auto max-w-full object-contain rounded-lg shadow-sm border select-none pointer-events-none transition-all duration-300 ${
+                          isFullscreen ? 'max-h-[75vh] sm:max-h-[85vh]' : 'max-h-[640px] sm:max-h-[760px]'
+                        } ${
+                          isNightMode
+                            ? 'border-zinc-800'
+                            : 'border-zinc-200'
+                        }`}
+                      />
+                    </div>
                     {sanitizedPages[currentPage] && sanitizedPages[currentPage].trim() && !sanitizedPages[currentPage].startsWith('[Pagina') && (
                       <div
                         className={`w-full mt-3 p-3 rounded-lg border text-xs whitespace-pre-wrap select-text ${
@@ -832,7 +963,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               </span>
             </button>
 
-            {/* 4. Modalità Notte Toggle per tutto il libro */}
+            {/* 4. Modalità Notte Toggle per tutto il libro (Stile Adobe) */}
             <button
               type="button"
               onClick={handleToggleNightMode}
@@ -843,8 +974,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               }`}
               title={
                 isNightMode
-                  ? 'Modalità notte attiva in tutto il libro (tocca per tornare alla modalità standard)'
-                  : 'Attiva modalità notte in tutto il libro'
+                  ? 'Modalità notte Adobe attiva in tutto il libro (incluse scansioni e foto)'
+                  : 'Attiva modalità notte Adobe in tutto il libro (anche per foto e scansioni)'
               }
               aria-label={isNightMode ? 'Disattiva modalità notte' : 'Attiva modalità notte in tutto il libro'}
               aria-pressed={isNightMode}
@@ -855,9 +986,33 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 <Moon size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
               )}
               <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap">
-                {isNightMode ? 'Notte Attiva' : 'Mod. Notte'}
+                {isNightMode ? 'Notte (Adobe)' : 'Mod. Notte'}
               </span>
             </button>
+
+            {/* 4b. Controllo rapido Inversione Foto Stile Adobe (visibile quando ci sono scansioni/foto e notte attiva) */}
+            {book.imageUrls && book.imageUrls.length > 0 && isNightMode && (
+              <button
+                type="button"
+                onClick={handleToggleInvertScans}
+                className={`min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
+                  invertScansMode
+                    ? 'border-white/40 bg-zinc-900 text-white hover:bg-zinc-800'
+                    : 'border-white/20 bg-black text-zinc-400 hover:text-white hover:bg-zinc-900'
+                }`}
+                title={
+                  invertScansMode
+                    ? 'Filtro notte Adobe attivo sulle foto: tocca per vedere i colori originali'
+                    : 'Colori foto originali: tocca per riattivare il filtro notte Adobe'
+                }
+                aria-label="Filtro foto notte Adobe"
+              >
+                <Sliders size={18} className="text-white shrink-0 m-0.5 group-hover:scale-105 transition-transform" />
+                <span className="text-[11px] sm:text-xs font-bold text-white tracking-tight whitespace-nowrap">
+                  {invertScansMode ? 'Foto: Adobe' : 'Foto: Orig.'}
+                </span>
+              </button>
+            )}
 
             {/* 5. Cerca nel PDF */}
             <button

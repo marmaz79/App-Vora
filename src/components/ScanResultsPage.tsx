@@ -23,6 +23,7 @@ import {
   Bot,
   Sliders,
   CheckCircle,
+  Moon,
 } from 'lucide-react';
 import { Book, TtsSettings } from '../types';
 import { ttsService } from '../services/ttsService';
@@ -72,6 +73,10 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
 
   // View mode: 'text' (only text), 'photo' (only image), 'split' (side by side)
   const [viewMode, setViewMode] = useState<'text' | 'photo' | 'split'>('text');
+  // Modalità Notte Adobe su foto/scansioni originali
+  const [isPhotoNightMode, setIsPhotoNightMode] = useState<boolean>(() => {
+    return settings?.highContrastMode === 'dark' || settings?.highContrastMode === 'black-white';
+  });
 
   // Audio Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -254,6 +259,9 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
   const constructBook = (): Book => {
     const finalPages = pages.map((p) => fileParser.enhanceText(p)).filter((p) => p.trim().length > 0);
     const fallbackPages = finalPages.length > 0 ? finalPages : ['(Documento vuoto)'];
+    const validImageUrls = imageUrls.filter(
+      (u): u is string => typeof u === 'string' && u.length > 0
+    );
 
     return {
       book_id: session.bookId || `scan-${Date.now()}`,
@@ -262,6 +270,7 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
       file_type: 'scan',
       size: fallbackPages.join(' ').length,
       pages: fallbackPages,
+      imageUrls: validImageUrls.length > 0 ? validImageUrls : undefined,
       source: 'scan',
       ocr_engine: session.engine || 'Gemini AI Vision',
       created_at: new Date().toISOString(),
@@ -577,23 +586,55 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
 
           {/* VIEW: PHOTO ONLY */}
           {viewMode === 'photo' && currentImageUrl && (
-            <div className="bg-white border-2 border-[#2BA8A2]/20 rounded-3xl p-4 sm:p-6 shadow-card flex-1 flex flex-col items-center justify-center min-h-[380px]">
-              <div className="w-full flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3 mb-4">
-                <span className="text-xs font-black uppercase tracking-wider text-[#1E8C86]">
-                  Fotografia Originale · Pagina {activePageIndex + 1}
-                </span>
+            <div className={`border-2 rounded-3xl p-4 sm:p-6 shadow-card flex-1 flex flex-col items-center justify-center min-h-[380px] transition-all duration-300 ${
+              isPhotoNightMode ? 'bg-[#121214] border-zinc-800 text-zinc-100' : 'bg-white border-[#2BA8A2]/20 text-slate-800'
+            }`}>
+              <div className={`w-full flex items-center justify-between border-b-2 border-dashed pb-3 mb-4 ${
+                isPhotoNightMode ? 'border-zinc-800' : 'border-[#2BA8A2]/20'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-black uppercase tracking-wider ${
+                    isPhotoNightMode ? 'text-zinc-300' : 'text-[#1E8C86]'
+                  }`}>
+                    Fotografia Originale · Pagina {activePageIndex + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsPhotoNightMode((prev) => !prev)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition-all active:scale-95 ${
+                      isPhotoNightMode
+                        ? 'bg-zinc-800 text-white border-zinc-700 hover:border-white'
+                        : 'bg-zinc-100 text-zinc-700 border-zinc-300 hover:bg-zinc-200'
+                    }`}
+                    title="Inverti scansione/foto con filtro notte stile Adobe"
+                  >
+                    <Moon size={12} className={isPhotoNightMode ? 'fill-current text-white' : 'text-zinc-600'} />
+                    <span>{isPhotoNightMode ? 'Notte Adobe (Attiva)' : 'Filtro Notte Adobe'}</span>
+                  </button>
+                </div>
                 <button
                   onClick={() => setViewMode('text')}
-                  className="text-xs text-[#1E8C86] font-black underline"
+                  className={`text-xs font-black underline ${
+                    isPhotoNightMode ? 'text-zinc-300 hover:text-white' : 'text-[#1E8C86]'
+                  }`}
                 >
                   Torna al Testo
                 </button>
               </div>
-              <div className="max-h-[65vh] overflow-auto flex items-center justify-center w-full">
+              <div className={`max-h-[65vh] overflow-auto flex items-center justify-center w-full p-2 rounded-2xl ${
+                isPhotoNightMode ? 'bg-black/90' : 'bg-transparent'
+              }`}>
                 <img
                   src={currentImageUrl}
                   alt={`Pagina ${activePageIndex + 1} originale`}
-                  className="max-h-[60vh] max-w-full object-contain rounded-2xl border-2 border-[#2BA8A2]/30 shadow-card"
+                  style={{
+                    filter: isPhotoNightMode
+                      ? 'invert(1) hue-rotate(180deg) contrast(1.18) brightness(0.92)'
+                      : 'none',
+                  }}
+                  className={`max-h-[60vh] max-w-full object-contain rounded-2xl border-2 transition-all duration-300 shadow-card ${
+                    isPhotoNightMode ? 'border-zinc-800' : 'border-[#2BA8A2]/30'
+                  }`}
                 />
               </div>
             </div>
@@ -603,15 +644,45 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
           {viewMode === 'split' && currentImageUrl && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
               {/* Left: Original Photograph */}
-              <div className="bg-white border-2 border-[#2BA8A2]/20 rounded-3xl p-4 shadow-card flex flex-col">
-                <span className="text-xs font-black uppercase tracking-wider text-[#1E8C86] mb-2 border-b-2 border-dashed border-[#2BA8A2]/20 pb-2">
-                  Fotografia Originale
-                </span>
-                <div className="flex-1 flex items-center justify-center overflow-auto max-h-[65vh]">
+              <div className={`border-2 rounded-3xl p-4 shadow-card flex flex-col transition-all duration-300 ${
+                isPhotoNightMode ? 'bg-[#121214] border-zinc-800 text-zinc-100' : 'bg-white border-[#2BA8A2]/20 text-slate-800'
+              }`}>
+                <div className={`flex items-center justify-between border-b-2 border-dashed pb-2 mb-2 ${
+                  isPhotoNightMode ? 'border-zinc-800' : 'border-[#2BA8A2]/20'
+                }`}>
+                  <span className={`text-xs font-black uppercase tracking-wider ${
+                    isPhotoNightMode ? 'text-zinc-300' : 'text-[#1E8C86]'
+                  }`}>
+                    Fotografia Originale
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsPhotoNightMode((prev) => !prev)}
+                    className={`px-2 py-0.5 rounded-lg text-[11px] font-bold border flex items-center gap-1 transition-all active:scale-95 ${
+                      isPhotoNightMode
+                        ? 'bg-zinc-800 text-white border-zinc-700'
+                        : 'bg-zinc-100 text-zinc-700 border-zinc-300'
+                    }`}
+                    title="Inverti scansione/foto con filtro notte stile Adobe"
+                  >
+                    <Moon size={11} className={isPhotoNightMode ? 'fill-current text-white' : 'text-zinc-600'} />
+                    <span>{isPhotoNightMode ? 'Notte Adobe' : 'Notte Adobe'}</span>
+                  </button>
+                </div>
+                <div className={`flex-1 flex items-center justify-center overflow-auto max-h-[65vh] p-1 rounded-xl ${
+                  isPhotoNightMode ? 'bg-black/90' : 'bg-transparent'
+                }`}>
                   <img
                     src={currentImageUrl}
                     alt="Foto originale"
-                    className="max-h-[58vh] max-w-full object-contain rounded-2xl border border-[#2BA8A2]/30"
+                    style={{
+                      filter: isPhotoNightMode
+                        ? 'invert(1) hue-rotate(180deg) contrast(1.18) brightness(0.92)'
+                        : 'none',
+                    }}
+                    className={`max-h-[58vh] max-w-full object-contain rounded-2xl border transition-all duration-300 ${
+                      isPhotoNightMode ? 'border-zinc-800' : 'border-[#2BA8A2]/30'
+                    }`}
                   />
                 </div>
               </div>

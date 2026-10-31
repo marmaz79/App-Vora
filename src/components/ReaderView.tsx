@@ -1179,7 +1179,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 0}
-                className={`absolute left-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-start pl-2 sm:pl-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-l-2xl text-gray-800 bg-gradient-to-r from-black/10 to-transparent cursor-pointer`}
+                className={`absolute left-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-start pl-2 sm:pl-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-l-2xl text-gray-800 hover:bg-black/5 cursor-pointer`}
                 aria-label="Pagina precedente"
               >
                 <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
@@ -1190,7 +1190,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               <button
                 onClick={handleNextPage}
                 disabled={currentPage >= totalPages - 1}
-                className={`absolute right-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-end pr-2 sm:pr-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-r-2xl text-white bg-gradient-to-l from-black/20 to-transparent cursor-pointer`}
+                className={`absolute right-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-end pr-2 sm:pr-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-r-2xl text-white hover:bg-black/5 cursor-pointer`}
                 aria-label="Pagina successiva"
               >
                 <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">

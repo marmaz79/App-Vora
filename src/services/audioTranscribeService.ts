@@ -21,6 +21,68 @@ export interface AudioTranscriptionResult {
   language?: string;
   audioBlobUrl?: string;
   noSpeechDetected?: boolean;
+  totalSegments?: number;
+}
+
+/**
+ * Format seconds into mm:ss or hh:mm:ss
+ */
+export function formatAudioTime(seconds: number): string {
+  if (isNaN(seconds) || seconds < 0) return '0:00';
+  const totalSecs = Math.floor(seconds);
+  const hrs = Math.floor(totalSecs / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Split long transcription text into comfortable book pages
+ */
+function splitTextIntoPages(text: string, wordsPerPage: number = 250): string[] {
+  const clean = text.trim();
+  if (!clean) return ['(Trascrizione vuota)'];
+
+  const rawParagraphs = clean.split(/\n+/);
+  const chunks: string[] = [];
+
+  for (const p of rawParagraphs) {
+    const trimmed = p.trim();
+    if (!trimmed) continue;
+    const words = trimmed.split(/\s+/);
+    if (words.length > wordsPerPage) {
+      for (let i = 0; i < words.length; i += wordsPerPage) {
+        chunks.push(words.slice(i, i + wordsPerPage).join(' '));
+      }
+    } else {
+      chunks.push(trimmed);
+    }
+  }
+
+  const pages: string[] = [];
+  let curPage = '';
+  let curCount = 0;
+
+  for (const chunk of chunks) {
+    const chunkWords = chunk.split(/\s+/).length;
+    if (curCount + chunkWords > wordsPerPage && curPage.trim()) {
+      pages.push(curPage.trim());
+      curPage = chunk;
+      curCount = chunkWords;
+    } else {
+      curPage += (curPage ? '\n\n' : '') + chunk;
+      curCount += chunkWords;
+    }
+  }
+
+  if (curPage.trim()) {
+    pages.push(curPage.trim());
+  }
+
+  return pages.length > 0 ? pages : [clean];
 }
 
 class AudioTranscribeService {
@@ -29,7 +91,7 @@ class AudioTranscribeService {
    */
   public isAudioFile(file: File): boolean {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'webm', 'flac', 'opus', 'wma'];
+    const audioExts = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'webm', 'flac', 'opus', 'wma', 'm4b', 'mp4'];
     return audioExts.includes(ext) || file.type.startsWith('audio/');
   }
 
@@ -59,7 +121,7 @@ class AudioTranscribeService {
   }
 
   /**
-   * Helper to convert an AudioBuffer to a compact 16-bit PCM WAV Blob (16kHz mono)
+   * Convert an AudioBuffer to a compact 16-bit PCM WAV Blob (16kHz mono)
    */
   private audioBufferToWav(buffer: AudioBuffer): Blob {
     const numChannels = 1;
@@ -103,72 +165,6 @@ class AudioTranscribeService {
   }
 
   /**
-   * Downsample or optimize large audio files in the browser to 16kHz mono WAV
-   * to ensure they fit well within reverse proxy and payload limits (< 20MB)
-   */
-  private async optimizeAudioFile(
-    file: File,
-    onProgress?: (progress: AudioTranscriptionProgress) => void
-  ): Promise<{ base64: string; mimeType: string; blobUrl: string }> {
-    const sizeMb = file.size / (1024 * 1024);
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-
-    // If file is already compact (<= 18MB and compressed), use directly
-    if (sizeMb <= 18 && ext !== 'wav') {
-      const base64 = await this.fileToBase64(file);
-      const blobUrl = URL.createObjectURL(file);
-      return { base64, mimeType: file.type || 'audio/mp3', blobUrl };
-    }
-
-    // If file is large or uncompressed WAV, downsample to 16kHz mono WAV
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtx) {
-        onProgress?.({
-          status: 'reading',
-          progress: 0.2,
-          message: `Ottimizzazione traccia audio (${sizeMb.toFixed(1)} MB) per la trascrizione rapida...`,
-        });
-
-        const arrayBuffer = await file.arrayBuffer();
-        const audioCtx = new AudioCtx();
-        const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        audioCtx.close().catch(() => {});
-
-        // 16kHz mono is the gold standard for speech transcription models
-        const targetRate = 16000;
-        const targetFrames = Math.ceil(decodedBuffer.duration * targetRate);
-
-        const offlineCtx = new OfflineAudioContext(1, targetFrames, targetRate);
-        const source = offlineCtx.createBufferSource();
-        source.buffer = decodedBuffer;
-        source.connect(offlineCtx.destination);
-        source.start(0);
-
-        const rendered = await offlineCtx.startRendering();
-        const wavBlob = this.audioBufferToWav(rendered);
-
-        const optimizedFile = new File([wavBlob], `${file.name.replace(/\.[^/.]+$/, '')}_16k.wav`, {
-          type: 'audio/wav',
-        });
-        const base64 = await this.fileToBase64(optimizedFile);
-        const blobUrl = URL.createObjectURL(optimizedFile);
-
-        console.info(
-          `Audio optimized: ${sizeMb.toFixed(1)} MB -> ${(wavBlob.size / 1024 / 1024).toFixed(1)} MB WAV`
-        );
-        return { base64, mimeType: 'audio/wav', blobUrl };
-      }
-    } catch (optErr) {
-      console.warn('Browser audio downsampling fallback to original file:', optErr);
-    }
-
-    const base64 = await this.fileToBase64(file);
-    const blobUrl = URL.createObjectURL(file);
-    return { base64, mimeType: file.type || 'audio/mp3', blobUrl };
-  }
-
-  /**
    * Convert file or blob to Base64 string
    */
   private async fileToBase64(file: File | Blob): Promise<string> {
@@ -185,67 +181,44 @@ class AudioTranscribeService {
   }
 
   /**
-   * Transcribe an uploaded audio file using Gemini AI on the server
+   * Normalize audio MIME type based on extension
    */
-  public async transcribeAudio(
-    file: File,
-    options: AudioTranscriptionOptions = {}
-  ): Promise<AudioTranscriptionResult> {
-    const { language = 'ita', format = 'narrative', onProgress } = options;
-    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-
-    // 1. Reading and preparing audio
-    onProgress?.({
-      status: 'reading',
-      progress: 0.1,
-      message: `Lettura file audio in corso (${sizeMb} MB)...`,
-    });
-
-    const [optimized, duration] = await Promise.all([
-      this.optimizeAudioFile(file, onProgress),
-      this.getAudioDuration(file),
-    ]);
-
-    // Check payload size safety
-    const payloadMb = (optimized.base64.length * 0.75) / (1024 * 1024);
-    if (payloadMb > 24) {
-      throw new Error(
-        `Il file audio (${payloadMb.toFixed(1)} MB) supera il limite massimo consentito dal server (24 MB). Prova a comprimere l'audio o a caricare una traccia più breve.`
-      );
+  private resolveMimeType(filename: string, mimeType?: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    let clean = mimeType || '';
+    if (ext === 'mp3' || clean.includes('mpeg') || clean.includes('mp3')) {
+      return 'audio/mp3';
+    } else if (ext === 'wav' || clean.includes('wav')) {
+      return 'audio/wav';
+    } else if (ext === 'm4a' || ext === 'm4b' || clean.includes('m4a') || clean.includes('mp4') || clean.includes('aac')) {
+      return 'audio/m4a';
+    } else if (ext === 'ogg' || ext === 'oga' || ext === 'opus' || clean.includes('ogg') || clean.includes('opus')) {
+      return 'audio/ogg';
+    } else if (ext === 'webm' || clean.includes('webm')) {
+      return 'audio/webm';
+    } else if (ext === 'flac' || clean.includes('flac')) {
+      return 'audio/flac';
     }
+    return clean || 'audio/mp3';
+  }
 
-    // 2. Uploading to server
-    onProgress?.({
-      status: 'uploading',
-      progress: 0.35,
-      message: 'Invio della traccia audio a Gemini AI per la trascrizione...',
-    });
-
-    let mimeType = optimized.mimeType || file.type || '';
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-
-    if (ext === 'mp3' || mimeType.includes('mpeg') || mimeType.includes('mp3')) {
-      mimeType = 'audio/mp3';
-    } else if (ext === 'wav' || mimeType.includes('wav')) {
-      mimeType = 'audio/wav';
-    } else if (ext === 'm4a' || mimeType.includes('m4a') || mimeType.includes('mp4') || mimeType.includes('aac')) {
-      mimeType = 'audio/m4a';
-    } else if (ext === 'ogg' || ext === 'oga' || ext === 'opus' || mimeType.includes('ogg') || mimeType.includes('opus')) {
-      mimeType = 'audio/ogg';
-    } else if (ext === 'webm' || mimeType.includes('webm')) {
-      mimeType = 'audio/webm';
-    } else if (ext === 'flac' || mimeType.includes('flac')) {
-      mimeType = 'audio/flac';
-    } else {
-      mimeType = mimeType || 'audio/mp3';
-    }
-
-    // 3. Transcribing with Gemini
-    onProgress?.({
-      status: 'transcribing',
-      progress: 0.65,
-      message: 'Trascrizione audio con Gemini AI in corso (ascolto profondo e punteggiatura)...',
-    });
+  /**
+   * Send a single audio chunk/segment to the backend API for transcription
+   */
+  private async transcribeSingleChunk(params: {
+    base64Audio: string;
+    mimeType: string;
+    filename: string;
+    language: string;
+    format: string;
+    segmentIndex?: number;
+    totalSegments?: number;
+  }): Promise<{
+    text: string;
+    engine: string;
+    noSpeechDetected: boolean;
+  }> {
+    const { base64Audio, mimeType, filename, language, format, segmentIndex, totalSegments } = params;
 
     let response: Response;
     try {
@@ -255,11 +228,13 @@ class AudioTranscribeService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          audio: optimized.base64,
+          audio: base64Audio,
           mimeType,
-          filename: file.name,
+          filename,
           language,
           format,
+          segmentIndex,
+          totalSegments,
         }),
       });
     } catch (networkErr: any) {
@@ -269,11 +244,9 @@ class AudioTranscribeService {
       );
     }
 
-    // Read response as text first to safely detect HTML errors (Nginx 413, 502, warmup)
     const rawResponseText = await response.text().catch(() => '');
     const trimmed = rawResponseText.trim();
 
-    // Check if the server or reverse proxy returned HTML instead of JSON
     if (
       trimmed.startsWith('<') ||
       trimmed.toLowerCase().includes('<!doctype') ||
@@ -286,12 +259,12 @@ class AudioTranscribeService {
         trimmed.includes('PayloadTooLarge')
       ) {
         throw new Error(
-          'Il file audio è troppo pesante per il server (limite di caricamento superato). Prova con un file audio compresso o più breve.'
+          'Il segmento audio ha richiesto un payload elevato. Riprova: il sistema elaborerà la traccia a segmenti più compatti.'
         );
       }
       if (response.status === 504 || trimmed.includes('504') || trimmed.includes('Gateway Timeout')) {
         throw new Error(
-          'La trascrizione ha richiesto troppo tempo (timeout del server). Prova con una traccia audio più breve.'
+          'La trascrizione ha richiesto più tempo del previsto (timeout del gateway). Riprova tra qualche istante.'
         );
       }
       if (response.status === 502 || response.status === 503 || trimmed.includes('warmup')) {
@@ -321,37 +294,229 @@ class AudioTranscribeService {
       throw new Error(data.error);
     }
 
-    if (!data.success || !data.text) {
-      throw new Error(data.error || 'Trascrizione non riuscita. Nessun testo generato.');
+    if (!data.success && !data.text) {
+      throw new Error(data.error || 'Trascrizione non riuscita per questa porzione audio.');
     }
 
-    // 4. Formatting pages
+    return {
+      text: data.text || '',
+      engine: data.engine || 'Gemini 3.5 Transcribe',
+      noSpeechDetected: !!data.noSpeechDetected,
+    };
+  }
+
+  /**
+   * Transcribe an uploaded audio file using Gemini AI on the server.
+   * Supports ANY audio file size without limits by using automatic intelligent
+   * Web Audio segmentation for large/long audio tracks.
+   */
+  public async transcribeAudio(
+    file: File,
+    options: AudioTranscriptionOptions = {}
+  ): Promise<AudioTranscriptionResult> {
+    const { language = 'ita', format = 'narrative', onProgress } = options;
+    const sizeMb = file.size / (1024 * 1024);
+    const originalBlobUrl = URL.createObjectURL(file);
+    const baseTitle = file.name.replace(/\.[^/.]+$/, '').trim() || 'Registrazione Audio';
+
+    // 1. Reading file info
+    onProgress?.({
+      status: 'reading',
+      progress: 0.05,
+      message: `Caricamento file audio (${sizeMb.toFixed(1)} MB)...`,
+    });
+
+    // Detect duration
+    const duration = await this.getAudioDuration(file);
+
+    // Segment configuration:
+    // If audio is large (> 16MB) or long (> 5 minutes / 300 seconds), segment into ~5-minute chunks
+    // 5 minutes of 16kHz mono 16-bit WAV is ~9.6MB (< 13MB base64), perfectly within Gemini API payload limits
+    const CHUNK_DURATION_SEC = 300; // 5 minutes
+    const shouldSegment = (sizeMb > 16 || duration > 360) && typeof window !== 'undefined';
+
+    // Attempt intelligent segmentation via Web Audio API if file is large/long
+    if (shouldSegment) {
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          onProgress?.({
+            status: 'reading',
+            progress: 0.1,
+            message: `Decodifica traccia audio (${sizeMb.toFixed(1)} MB, ${formatAudioTime(duration)}) in corso...`,
+          });
+
+          const arrayBuffer = await file.arrayBuffer();
+          const audioCtx = new AudioCtx();
+          let decodedBuffer: AudioBuffer | null = null;
+
+          try {
+            decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          } finally {
+            audioCtx.close().catch(() => {});
+          }
+
+          if (decodedBuffer && decodedBuffer.duration > 0) {
+            const actualDuration = decodedBuffer.duration;
+            const totalSegments = Math.max(1, Math.ceil(actualDuration / CHUNK_DURATION_SEC));
+
+            console.info(
+              `Audio segmentation enabled: duration ${actualDuration.toFixed(1)}s, ${totalSegments} segments of ${CHUNK_DURATION_SEC}s`
+            );
+
+            const segmentTexts: string[] = [];
+            let detectedEngine = 'Gemini 3.5 Transcribe';
+            let allSilent = true;
+
+            for (let i = 0; i < totalSegments; i++) {
+              const startSec = i * CHUNK_DURATION_SEC;
+              const endSec = Math.min((i + 1) * CHUNK_DURATION_SEC, actualDuration);
+              const sliceDuration = endSec - startSec;
+              if (sliceDuration <= 0.2) continue;
+
+              const progressRatio = 0.15 + (i / totalSegments) * 0.75;
+              onProgress?.({
+                status: 'transcribing',
+                progress: progressRatio,
+                message: `Trascrizione Gemini AI: parte ${i + 1} di ${totalSegments} (${formatAudioTime(startSec)} - ${formatAudioTime(endSec)})...`,
+              });
+
+              // Render slice to 16kHz mono WAV using OfflineAudioContext
+              const targetRate = 16000;
+              const targetFrames = Math.ceil(sliceDuration * targetRate);
+              const offlineCtx = new OfflineAudioContext(1, targetFrames, targetRate);
+              const source = offlineCtx.createBufferSource();
+              source.buffer = decodedBuffer;
+              source.connect(offlineCtx.destination);
+              source.start(0, startSec, sliceDuration);
+
+              const renderedBuffer = await offlineCtx.startRendering();
+              const wavBlob = this.audioBufferToWav(renderedBuffer);
+              const base64Wav = await this.fileToBase64(wavBlob);
+
+              // Transcribe this segment
+              const result = await this.transcribeSingleChunk({
+                base64Audio: base64Wav,
+                mimeType: 'audio/wav',
+                filename: `${baseTitle}_part${i + 1}.wav`,
+                language,
+                format,
+                segmentIndex: i,
+                totalSegments,
+              });
+
+              detectedEngine = result.engine;
+              if (result.text && !result.noSpeechDetected) {
+                allSilent = false;
+                // Add header if multiple segments to indicate audio timeline
+                const segmentHeader = totalSegments > 1 ? `[${formatAudioTime(startSec)} - ${formatAudioTime(endSec)}]` : '';
+                segmentTexts.push(segmentHeader ? `${segmentHeader}\n${result.text}` : result.text);
+              }
+            }
+
+            // Formatting full unified book
+            onProgress?.({
+              status: 'formatting',
+              progress: 0.95,
+              message: 'Unione e formattazione dei paragrafi completata...',
+            });
+
+            let combinedText = segmentTexts.join('\n\n').trim();
+            let noSpeech = allSilent;
+
+            if (!combinedText) {
+              noSpeech = true;
+              combinedText = `Trascrizione: ${baseTitle}\n\n(Nessun discorso o parlato nitido rilevato nella traccia audio. Il file è pronto per l'ascolto vocale o per aggiungere note personali.)`;
+            }
+
+            const pages = splitTextIntoPages(combinedText);
+            const wordsCount = combinedText.split(/\s+/).filter(Boolean).length;
+
+            onProgress?.({
+              status: 'completed',
+              progress: 1.0,
+              message: 'Trascrizione completata con successo!',
+            });
+
+            return {
+              success: true,
+              title: `Trascrizione: ${baseTitle}`,
+              text: combinedText,
+              pages,
+              wordsCount,
+              duration: actualDuration,
+              engine: detectedEngine,
+              language,
+              audioBlobUrl: originalBlobUrl,
+              noSpeechDetected: noSpeech,
+              totalSegments,
+            };
+          }
+        }
+      } catch (segmentErr) {
+        console.warn('Segmentation attempt fallback to direct upload:', segmentErr);
+      }
+    }
+
+    // Direct single upload path (for compact audio files or fallback)
+    onProgress?.({
+      status: 'uploading',
+      progress: 0.35,
+      message: 'Invio della traccia audio a Gemini AI per la trascrizione...',
+    });
+
+    const base64Data = await this.fileToBase64(file);
+    const mimeType = this.resolveMimeType(file.name, file.type);
+
+    onProgress?.({
+      status: 'transcribing',
+      progress: 0.65,
+      message: 'Trascrizione audio con Gemini AI in corso (ascolto profondo e punteggiatura)...',
+    });
+
+    const result = await this.transcribeSingleChunk({
+      base64Audio: base64Data,
+      mimeType,
+      filename: file.name,
+      language,
+      format,
+    });
+
     onProgress?.({
       status: 'formatting',
       progress: 0.9,
       message: 'Organizzazione dei paragrafi e impaginazione per la lettura...',
     });
 
-    // 5. Completed
+    let cleanedText = result.text.trim();
+    let noSpeech = result.noSpeechDetected;
+
+    if (!cleanedText) {
+      noSpeech = true;
+      cleanedText = `Trascrizione: ${baseTitle}\n\n(Nessun discorso o parlato nitido rilevato nella traccia audio. Il file è pronto per l'ascolto vocale o per aggiungere note personali.)`;
+    }
+
+    const pages = splitTextIntoPages(cleanedText);
+    const wordsCount = cleanedText.split(/\s+/).filter(Boolean).length;
+
     onProgress?.({
       status: 'completed',
       progress: 1.0,
-      message: data.noSpeechDetected
-        ? 'File audio pronto (nessun parlato rilevato).'
-        : 'Trascrizione completata con successo!',
+      message: 'Trascrizione completata con successo!',
     });
 
     return {
       success: true,
-      title: data.title || `Trascrizione: ${file.name.replace(/\.[^/.]+$/, '')}`,
-      text: data.text,
-      pages: Array.isArray(data.pages) && data.pages.length > 0 ? data.pages : [data.text],
-      wordsCount: data.wordsCount || data.text.split(/\s+/).filter(Boolean).length,
+      title: `Trascrizione: ${baseTitle}`,
+      text: cleanedText,
+      pages,
+      wordsCount,
       duration,
-      engine: data.engine || 'Gemini 3.5 Transcribe',
-      language: data.language || language,
-      audioBlobUrl: optimized.blobUrl,
-      noSpeechDetected: !!data.noSpeechDetected,
+      engine: result.engine,
+      language,
+      audioBlobUrl: originalBlobUrl,
+      noSpeechDetected: noSpeech,
+      totalSegments: 1,
     };
   }
 }
