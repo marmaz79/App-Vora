@@ -253,41 +253,41 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-[#162322] border-2 border-[#2BA8A2]/40 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white max-h-[92vh] overflow-y-auto animate-slide-up"
+        className="bg-white dark:bg-[#162322] border-2 border-white/40 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white max-h-[92vh] overflow-y-auto animate-slide-up"
       >
         {/* Header Modal */}
-        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+        <div className="flex items-center justify-between border-b-2 border-dashed border-white/20 pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#EF6C4A] text-white flex items-center justify-center shrink-0 shadow-coral-glow">
-              <Video size={22} strokeWidth={2.4} />
+            <div className="w-11 h-11 rounded-2xl bg-transparent border-2 border-white text-white flex items-center justify-center shrink-0">
+              <Video size={22} strokeWidth={2.4} className="text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 id="video-transcribe-title" className="text-lg font-black text-slate-900 dark:text-white leading-snug">
+                <h3 id="video-transcribe-title" className="text-lg font-black text-white leading-snug">
                   Trascrivi Video & Social
                 </h3>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#FFD23F] text-[#1E8C86] border border-[#E6B800] shadow-xs">
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-transparent text-white border border-white/40 shadow-none">
                   AI Gemini
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-300 font-semibold mt-0.5">
+              <p className="text-xs text-slate-300 font-semibold mt-0.5">
                 Incolla link Instagram Reel, TikTok, YouTube, Facebook, X o web per trascrivere e riassumere con l'AI
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#EFF8F7] dark:bg-white/10 text-slate-600 dark:text-white hover:bg-[#EF6C4A] hover:text-white flex items-center justify-center transition-colors active:scale-95 shadow-xs"
+            className="w-9 h-9 rounded-full bg-transparent border-2 border-white text-white hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95 cursor-pointer shadow-none"
             aria-label="Chiudi"
           >
-            <X size={18} strokeWidth={2.5} />
+            <X size={18} strokeWidth={2.5} className="text-white" />
           </button>
         </div>
 
         {/* Notice Toast */}
         {copiedNotice && (
-          <div className="p-3 rounded-2xl bg-[#FFD23F] border border-[#E6B800] text-[#1E8C86] text-xs font-black flex items-center gap-2 shadow-accent-glow animate-fade-in">
-            <Check size={16} strokeWidth={3} />
+          <div className="p-3 rounded-2xl bg-slate-900/90 border-2 border-white text-white text-xs font-black flex items-center gap-2 shadow-none animate-fade-in">
+            <Check size={16} strokeWidth={3} className="text-white" />
             <span>{copiedNotice}</span>
           </div>
         )}
@@ -358,13 +358,13 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                   }}
                   disabled={isLoading}
                   placeholder="https://www.instagram.com/reel/... o tiktok.com/@... o youtu.be/..."
-                  className="w-full bg-[#FFF8E7] dark:bg-[#1C2C2A] border-2 border-[#FFD23F] focus:border-[#2BA8A2] dark:focus:border-[#3CC4BD] text-slate-900 dark:text-white font-bold placeholder-slate-400 dark:placeholder-slate-500 rounded-2xl pl-3.5 pr-10 py-3 text-sm outline-none transition-all shadow-card"
+                  className="w-full bg-transparent border-2 border-white/60 focus:border-white text-white font-bold placeholder-slate-400 rounded-2xl pl-3.5 pr-10 py-3 text-sm outline-none transition-all shadow-none"
                 />
                 {videoUrl && (
                   <button
                     type="button"
                     onClick={() => setVideoUrl('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-200 dark:bg-white/20 text-slate-600 dark:text-white flex items-center justify-center hover:bg-[#EF6C4A] hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors"
                   >
                     <X size={12} strokeWidth={2.5} />
                   </button>
@@ -378,50 +378,50 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleInsertSample('https://www.instagram.com/reel/C8qL_k1t9zK/')}
-                className="px-2.5 py-1 rounded-full bg-[#FFF2EE] dark:bg-[#2B1C1A] text-[#EF6C4A] font-bold border border-[#EF6C4A]/40 hover:border-[#EF6C4A] transition-colors"
+                className="px-2.5 py-1 rounded-full bg-transparent text-white font-bold border-2 border-white/40 hover:border-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 Instagram Reel
               </button>
               <button
                 type="button"
                 onClick={() => handleInsertSample('https://www.tiktok.com/@scienzaesalute/video/7345678901234567890')}
-                className="px-2.5 py-1 rounded-full bg-[#E8F6F5] dark:bg-white/10 text-[#1E8C86] dark:text-[#3CC4BD] font-bold border border-[#2BA8A2]/30 hover:border-[#2BA8A2] transition-colors"
+                className="px-2.5 py-1 rounded-full bg-transparent text-white font-bold border-2 border-white/40 hover:border-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 TikTok
               </button>
               <button
                 type="button"
                 onClick={() => handleInsertSample('https://www.youtube.com/watch?v=dQw4w9WgXcQ')}
-                className="px-2.5 py-1 rounded-full bg-[#E8F6F5] dark:bg-white/10 text-[#1E8C86] dark:text-[#3CC4BD] font-bold border border-[#2BA8A2]/30 hover:border-[#2BA8A2] transition-colors"
+                className="px-2.5 py-1 rounded-full bg-transparent text-white font-bold border-2 border-white/40 hover:border-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 YouTube
               </button>
               <button
                 type="button"
                 onClick={() => handleInsertSample('https://x.com/tech_insider/status/1789012345678901234')}
-                className="px-2.5 py-1 rounded-full bg-[#E8F6F5] dark:bg-white/10 text-[#1E8C86] dark:text-[#3CC4BD] font-bold border border-[#2BA8A2]/30 hover:border-[#2BA8A2] transition-colors"
+                className="px-2.5 py-1 rounded-full bg-transparent text-white font-bold border-2 border-white/40 hover:border-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 X (Twitter)
               </button>
               <button
                 type="button"
                 onClick={() => handleInsertSample('https://www.youtube.com/watch?v=k2pA2q7iO7o')}
-                className="px-2.5 py-1 rounded-full bg-[#E8F6F5] dark:bg-white/10 text-[#1E8C86] dark:text-[#3CC4BD] font-bold border border-[#2BA8A2]/30 hover:border-[#2BA8A2] transition-colors"
+                className="px-2.5 py-1 rounded-full bg-transparent text-white font-bold border-2 border-white/40 hover:border-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 Podcast
               </button>
             </div>
 
             {/* Opzioni di Elaborazione AI */}
-            <div className="p-3.5 rounded-2xl bg-[#EFF8F7] dark:bg-[#1A2E2C] border border-[#2BA8A2]/30 flex flex-col gap-3">
-              <span className="text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] flex items-center gap-1.5">
-                <Sliders size={14} />
+            <div className="p-3.5 rounded-2xl bg-transparent border-2 border-white/30 flex flex-col gap-3">
+              <span className="text-xs font-black text-white flex items-center gap-1.5">
+                <Sliders size={14} className="text-white" />
                 <span>Preferenze di Analisi e Trascrizione</span>
               </span>
 
               {/* Dettaglio Riassunto */}
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Stile Riassunto:</span>
+                <span className="text-[11px] font-bold text-slate-300 dark:text-white">Stile Riassunto:</span>
                 <div className="grid grid-cols-3 gap-1.5">
                   {[
                     { id: 'concise', label: 'Breve', desc: 'Punti chiave' },
@@ -434,8 +434,8 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                       onClick={() => setDetailLevel(lvl.id as any)}
                       className={`p-2 rounded-xl text-xs font-bold text-center border-2 transition-all cursor-pointer ${
                         detailLevel === lvl.id
-                          ? 'bg-[#FFD23F] text-slate-950 border-[#E6B800] shadow-accent-glow font-black'
-                          : 'bg-white dark:bg-[#162322] text-slate-700 dark:text-slate-300 border-[#2BA8A2]/20 hover:border-[#2BA8A2]'
+                          ? 'bg-transparent text-white border-2 border-white font-black hover:bg-white/10 shadow-none'
+                          : 'bg-transparent text-slate-300 dark:text-white/80 border-2 border-white/20 dark:border-white/40 hover:border-white hover:text-white'
                       }`}
                     >
                       <span className="block leading-tight">{lvl.label}</span>
@@ -446,20 +446,20 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
               </div>
 
               {/* Lingua Output */}
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 pt-1 border-t border-[#2BA8A2]/20">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-300 dark:text-white pt-1 border-t border-white/20">
                 <span className="flex items-center gap-1.5">
-                  <Languages size={14} className="text-[#1E8C86]" />
+                  <Languages size={14} className="text-white" />
                   <span>Lingua trascrizione e riassunto:</span>
                 </span>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as any)}
-                  className="bg-white dark:bg-[#162322] border border-[#2BA8A2]/40 rounded-xl px-2.5 py-1 text-xs font-bold text-[#1E8C86] dark:text-[#3CC4BD] outline-none"
+                  className="bg-transparent dark:bg-black border-2 border-white/40 focus:border-white rounded-xl px-2.5 py-1 text-xs font-bold text-white outline-none"
                 >
-                  <option value="ita">Italiano (ITA)</option>
-                  <option value="eng">Inglese (ENG)</option>
-                  <option value="fra">Francese (FRA)</option>
-                  <option value="esp">Spagnolo (ESP)</option>
+                  <option value="ita" className="bg-black text-white">Italiano (ITA)</option>
+                  <option value="eng" className="bg-black text-white">Inglese (ENG)</option>
+                  <option value="fra" className="bg-black text-white">Francese (FRA)</option>
+                  <option value="esp" className="bg-black text-white">Spagnolo (ESP)</option>
                 </select>
               </div>
             </div>
@@ -469,16 +469,16 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
               type="button"
               onClick={handleProcessVideo}
               disabled={isLoading || !videoUrl.trim()}
-              className="w-full py-3.5 px-4 rounded-2xl bg-[#FFD23F] hover:bg-[#FFE47A] disabled:opacity-50 text-[#1E8C86] font-black text-sm shadow-accent-glow border-2 border-[#E6B800] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-2xl bg-transparent hover:bg-white/10 disabled:opacity-50 text-white font-black text-sm border-2 border-white active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-none"
             >
               {isLoading ? (
                 <>
-                  <Loader2 size={18} className="animate-spin text-[#1E8C86]" />
+                  <Loader2 size={18} className="animate-spin text-white" />
                   <span>{loadingStep || 'Elaborazione video in corso...'}</span>
                 </>
               ) : (
                 <>
-                  <Sparkles size={18} className="text-[#1E8C86]" />
+                  <Sparkles size={18} className="text-white fill-white" />
                   <span>Trascrivi e Genera Riassunto con AI</span>
                 </>
               )}
@@ -490,7 +490,7 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
         {result && (
           <div className="flex flex-col gap-3.5">
             {/* Video Preview Card */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#FFF8E7] dark:bg-[#162322] border-2 border-[#FFD23F] shadow-xs">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent border-2 border-[#FFD23F] dark:border-white shadow-xs">
               {result.thumbnailUrl ? (
                 <img
                   src={result.thumbnailUrl}
@@ -499,7 +499,7 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                 />
               ) : (
                 <div className="w-16 h-14 rounded-xl bg-[#EF6C4A] text-white flex items-center justify-center shrink-0">
-                  <Video size={24} />
+                  <Video size={24} className="text-white" />
                 </div>
               )}
               <div className="min-w-0 flex-1">
@@ -509,7 +509,7 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                 <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
                   {result.title}
                 </h4>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-white/80 font-semibold mt-0.5">
                   <span>{result.author}</span>
                   {result.duration && <span>• {result.duration}</span>}
                   <span>• {result.wordsCount} parole</span>
@@ -519,24 +519,24 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                 href={result.url}
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-white dark:bg-white/10 text-slate-600 dark:text-white flex items-center justify-center hover:bg-[#EF6C4A] hover:text-white transition-colors shrink-0 shadow-xs"
+                className="w-8 h-8 rounded-full bg-white dark:bg-transparent text-slate-600 dark:text-white border dark:border-white flex items-center justify-center hover:bg-[#EF6C4A] dark:hover:bg-white/10 hover:text-white transition-colors shrink-0 shadow-xs"
                 title="Apri video originale"
               >
-                <ExternalLink size={14} />
+                <ExternalLink size={14} className="text-white" />
               </a>
             </div>
 
             {/* Punti Chiave (se presenti) */}
             {result.keyPoints && result.keyPoints.length > 0 && (
-              <div className="p-3 rounded-2xl bg-[#EFF8F7] dark:bg-[#1A2E2C] border border-[#2BA8A2]/30 flex flex-col gap-1.5">
-                <span className="text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-[#FFD23F] fill-[#FFD23F]" />
+              <div className="p-3 rounded-2xl bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white flex flex-col gap-1.5">
+                <span className="text-xs font-black text-[#1E8C86] dark:text-white flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-[#FFD23F] dark:text-white fill-[#FFD23F] dark:fill-white" />
                   <span>Punti Chiave Salienti:</span>
                 </span>
-                <ul className="flex flex-col gap-1 text-xs text-slate-700 dark:text-slate-200">
+                <ul className="flex flex-col gap-1 text-xs text-slate-700 dark:text-white/90">
                   {result.keyPoints.slice(0, 4).map((pt, i) => (
                     <li key={i} className="flex items-start gap-1.5">
-                      <span className="text-[#1E8C86] dark:text-[#3CC4BD] font-black">•</span>
+                      <span className="text-[#1E8C86] dark:text-white font-black">•</span>
                       <span>{pt}</span>
                     </li>
                   ))}
@@ -545,18 +545,18 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
             )}
 
             {/* Tabs Selector: Riassunto vs Trascrizione */}
-            <div className="flex items-center justify-between border-b border-[#2BA8A2]/30 pb-1">
+            <div className="flex items-center justify-between border-b border-[#2BA8A2]/30 dark:border-white/30 pb-1">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setActiveTab('summary')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === 'summary'
-                      ? 'bg-[#1E8C86] text-white shadow-teal-glow'
-                      : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-[#1E8C86]'
+                      ? 'bg-transparent border-2 border-white text-white'
+                      : 'border-2 border-transparent text-slate-300 dark:text-white/80 hover:text-white'
                   }`}
                 >
-                  <Sparkles size={14} />
+                  <Sparkles size={14} className={activeTab === 'summary' ? 'text-white' : 'text-slate-300 dark:text-white/80'} />
                   <span>Riassunto Strutturato</span>
                 </button>
                 <button
@@ -564,11 +564,11 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                   onClick={() => setActiveTab('transcription')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
                     activeTab === 'transcription'
-                      ? 'bg-[#1E8C86] text-white shadow-teal-glow'
-                      : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-[#1E8C86]'
+                      ? 'bg-transparent border-2 border-white text-white'
+                      : 'border-2 border-transparent text-slate-300 dark:text-white/80 hover:text-white'
                   }`}
                 >
-                  <FileText size={14} />
+                  <FileText size={14} className={activeTab === 'transcription' ? 'text-white' : 'text-slate-300 dark:text-white/80'} />
                   <span>Trascrizione Completa</span>
                 </button>
               </div>
@@ -581,16 +581,16 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                     activeTab === 'summary' ? 'Riassunto' : 'Trascrizione'
                   )
                 }
-                className="text-xs font-bold text-[#1E8C86] dark:text-[#3CC4BD] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-white hover:underline flex items-center gap-1 cursor-pointer"
                 title="Copia testo negli appunti"
               >
-                <Copy size={13} />
+                <Copy size={13} className="text-white" />
                 <span className="hidden sm:inline">Copia</span>
               </button>
             </div>
 
             {/* Content Preview Box */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#131F1E] border border-slate-200 dark:border-white/10 max-h-56 overflow-y-auto text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed select-text font-serif">
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-transparent border border-slate-200 dark:border-white max-h-56 overflow-y-auto text-xs text-slate-800 dark:text-white whitespace-pre-wrap leading-relaxed select-text font-serif">
               {activeTab === 'summary' ? result.summary : result.transcription}
             </div>
 
@@ -599,18 +599,18 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleSaveToLibrary(true)}
-                className="w-full sm:flex-1 py-3 px-3 rounded-2xl bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] font-black text-xs shadow-accent-glow border-2 border-[#E6B800] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:flex-1 py-3 px-3 rounded-2xl bg-transparent hover:bg-white/10 text-white font-black text-xs border-2 border-white active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-none"
               >
-                <Headphones size={16} />
+                <Headphones size={16} className="text-white" />
                 <span>Ascolta subito con Voce</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSaveToLibrary(false)}
-                className="w-full sm:flex-1 py-3 px-3 rounded-2xl bg-[#1E8C86] hover:bg-[#2BA8A2] text-white font-black text-xs shadow-teal-glow active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:flex-1 py-3 px-3 rounded-2xl bg-transparent hover:bg-white/10 text-white font-black text-xs border-2 border-white active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-none"
               >
-                <BookOpen size={16} />
+                <BookOpen size={16} className="text-white" />
                 <span>Salva nella Libreria</span>
               </button>
 
@@ -620,10 +620,10 @@ export const VideoTranscribeModal: React.FC<VideoTranscribeModalProps> = ({
                   setResult(null);
                   setVideoUrl('');
                 }}
-                className="p-3 rounded-2xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 text-slate-700 dark:text-white transition-colors"
+                className="p-3 rounded-2xl bg-transparent hover:bg-white/10 border-2 border-white text-white transition-colors cursor-pointer"
                 title="Analizza un altro video"
               >
-                <RotateCcw size={16} />
+                <RotateCcw size={16} className="text-white" />
               </button>
             </div>
           </div>

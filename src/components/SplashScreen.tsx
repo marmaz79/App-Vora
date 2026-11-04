@@ -22,15 +22,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDismiss, isDarkMod
       aria-modal="true"
       aria-label="Vora"
       onClick={onDismiss}
-      className={`fixed inset-0 z-[100] ${
-        isDarkMode
-          ? 'bg-[#0E1716]'
-          : 'bg-[#1E8C86]'
-      } text-white flex flex-col items-center justify-center p-6 select-none cursor-pointer animate-fade-in overflow-hidden transition-colors`}
+      className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-center p-6 select-none cursor-pointer animate-fade-in overflow-hidden transition-colors"
     >
       {/* Background ambient warm glows */}
-      <div className={`absolute w-80 h-80 rounded-full ${isDarkMode ? 'bg-[#FFD23F]/10' : 'bg-[#FFD23F]/20'} blur-3xl pointer-events-none -top-10 -right-10`} />
-      <div className={`absolute w-80 h-80 rounded-full ${isDarkMode ? 'bg-[#2BA8A2]/10' : 'bg-[#EF6C4A]/20'} blur-3xl pointer-events-none -bottom-10 -left-10`} />
+      <div className="absolute w-80 h-80 rounded-full bg-white/5 blur-3xl pointer-events-none -top-10 -right-10" />
+      <div className="absolute w-80 h-80 rounded-full bg-white/5 blur-3xl pointer-events-none -bottom-10 -left-10" />
 
       <main className="flex flex-col items-center text-center gap-7 max-w-sm relative z-10">
         {/* Logo Vora con carte sfalsate */}
@@ -59,17 +55,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDismiss, isDarkMod
             />
             {/* Card 5: Warm Cream / Deep Teal */}
             <div
-              className={`absolute w-20 h-28 rounded-xl ${
-                isDarkMode ? 'bg-[#162E2C] border-2 border-white/30' : 'bg-[#FFF8E7] border-2 border-white/60'
-              } shadow-sm`}
+              className="absolute w-20 h-28 rounded-xl bg-[#162E2C] border-2 border-white/30 shadow-sm"
               style={{ transform: 'rotate(24deg) translateY(-8px)' }}
             />
           </div>
 
-          {/* Central Vora Icon Badge */}
-          <div className={`relative w-36 h-36 rounded-3xl ${
-            isDarkMode ? 'bg-[#122221] border-4 border-[#FFD23F]' : 'bg-[#FFF8E7] border-4 border-[#FFD23F]'
-          } shadow-2xl flex items-center justify-center z-10 transition-transform duration-300 hover:scale-105`}>
+          {/* Central Vora Icon Badge - Bordo tondo e BIANCO */}
+          <div className="relative w-36 h-36 rounded-full bg-black/95 border-4 border-white shadow-2xl flex items-center justify-center z-10 transition-transform duration-300 hover:scale-105">
             <VoraLogo
               size={84}
               variant="flip7"
@@ -81,17 +73,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDismiss, isDarkMod
           </div>
         </div>
 
-        {/* Titolo VORA */}
+        {/* Titolo VORA - Bordo rimosso dal titolo della app */}
         <div className="flex flex-col items-center relative z-10">
-          <div className={`${
-            isDarkMode ? 'bg-[#122221] border-3 border-[#2BA8A2]' : 'bg-[#FFF8E7] border-3 border-[#1E8C86]'
-          } rounded-2xl px-9 py-3 shadow-2xl transform -skew-x-6 rotate-[-2deg]`}>
-            <h1 className={`text-5xl sm:text-6xl font-black tracking-wider ${
-              isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'
-            } transform skew-x-6 leading-none`}>
-              VORA<span className="text-[#FFD23F] drop-shadow-xs">.</span>
-            </h1>
-          </div>
+          <h1 className="text-5xl sm:text-6xl font-black tracking-wider text-white leading-none drop-shadow-md">
+            VORA<span className="text-white drop-shadow-xs">.</span>
+          </h1>
         </div>
       </main>
     </div>

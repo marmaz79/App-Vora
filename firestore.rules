@@ -32,7 +32,7 @@ service cloud.firestore {
       return data.userId is string && data.userId == uid &&
         data.email is string && data.email.size() <= 256 &&
         data.displayName is string && data.displayName.size() <= 128 &&
-        data.authProvider is string && data.authProvider in ['google'] &&
+        data.authProvider is string && data.authProvider in ['google', 'anonymous'] &&
         (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1024)) &&
         (!('booksReadCount' in data) || (data.booksReadCount is number && data.booksReadCount >= 0)) &&
         (!('totalReadingMinutes' in data) || (data.totalReadingMinutes is number && data.totalReadingMinutes >= 0)) &&
@@ -45,8 +45,17 @@ service cloud.firestore {
         data.id is string && isValidId(data.id) &&
         data.title is string && data.title.size() > 0 && data.title.size() <= 256 &&
         (!('author' in data) || (data.author is string && data.author.size() <= 128)) &&
+        (!('fileType' in data) || (data.fileType is string && data.fileType in ['pdf', 'epub', 'txt', 'scan', 'audio'])) &&
         (!('currentPage' in data) || (data.currentPage is number && data.currentPage >= 0)) &&
-        (!('totalPages' in data) || (data.totalPages is number && data.totalPages >= 0));
+        (!('totalPages' in data) || (data.totalPages is number && data.totalPages >= 0)) &&
+        (!('size' in data) || (data.size is number && data.size >= 0)) &&
+        (!('source' in data) || (data.source is string && data.source.size() <= 64)) &&
+        (!('coverColor' in data) || (data.coverColor is string && data.coverColor.size() <= 64)) &&
+        (!('ocrEngine' in data) || (data.ocrEngine is string && data.ocrEngine.size() <= 128)) &&
+        (!('audioUrl' in data) || (data.audioUrl is string && data.audioUrl.size() <= 2048)) &&
+        (!('pages' in data) || (data.pages is list && data.pages.size() <= 1000 && (data.pages.size() == 0 || data.pages[0] is string))) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
     }
 
     // Health check endpoint for verifying connection
@@ -72,22 +81,31 @@ service cloud.firestore {
 
       allow delete: if isOwner(userId) && isValidId(userId);
 
-      // User books subcollection
+      // User books subcollection (cloud saved user content)
       match /books/{bookId} {
         allow get: if isOwner(userId) && isValidId(bookId);
         allow list: if isOwner(userId);
 
         allow create: if isOwner(userId) && isValidId(bookId) &&
           incoming().userId == request.auth.uid &&
+          incoming().id == bookId &&
           isValidBook(incoming(), userId) &&
           incoming().keys().hasAll(['id', 'userId', 'title']) &&
-          incoming().keys().hasOnly(['id', 'userId', 'title', 'author', 'currentPage', 'totalPages', 'createdAt', 'updatedAt']);
+          incoming().keys().hasOnly([
+            'id', 'userId', 'title', 'author', 'fileType', 'pages', 'currentPage',
+            'totalPages', 'size', 'source', 'coverColor', 'ocrEngine', 'audioUrl',
+            'createdAt', 'updatedAt'
+          ]);
 
         allow update: if isOwner(userId) && isValidId(bookId) &&
           incoming().userId == existing().userId &&
           incoming().id == existing().id &&
           isValidBook(incoming(), userId) &&
-          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'author', 'currentPage', 'totalPages', 'updatedAt']);
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'author', 'fileType', 'pages', 'currentPage',
+            'totalPages', 'size', 'source', 'coverColor', 'ocrEngine', 'audioUrl',
+            'updatedAt'
+          ]);
 
         allow delete: if isOwner(userId) && isValidId(bookId);
       }

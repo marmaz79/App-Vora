@@ -116,15 +116,15 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-[#122220] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-hidden animate-slide-up"
+        className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-white max-h-[90vh] overflow-hidden animate-slide-up"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 pb-3.5">
+        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-[#1A3331] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center shrink-0 shadow-xs">
-              <Bell size={22} className="text-[#1E8C86] dark:text-[#3CC4BD]" />
+            <div className="relative w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Bell size={22} className="text-[#1E8C86] dark:text-white" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFD23F] border border-[#1E8C86] text-[9px] font-black text-slate-900 shadow-accent-glow">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFD23F] dark:bg-white border border-[#1E8C86] dark:border-white text-[9px] font-black text-slate-900 dark:text-black shadow-accent-glow">
                   {unreadCount}
                 </span>
               )}
@@ -134,21 +134,21 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               <div className="flex items-center gap-2">
                 <h2
                   id="notifications-modal-title"
-                  className="text-lg font-black text-[#1E8C86] dark:text-[#3CC4BD] leading-tight"
+                  className="text-lg font-black text-[#1E8C86] dark:text-white leading-tight"
                 >
                   Notifiche
                 </h2>
                 {unreadCount > 0 ? (
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF8E7] dark:bg-[#2B271A] text-[#1E8C86] dark:text-[#FFD23F] border border-[#FFD23F] dark:border-[#FFD23F]/50">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF8E7] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#FFD23F] dark:border-white">
                     {unreadCount} nuove
                   </span>
                 ) : (
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white">
                     Tutte lette
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-white/80 font-medium truncate mt-0.5">
                 Aggiornamenti sui libri, sintesi vocale e novità
               </p>
             </div>
@@ -160,7 +160,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 type="button"
                 onClick={onMarkAllAsRead}
                 aria-label="Segna tutte come lette"
-                className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 flex items-center justify-center transition-all active:scale-95"
+                className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
                 title="Segna tutte come lette"
               >
                 <CheckCheck size={18} />
@@ -171,7 +171,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Chiudi notifiche"
-              className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 flex items-center justify-center transition-all active:scale-95"
+              className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -183,16 +183,18 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveFilter('all')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'all'
-                ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
-                : 'bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#3CC4BD]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
             }`}
           >
             <span>Tutte</span>
             <span
               className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                activeFilter === 'all' ? 'bg-[#1E8C86] text-white' : 'bg-white dark:bg-[#122220] text-[#1E8C86] dark:text-[#3CC4BD] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40'
+                activeFilter === 'all'
+                  ? 'bg-[#1E8C86] dark:bg-white dark:text-black text-white'
+                  : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white'
               }`}
             >
               {notifications.length}
@@ -202,19 +204,15 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveFilter('unread')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'unread'
-                ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
-                : 'bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#3CC4BD]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
             }`}
           >
             <span>Non lette</span>
             {unreadCount > 0 && (
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                  activeFilter === 'unread' ? 'bg-[#FFD23F] text-slate-900' : 'bg-[#FFD23F] text-slate-900'
-                }`}
-              >
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full font-black bg-[#FFD23F] dark:bg-white text-slate-900 dark:text-black">
                 {unreadCount}
               </span>
             )}
@@ -223,26 +221,26 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveFilter('reading')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'reading'
-                ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
-                : 'bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#3CC4BD]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
             }`}
           >
-            <Volume2 size={13} />
+            <Volume2 size={13} className="text-white" />
             <span>Lettura</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveFilter('system')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'system'
-                ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
-                : 'bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#3CC4BD]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
             }`}
           >
-            <Sparkles size={13} />
+            <Sparkles size={13} className="text-white" />
             <span>Sistema</span>
           </button>
         </div>
@@ -251,12 +249,12 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1 max-h-[50vh] sm:max-h-[55vh] select-text">
           {filteredNotifications.length === 0 ? (
             <div className="p-8 text-center flex flex-col items-center justify-center gap-3 my-auto">
-              <div className="w-14 h-14 rounded-full bg-[#E8F6F5] dark:bg-[#1A3331] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 flex items-center justify-center text-[#1E8C86] dark:text-[#3CC4BD]">
-                <BellOff size={26} />
+              <div className="w-14 h-14 rounded-full bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white flex items-center justify-center text-[#1E8C86] dark:text-white">
+                <BellOff size={26} className="text-white" />
               </div>
               <div>
                 <h3 className="text-sm font-black text-slate-800 dark:text-white">Nessuna notifica</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 max-w-xs">
+                <p className="text-xs text-slate-500 dark:text-white/80 font-medium mt-1 max-w-xs">
                   {activeFilter === 'unread'
                     ? 'Hai letto tutte le notifiche! Ottimo lavoro.'
                     : 'Non ci sono notifiche presenti per questa categoria.'}
@@ -267,9 +265,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 <button
                   type="button"
                   onClick={onResetSample}
-                  className="mt-2 text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] bg-[#E8F6F5] dark:bg-[#1A3331] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95"
+                  className="mt-2 text-xs font-black text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                 >
-                  <RotateCcw size={14} />
+                  <RotateCcw size={14} className="text-white" />
                   <span>Ripristina notifiche demo</span>
                 </button>
               )}
@@ -281,26 +279,26 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 onClick={() => onMarkAsRead(notif.id)}
                 className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative group flex flex-col gap-2.5 ${
                   notif.read
-                    ? 'bg-white dark:bg-[#162725] border-slate-200 dark:border-slate-800 border-l-[6px] border-l-slate-300 dark:border-l-slate-600 opacity-80 hover:opacity-100 hover:bg-[#FFF8E7]/30 dark:hover:bg-[#1B322F]'
-                    : 'bg-white dark:bg-[#18302D] border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 border-l-[6px] border-l-[#2BA8A2] shadow-xs hover:border-[#2BA8A2] dark:hover:border-[#3CC4BD]'
+                    ? 'bg-white dark:bg-transparent border-slate-200 dark:border-white/40 border-l-[6px] border-l-slate-300 dark:border-l-white/60 opacity-80 hover:opacity-100 hover:bg-[#FFF8E7]/30 dark:hover:bg-white/10'
+                    : 'bg-white dark:bg-transparent border-[#2BA8A2]/30 dark:border-white border-l-[6px] border-l-[#2BA8A2] dark:border-l-white shadow-xs hover:border-[#2BA8A2] dark:hover:border-white dark:hover:bg-white/10'
                 }`}
               >
                 {/* Header item: Icon, Badge, Time, Actions */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-xl bg-[#E8F6F5] dark:bg-[#122220] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-xl bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white flex items-center justify-center shrink-0">
                       {getNotificationIcon(notif.type)}
                     </div>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border bg-[#E8F6F5] dark:bg-[#122220] border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD]">
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border bg-[#E8F6F5] dark:bg-transparent border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white">
                       {getNotificationTypeLabel(notif.type)}
                     </span>
                     {!notif.read && (
-                      <span className="w-2 h-2 rounded-full bg-[#FFD23F] ring-2 ring-[#FFD23F]/30 shrink-0 shadow-accent-glow" />
+                      <span className="w-2 h-2 rounded-full bg-[#FFD23F] dark:bg-white ring-2 ring-[#FFD23F]/30 dark:ring-white/30 shrink-0 shadow-accent-glow" />
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 shrink-0">
-                    <span className="text-[11px] font-semibold">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/80 shrink-0">
+                    <span className="text-[11px] font-semibold text-white/90">
                       {formatRelativeTime(notif.timestamp)}
                     </span>
 
@@ -311,7 +309,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         onDeleteNotification(notif.id);
                       }}
                       aria-label="Elimina notifica"
-                      className="w-6 h-6 rounded-md hover:bg-[#EF6C4A]/10 hover:text-[#EF6C4A] text-slate-400 dark:text-slate-500 flex items-center justify-center transition-colors"
+                      className="w-6 h-6 rounded-md hover:bg-[#EF6C4A]/10 hover:text-[#EF6C4A] text-slate-400 dark:text-white/70 hover:dark:text-white flex items-center justify-center transition-colors cursor-pointer"
                       title="Elimina"
                     >
                       <Trash2 size={13} />
@@ -324,7 +322,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-snug">
                     {notif.title}
                   </h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-white/90 font-medium leading-relaxed">
                     {notif.message}
                   </p>
                 </div>
@@ -338,10 +336,10 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         e.stopPropagation();
                         handleActionClick(notif);
                       }}
-                      className="text-xs font-black text-slate-900 bg-[#FFD23F] hover:bg-[#FFE47A] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all shadow-accent-glow active:scale-95"
+                      className="text-xs font-black text-slate-900 dark:text-white bg-[#FFD23F] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white hover:bg-[#FFE47A] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all shadow-accent-glow dark:shadow-none active:scale-95 cursor-pointer"
                     >
                       <span>{notif.actionLabel}</span>
-                      <ArrowRight size={13} />
+                      <ArrowRight size={13} className="text-white" />
                     </button>
 
                     {!notif.read && (
@@ -351,9 +349,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                           e.stopPropagation();
                           onMarkAsRead(notif.id);
                         }}
-                        className="text-[11px] font-bold text-[#1E8C86] dark:text-[#3CC4BD] hover:underline flex items-center gap-1 transition-colors"
+                        className="text-[11px] font-bold text-[#1E8C86] dark:text-white hover:underline flex items-center gap-1 transition-colors cursor-pointer"
                       >
-                        <Check size={13} />
+                        <Check size={13} className="text-white" />
                         <span>Segna come letta</span>
                       </button>
                     )}
@@ -365,12 +363,12 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex items-center justify-between pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 text-xs text-slate-500 dark:text-white/80">
           {notifications.length > 0 ? (
             <button
               type="button"
               onClick={onClearAll}
-              className="text-slate-500 dark:text-slate-400 hover:text-[#EF6C4A] flex items-center gap-1.5 transition-colors font-bold py-1 px-1.5 rounded-lg active:scale-95"
+              className="text-slate-500 dark:text-white/80 hover:text-[#EF6C4A] dark:hover:text-white flex items-center gap-1.5 transition-colors font-bold py-1 px-1.5 rounded-lg active:scale-95 cursor-pointer"
             >
               <Trash2 size={14} />
               <span>Cancella tutte</span>
@@ -382,7 +380,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-black text-[#1E8C86] dark:text-[#3CC4BD] bg-[#E8F6F5] dark:bg-[#1A3331] hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 px-5 py-2 rounded-full transition-all active:scale-95"
+            className="text-xs font-black text-[#1E8C86] dark:text-white bg-[#E8F6F5] dark:bg-transparent hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white px-5 py-2 rounded-full transition-all active:scale-95 cursor-pointer"
           >
             Chiudi
           </button>

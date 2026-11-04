@@ -29,7 +29,7 @@
         "authProvider": {
           "type": "string",
           "description": "Identity provider used for authentication",
-          "enum": ["google"]
+          "enum": ["google", "anonymous"]
         },
         "booksReadCount": {
           "type": "number",
@@ -77,6 +77,11 @@
           "description": "Author or document source",
           "maxLength": 128
         },
+        "fileType": {
+          "type": "string",
+          "description": "File format type",
+          "enum": ["pdf", "epub", "txt", "scan", "audio"]
+        },
         "currentPage": {
           "type": "number",
           "description": "Current active reading page index"
@@ -84,6 +89,34 @@
         "totalPages": {
           "type": "number",
           "description": "Total number of pages"
+        },
+        "size": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "source": {
+          "type": "string",
+          "description": "Origin of the book (upload, scan, sample)",
+          "maxLength": 64
+        },
+        "coverColor": {
+          "type": "string",
+          "description": "Cover background color code",
+          "maxLength": 64
+        },
+        "ocrEngine": {
+          "type": "string",
+          "description": "OCR or transcription engine used",
+          "maxLength": 128
+        },
+        "audioUrl": {
+          "type": "string",
+          "description": "Audio stream or blob URL reference",
+          "maxLength": 2048
+        },
+        "pages": {
+          "type": "array",
+          "description": "Array of page text content"
         },
         "createdAt": {
           "type": "string",

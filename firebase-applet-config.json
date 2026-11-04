@@ -3,6 +3,7 @@
   "appId": "1:598942457650:web:7c597ce4f42cf00145c12b",
   "apiKey": "AIzaSyA34aq6y6uXxNNYPwdOZ00CZnbaujtDcWQ",
   "authDomain": "composed-arch-756.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-appvora-403da152-6942-4cf3-b402-dc690fe8cdfd",
   "storageBucket": "composed-arch-756.firebasestorage.app",
   "messagingSenderId": "598942457650",
   "measurementId": "",

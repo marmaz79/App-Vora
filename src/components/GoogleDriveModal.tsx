@@ -230,13 +230,13 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
       aria-labelledby="google-drive-title"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 select-none animate-fade-in font-sans"
     >
-      <div className="bg-white dark:bg-[#122220] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-slate-100 max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-white max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-[#1A3331] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-white flex items-center justify-center shrink-0 shadow-none">
               {/* Google Drive Signature Icon */}
-              <svg className="w-5 h-5 text-[#1E8C86]" viewBox="0 0 87.3 78" fill="none">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
                 <path
                   d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z"
                   fill="#2BA8A2"
@@ -264,10 +264,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
               </svg>
             </div>
             <div className="min-w-0">
-              <h2 id="google-drive-title" className="text-base sm:text-lg font-black text-[#1E8C86] dark:text-[#3CC4BD] truncate">
+              <h2 id="google-drive-title" className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
                 Google Drive
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
+              <p className="text-xs text-slate-500 dark:text-slate-300 font-medium truncate">
                 Importa libri e documenti dal tuo archivio Drive
               </p>
             </div>
@@ -283,7 +283,7 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                   setFiles([]);
                 }}
                 title="Cambia account Google Drive"
-                className="text-[11px] text-[#1E8C86] dark:text-[#3CC4BD] hover:underline px-2.5 py-1 rounded-full border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 bg-[#E8F6F5] dark:bg-[#1A3331] font-black transition-colors"
+                className="text-[11px] text-white hover:underline px-2.5 py-1 rounded-full border-2 border-white bg-transparent font-black transition-colors cursor-pointer"
               >
                 Cambia account
               </button>
@@ -292,9 +292,9 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Chiudi finestra Google Drive"
-              className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-[#1A3331] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] transition-all shrink-0 active:scale-95"
+              className="w-9 h-9 rounded-full bg-transparent border-2 border-white text-white flex items-center justify-center hover:bg-white/10 transition-all shrink-0 active:scale-95 cursor-pointer shadow-none"
             >
-              <X size={18} />
+              <X size={18} className="text-white" />
             </button>
           </div>
         </div>
@@ -313,17 +313,17 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 type="button"
                 onClick={handleConnect}
                 disabled={loading}
-                className="w-full sm:flex-1 py-2.5 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black text-xs active:scale-95 transition-all shadow-accent-glow flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 py-2.5 rounded-full bg-transparent hover:bg-white/10 text-white font-black text-xs active:scale-95 transition-all border-2 border-white flex items-center justify-center gap-2 shadow-none cursor-pointer"
               >
-                {loading ? <Loader2 size={15} className="animate-spin" /> : null}
+                {loading ? <Loader2 size={15} className="animate-spin text-white" /> : null}
                 <span>Autorizza Google Drive</span>
               </button>
               <button
                 type="button"
                 onClick={() => deviceFileInputRef.current?.click()}
-                className="w-full sm:flex-1 py-2.5 rounded-full bg-white dark:bg-[#1A3331] border-2 border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] font-black text-xs hover:bg-[#E8F6F5] dark:hover:bg-[#234542] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 py-2.5 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-white font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-2 shadow-none cursor-pointer"
               >
-                <HardDrive size={15} />
+                <HardDrive size={15} className="text-white" />
                 <span>Scegli dal tuo telefono / PC</span>
               </button>
             </div>
@@ -344,14 +344,14 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
         {/* Not authenticated state */}
         {!isAuthenticated ? (
           <div className="py-10 flex flex-col items-center justify-center text-center gap-4 px-4 my-auto">
-            <div className="w-16 h-16 rounded-3xl bg-[#E8F6F5] dark:bg-[#1A3331] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 flex items-center justify-center shadow-xs">
-              <HardDrive size={32} className="text-[#1E8C86] dark:text-[#3CC4BD]" />
+            <div className="w-16 h-16 rounded-3xl bg-transparent border-2 border-white flex items-center justify-center shadow-none">
+              <HardDrive size={32} className="text-white" />
             </div>
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1">
                 Connetti il tuo Google Drive
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed font-medium">
+              <p className="text-xs text-slate-500 dark:text-slate-300 max-w-sm mx-auto leading-relaxed font-medium">
                 Autorizza l'accesso in sola lettura per scegliere ed estrarre libri in PDF, EPUB o documenti di testo direttamente dal tuo cloud.
               </p>
             </div>
@@ -360,16 +360,16 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 type="button"
                 onClick={handleConnect}
                 disabled={loading}
-                className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-accent-glow disabled:opacity-50"
+                className="w-full py-3 rounded-full bg-transparent hover:bg-white/10 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all border-2 border-white disabled:opacity-50 shadow-none cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={16} className="animate-spin text-white" />
                     <span>Connessione...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 shrink-0 text-white fill-white" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -395,10 +395,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
               <button
                 type="button"
                 onClick={() => deviceFileInputRef.current?.click()}
-                className="w-full py-3 rounded-full bg-white dark:bg-[#1A3331] hover:bg-[#E8F6F5] dark:hover:bg-[#234542] border-2 border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] font-black text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xs"
+                className="w-full py-3 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-none cursor-pointer"
                 title="Apri il selettore del dispositivo con accesso diretto a Google Drive"
               >
-                <HardDrive size={16} />
+                <HardDrive size={16} className="text-white" />
                 <span>Scegli dal telefono</span>
               </button>
             </div>
@@ -411,19 +411,19 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
               <div className="flex-1 relative">
                 <Search
                   size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1E8C86] dark:text-[#3CC4BD]"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
                 />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Cerca file su Google Drive..."
-                  className="w-full bg-[#FFF8E7]/50 dark:bg-[#162725] border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 focus:border-[#2BA8A2] rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-all"
+                  className="w-full bg-transparent border-2 border-white/40 focus:border-white rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none transition-all"
                 />
               </div>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-[#2BA8A2] text-white font-black text-xs hover:bg-[#1E8C86] active:scale-95 transition-all shrink-0 shadow-xs"
+                className="px-4 py-2 rounded-xl bg-transparent hover:bg-white/10 text-white border-2 border-white font-black text-xs active:scale-95 transition-all shrink-0 cursor-pointer"
               >
                 Cerca
               </button>
@@ -433,22 +433,22 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                 disabled={loading}
                 title="Aggiorna elenco file"
                 aria-label="Aggiorna elenco"
-                className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-[#1A3331] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-[#234542] active:scale-95 transition-all shrink-0"
+                className="w-9 h-9 rounded-xl bg-transparent hover:bg-white/10 text-white border-2 border-white flex items-center justify-center active:scale-95 transition-all shrink-0 cursor-pointer"
               >
-                <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+                <RefreshCw size={15} className={`text-white ${loading ? 'animate-spin' : ''}`} />
               </button>
             </form>
 
             {/* Breadcrumb Navigation */}
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 overflow-x-auto no-scrollbar py-1 shrink-0">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-white/80 overflow-x-auto no-scrollbar py-1 shrink-0">
               {folderStack.map((folder, idx) => (
                 <React.Fragment key={folder.id || 'root'}>
-                  {idx > 0 && <span className="text-[#2BA8A2] font-black">/</span>}
+                  {idx > 0 && <span className="text-[#2BA8A2] dark:text-white font-black">/</span>}
                   <button
                     type="button"
                     onClick={() => handleGoBackFolder(idx)}
-                    className={`hover:text-[#1E8C86] dark:hover:text-[#3CC4BD] whitespace-nowrap transition-colors ${
-                      idx === folderStack.length - 1 ? 'text-[#1E8C86] dark:text-[#3CC4BD] font-black' : ''
+                    className={`hover:text-[#1E8C86] dark:hover:text-white whitespace-nowrap transition-colors ${
+                      idx === folderStack.length - 1 ? 'text-[#1E8C86] dark:text-white font-black' : ''
                     }`}
                   >
                     {folder.name}
@@ -472,10 +472,10 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveFilter(tab.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-black transition-all shrink-0 active:scale-95 ${
+                  className={`px-3 py-1 rounded-full text-xs font-black transition-all shrink-0 active:scale-95 cursor-pointer ${
                     activeFilter === tab.id
-                      ? 'bg-[#2BA8A2] text-white shadow-teal-glow'
-                      : 'bg-[#E8F6F5] dark:bg-[#1A3331] text-[#1E8C86] dark:text-[#3CC4BD] hover:bg-[#3CC4BD]/20 dark:hover:bg-[#234542] border border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40'
+                      ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow'
+                      : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white'
                   }`}
                 >
                   {tab.label}
@@ -484,17 +484,17 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
             </div>
 
             {/* File List */}
-            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[#2BA8A2]/15 dark:divide-[#2BA8A2]/20 border-2 border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl bg-white dark:bg-[#162725] shadow-xs">
+            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[#2BA8A2]/15 dark:divide-white/20 border-2 border-[#2BA8A2]/20 dark:border-white rounded-2xl bg-white dark:bg-transparent shadow-xs">
               {loading && files.length === 0 ? (
-                <div className="py-14 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
-                  <Loader2 size={28} className="animate-spin text-[#2BA8A2]" />
-                  <span className="text-xs font-bold text-[#1E8C86] dark:text-[#3CC4BD]">Lettura file da Google Drive...</span>
+                <div className="py-14 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-white/80">
+                  <Loader2 size={28} className="animate-spin text-[#2BA8A2] dark:text-white" />
+                  <span className="text-xs font-bold text-[#1E8C86] dark:text-white">Lettura file da Google Drive...</span>
                 </div>
               ) : filteredFiles.length === 0 ? (
-                <div className="py-14 flex flex-col items-center justify-center gap-2 text-slate-500 dark:text-slate-400 px-4 text-center">
-                  <FileText size={32} className="text-[#2BA8A2]/50" />
+                <div className="py-14 flex flex-col items-center justify-center gap-2 text-slate-500 dark:text-white/80 px-4 text-center">
+                  <FileText size={32} className="text-[#2BA8A2]/50 dark:text-white/50" />
                   <p className="text-sm font-black text-slate-800 dark:text-white">Nessun file compatibile trovato</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <p className="text-xs text-slate-500 dark:text-white/80 font-medium">
                     Prova a cercare per nome o carica file PDF, EPUB o TXT su Google Drive.
                   </p>
                 </div>
@@ -507,17 +507,17 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
                     <div
                       key={file.id}
                       onClick={() => !isDownloading && handleSelectFile(file)}
-                      className="px-3.5 py-2.5 flex items-center justify-between gap-3 hover:bg-[#E8F6F5]/50 dark:hover:bg-[#1B322F] cursor-pointer transition-colors group select-none"
+                      className="px-3.5 py-2.5 flex items-center justify-between gap-3 hover:bg-[#E8F6F5]/50 dark:hover:bg-white/10 cursor-pointer transition-colors group select-none"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-[#122220] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <div className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform text-white">
                           {getFileIcon(file.mimeType)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-[#1E8C86] dark:group-hover:text-[#3CC4BD]">
+                          <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-[#1E8C86] dark:group-hover:text-white">
                             {file.name}
                           </p>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-white/80 font-medium">
                             <span>
                               {isFolder ? 'Cartella' : file.mimeType.includes('pdf') ? 'PDF' : file.mimeType.includes('document') ? 'Google Doc' : 'Documento'}
                             </span>
@@ -533,17 +533,17 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
 
                       <div className="shrink-0 flex items-center gap-2">
                         {isDownloading ? (
-                          <Loader2 size={16} className="animate-spin text-[#2BA8A2]" />
+                          <Loader2 size={16} className="animate-spin text-[#2BA8A2] dark:text-white" />
                         ) : isFolder ? (
-                          <span className="text-xs text-[#1E8C86] dark:text-[#3CC4BD] font-black group-hover:translate-x-0.5 transition-transform">
+                          <span className="text-xs text-[#1E8C86] dark:text-white font-black group-hover:translate-x-0.5 transition-transform">
                             Apri →
                           </span>
                         ) : (
                           <button
                             type="button"
-                            className="px-3 py-1 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 text-xs font-black transition-all flex items-center gap-1 shadow-accent-glow active:scale-95"
+                            className="px-3 py-1 rounded-full bg-[#FFD23F] dark:bg-transparent hover:bg-[#FFE47A] dark:hover:bg-white/10 text-slate-900 dark:text-white border-2 border-transparent dark:border-white text-xs font-black transition-all flex items-center gap-1 shadow-accent-glow active:scale-95 cursor-pointer"
                           >
-                            <Download size={12} />
+                            <Download size={12} className="text-slate-900 dark:text-white" />
                             <span>Importa</span>
                           </button>
                         )}
@@ -566,12 +566,12 @@ export const GoogleDriveModal: React.FC<GoogleDriveModalProps> = ({
         />
 
         {/* Footer info */}
-        <div className="pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-[#2BA8A2]/30 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 shrink-0 font-medium">
+        <div className="pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 flex items-center justify-between text-[11px] text-slate-500 dark:text-white/80 shrink-0 font-medium">
           <span>Supportati: PDF, Google Docs, EPUB, TXT, Audio, Immagini</span>
           <button
             type="button"
             onClick={onClose}
-            className="text-[#1E8C86] dark:text-[#3CC4BD] hover:underline font-black"
+            className="text-[#1E8C86] dark:text-white hover:underline font-black cursor-pointer"
           >
             Chiudi
           </button>

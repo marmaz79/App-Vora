@@ -29,7 +29,7 @@ export function App() {
   const [user, setUser] = useState<User>(storageService.getUser());
   const [settings, setSettings] = useState<TtsSettings>(() => {
     const s = storageService.getSettings();
-    if (!s.highContrastMode || s.highContrastMode === 'white') {
+    if (!s.highContrastMode || s.highContrastMode === 'white' || s.highContrastMode === 'cream-black' || s.highContrastMode === 'sepia' || s.highContrastMode === 'paperwhite') {
       s.highContrastMode = 'dark';
       storageService.saveSettings(s);
     }
@@ -64,14 +64,18 @@ export function App() {
     setBooks(loadedBooks);
   }, []);
 
-  // Listen to Firebase Auth state for seamless Google session restore
+  // Listen to Firebase Auth state for seamless Google session restore & cloud synchronization
   useEffect(() => {
-    const unsubscribe = subscribeToAuthState((fbUser) => {
+    const unsubscribe = subscribeToAuthState(async (fbUser) => {
       if (fbUser) {
         setUser(fbUser);
         storageService.saveUser(fbUser);
         storageService.setAuthenticated(true);
         setShowLogin(false);
+        try {
+          const { books: syncedBooks } = await storageService.syncWithCloud(fbUser.user_id);
+          setBooks(syncedBooks);
+        } catch {}
       }
     });
     return () => unsubscribe();
@@ -97,12 +101,16 @@ export function App() {
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  const handleLoginSuccess = useCallback((loggedInUser: User) => {
+  const handleLoginSuccess = useCallback(async (loggedInUser: User) => {
     setUser(loggedInUser);
     storageService.saveUser(loggedInUser);
     storageService.setAuthenticated(true);
     setShowLogin(false);
     showToast(`Accesso effettuato come ${loggedInUser.name}`);
+    try {
+      const { books: syncedBooks } = await storageService.syncWithCloud(loggedInUser.user_id);
+      setBooks(syncedBooks);
+    } catch {}
   }, [showToast]);
 
   const handleSkipLogin = useCallback(() => {
@@ -324,23 +332,16 @@ export function App() {
     storageService.saveUser(newUser);
   };
 
-  const handleClearSampleBooks = () => {
-    const remaining = storageService.getBooks().filter(
-      (b) => b.source !== 'sample' && !b.book_id.startsWith('sample-')
-    );
-    storageService.saveBooks(remaining);
-    setBooks(remaining);
-    showToast('Tutti i libri di esempio sono stati eliminati!');
-  };
+
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark bg-[#0E1716] text-slate-100' : 'bg-[#EFF8F7] text-slate-800'} flex flex-col font-sans selection:bg-[#FFD23F] selection:text-[#1E8C86] transition-colors duration-200`}>
-      {/* Toast Notification - Flip7 Pill Style */}
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-[#0E1716] text-white' : 'bg-[#EFF8F7] text-slate-800'} flex flex-col font-sans selection:bg-white/20 selection:text-white transition-colors duration-200`}>
+      {/* Toast Notification */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-[#FFD23F] text-[#1E8C86] font-black px-6 py-2.5 rounded-full shadow-accent-glow border-2 border-[#E6B800] text-sm animate-bounce flex items-center gap-2 select-none"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-transparent text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm animate-bounce flex items-center gap-2 select-none backdrop-blur-md"
         >
           <span>{toastMessage}</span>
         </div>
@@ -366,12 +367,12 @@ export function App() {
               role="status"
               aria-live="polite"
               aria-label="Caricamento..."
-              className="fixed inset-0 z-50 bg-[#EFF8F7]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
+              className="fixed inset-0 z-50 bg-[#EFF8F7]/95 dark:bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
             >
               <div className="relative flex items-center justify-center mb-4">
-                <div className="w-14 h-14 rounded-full border-4 border-[#2BA8A2]/25 border-t-[#2BA8A2] animate-spin" />
+                <div className="w-14 h-14 rounded-full border-4 border-[#2BA8A2]/25 dark:border-white/20 border-t-[#2BA8A2] dark:border-t-white animate-spin" />
               </div>
-              <p className="text-base font-black text-[#1E8C86] tracking-wide">
+              <p className="text-base font-black text-[#1E8C86] dark:text-white tracking-wide">
                 Caricamento in corso...
               </p>
             </div>
@@ -506,8 +507,6 @@ export function App() {
                 user={user}
                 books={books}
                 onUpdateUser={handleUpdateUser}
-                onClearSampleBooks={handleClearSampleBooks}
-                onShowSplash={() => setShowSplash(true)}
                 onBack={handleBackToPrevious}
                 onOpenLogin={() => setShowLogin(true)}
                 onLogout={handleLogout}

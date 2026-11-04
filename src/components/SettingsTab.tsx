@@ -159,33 +159,33 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   };
 
   return (
-    <section className="flex flex-col bg-transparent text-slate-800 select-none pb-32 animate-fade-in font-sans" aria-label="Impostazioni applicazione">
+    <section className="flex flex-col bg-transparent text-slate-800 dark:text-slate-100 select-none pb-32 animate-fade-in font-sans" aria-label="Impostazioni applicazione">
       {/* 1. TOP HEADER (Flip7 Style) */}
-      <div className="pt-2 pb-3 px-1 sm:px-2 flex items-center gap-3 border-b-2 border-dashed border-[#2BA8A2]/30 mb-3">
+      <div className="pt-2 pb-3 px-1 sm:px-2 flex items-center gap-3 border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-white/20 mb-3">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
             aria-label="Torna indietro"
-            className="w-10 h-10 rounded-full border border-[#2BA8A2]/30 bg-white hover:bg-[#E8F6F5] active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all shrink-0 shadow-xs"
+            className="w-10 h-10 rounded-full border-2 border-white bg-transparent hover:bg-white/10 active:scale-95 flex items-center justify-center text-white transition-all shrink-0 shadow-xs cursor-pointer"
             title="Torna indietro"
           >
-            <ArrowLeft size={19} className="stroke-[2.5]" />
+            <ArrowLeft size={19} className="stroke-[2.5] text-white" />
           </button>
         )}
         <div className="min-w-0">
-          <span className="block text-[11px] font-extrabold text-[#1E8C86] tracking-wider uppercase">
+          <span className="block text-[11px] font-extrabold text-[#1E8C86] dark:text-white tracking-wider uppercase">
             Lettura & Sintesi Vocale
           </span>
-          <h1 className="text-xl sm:text-2xl font-black text-[#1E8C86] tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-[#1E8C86] dark:text-white tracking-tight flex items-center gap-2">
             <span>Impostazioni</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FFD23F] shadow-accent-glow inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FFD23F] dark:bg-white shadow-accent-glow inline-block" />
           </h1>
         </div>
       </div>
 
-      {/* 2. LISTA IMPOSTAZIONI (Flip7 White Card with tactile rows) */}
-      <div className="bg-white rounded-3xl p-3 sm:p-5 border-2 border-[#2BA8A2]/20 shadow-card flex flex-col divide-y divide-[#2BA8A2]/10">
+      {/* 2. LISTA IMPOSTAZIONI */}
+      <div className="bg-white dark:bg-transparent rounded-3xl p-3 sm:p-5 border-2 border-[#2BA8A2]/20 dark:border-white shadow-card flex flex-col divide-y divide-[#2BA8A2]/10 dark:divide-white/20">
         {/* ROW 1: TEMA DI CONTRASTO */}
         <div
           role="button"
@@ -194,22 +194,22 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setActiveModal('contrast');
           }}
-          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] rounded-2xl active:scale-[0.99] transition-all group"
+          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-2xl active:scale-[0.99] transition-all group"
         >
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-[#1E8C86] transition-colors">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-[#1E8C86] dark:group-hover:text-white transition-colors">
               Tema di contrasto e visualizzazione
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               Configura il tema monocromatico per il massimo comfort visivo ed eliminazione dei riflessi.
             </p>
-            {/* Badge Flip7 */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-xs font-black text-[#1E8C86] shadow-xs">
-              <span className={`w-2.5 h-2.5 rounded-full ${activeThemeOption.swatchBg} border border-[#2BA8A2]`} />
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+              <span className={`w-2.5 h-2.5 rounded-full ${activeThemeOption.swatchBg} border border-white`} />
               <span>{activeThemeOption.title}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-[#2BA8A2] group-hover:translate-x-0.5 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-[#2BA8A2] dark:text-white group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
 
         {/* ROW 2: VOCE DI LETTURA (TTS AI & Sistema) */}
@@ -220,31 +220,31 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setActiveModal('voice');
           }}
-          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] rounded-2xl active:scale-[0.99] transition-all group"
+          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-2xl active:scale-[0.99] transition-all group"
         >
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-[#1E8C86] transition-colors">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-[#1E8C86] dark:group-hover:text-white transition-colors">
               Voce di lettura (Sintesi Vocale)
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               Seleziona la voce italiana per la narrazione. Include voci AI Gemini e voci di sistema del dispositivo.
             </p>
-            {/* Badge Flip7 */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E7] border border-[#FFD23F] text-xs font-black text-[#1E8C86] shadow-xs">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
               {isCurrentVoiceAi ? (
                 <>
-                  <Sparkles size={13} className="text-[#FFD23F] fill-[#FFD23F]" />
+                  <Sparkles size={13} className="text-[#FFD23F] dark:text-white fill-current" />
                   <span>Voce AI: {settings.voiceName || 'Chiara (Naturale)'}</span>
                 </>
               ) : (
                 <>
-                  <Volume2 size={13} className="text-[#1E8C86]" />
+                  <Volume2 size={13} className="text-[#1E8C86] dark:text-white" />
                   <span>{settings.voiceName || 'Voce di Sistema'}</span>
                 </>
               )}
             </div>
           </div>
-          <ChevronRight size={20} className="text-[#2BA8A2] group-hover:translate-x-0.5 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-[#2BA8A2] dark:text-white group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
 
         {/* ROW 3: VELOCITÀ DI RIPRODUZIONE */}
@@ -255,22 +255,22 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setActiveModal('speed');
           }}
-          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] rounded-2xl active:scale-[0.99] transition-all group"
+          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-2xl active:scale-[0.99] transition-all group"
         >
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-[#1E8C86] transition-colors">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-[#1E8C86] dark:group-hover:text-white transition-colors">
               Velocità di riproduzione
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               Modifica la cadenza e il ritmo di lettura per adattarla al tuo ritmo di comprensione o ascolto rapido.
             </p>
-            {/* Badge Flip7 */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-xs font-black text-[#1E8C86] shadow-xs">
-              <Gauge size={13} className="text-[#2BA8A2]" />
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+              <Gauge size={13} className="text-[#2BA8A2] dark:text-white" />
               <span>{settings.rate.toFixed(1)}x {settings.rate === 1.0 ? '(Normale)' : settings.rate < 1.0 ? '(Lenta)' : '(Veloce)'}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-[#2BA8A2] group-hover:translate-x-0.5 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-[#2BA8A2] dark:text-white group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
 
         {/* ROW 4: DIMENSIONE CARATTERI NEL LETTORE */}
@@ -281,59 +281,61 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setActiveModal('fontSize');
           }}
-          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] rounded-2xl active:scale-[0.99] transition-all group"
+          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-2xl active:scale-[0.99] transition-all group"
         >
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-[#1E8C86] transition-colors">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-[#1E8C86] dark:group-hover:text-white transition-colors">
               Dimensione testo nel lettore
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               Regola l'ingrandimento dei caratteri nella vista documento per agevolare la lettura visiva.
             </p>
-            {/* Badge Flip7 */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-xs font-black text-[#1E8C86] shadow-xs">
-              <Type size={13} className="text-[#2BA8A2]" />
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+              <Type size={13} className="text-[#2BA8A2] dark:text-white" />
               <span>{getFontSizeLabel()}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-[#2BA8A2] group-hover:translate-x-0.5 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-[#2BA8A2] dark:text-white group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
 
-        {/* ROW 5: AVANZAMENTO AUTOMATICO (Switch Toggle Flip7) */}
+        {/* ROW 5: AVANZAMENTO AUTOMATICO (Switch Toggle) */}
         <div className="py-3.5 px-2 flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1">
               Avanzamento automatico pagina
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               Passa automaticamente alla pagina successiva del libro quando la voce raggiunge la fine del testo.
             </p>
             {settings.autoAdvance ? (
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#2BA8A2] text-white text-[11px] font-black shadow-xs">
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#2BA8A2] dark:bg-transparent dark:border dark:border-white text-white text-[11px] font-black shadow-xs">
                 Attivo
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-slate-100 border border-slate-300 text-slate-500 text-[11px] font-bold">
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-slate-100 dark:bg-transparent border border-slate-300 dark:border-white/40 text-slate-500 dark:text-white/60 text-[11px] font-bold">
                 Disattivato
               </span>
             )}
           </div>
 
-          {/* Toggle Switch Flip7 */}
+          {/* Toggle Switch */}
           <button
             type="button"
             role="switch"
             aria-checked={settings.autoAdvance}
             onClick={() => onUpdateSettings({ ...settings, autoAdvance: !settings.autoAdvance })}
             className={`w-13 h-7 rounded-full p-0.5 transition-colors relative shrink-0 focus-visible:outline-none cursor-pointer border-2 ${
-              settings.autoAdvance ? 'bg-[#2BA8A2] border-[#1E8C86]' : 'bg-slate-200 border-slate-300'
+              settings.autoAdvance
+                ? 'bg-[#2BA8A2] dark:bg-transparent border-[#1E8C86] dark:border-white'
+                : 'bg-slate-200 dark:bg-transparent border-slate-300 dark:border-white/40'
             }`}
             aria-label="Attiva o disattiva l'avanzamento automatico della pagina"
           >
             <div
               className={`w-5.5 h-5.5 rounded-full transition-transform shadow-md ${
                 settings.autoAdvance
-                  ? 'translate-x-6 bg-[#FFD23F] shadow-accent-glow'
+                  ? 'translate-x-6 bg-[#FFD23F] dark:bg-white shadow-accent-glow'
                   : 'translate-x-0.5 bg-white'
               }`}
             />
@@ -348,22 +350,22 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setActiveModal('pitch');
           }}
-          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] rounded-2xl active:scale-[0.99] transition-all group"
+          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-2xl active:scale-[0.99] transition-all group"
         >
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-[#1E8C86] transition-colors">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-[#1E8C86] dark:group-hover:text-white transition-colors">
               Tonalità della voce (Pitch)
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               Regola l'altezza tonale (grave o acuta) per le voci del sintetizzatore vocale.
             </p>
-            {/* Badge Flip7 */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-xs font-black text-[#1E8C86] shadow-xs">
-              <Music size={13} className="text-[#2BA8A2]" />
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+              <Music size={13} className="text-[#2BA8A2] dark:text-white" />
               <span>{settings.pitch.toFixed(1)} {settings.pitch === 1.0 ? '(Standard)' : settings.pitch > 1.0 ? '(Acuta)' : '(Grave)'}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-[#2BA8A2] group-hover:translate-x-0.5 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-[#2BA8A2] dark:text-white group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
 
         {/* ROW 7: ACCOUNT & SICUREZZA */}
@@ -374,24 +376,24 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setActiveModal('account');
           }}
-          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] rounded-2xl active:scale-[0.99] transition-all group"
+          className="py-3.5 px-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-2xl active:scale-[0.99] transition-all group"
         >
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-slate-900 tracking-tight mb-1 group-hover:text-[#1E8C86] transition-colors">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-[#1E8C86] dark:group-hover:text-white transition-colors">
               Account e sincronizzazione
             </h2>
-            <p className="text-xs sm:text-[13px] text-slate-500 font-medium leading-relaxed mb-2 max-w-xl">
+            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-white/80 font-medium leading-relaxed mb-2 max-w-xl">
               {user?.email
                 ? `Connesso come ${user.name} (${user.email}). I tuoi libri e progressi sono salvati.`
                 : 'Accedi con Google per sincronizzare la libreria e proteggere i tuoi documenti scansionati.'}
             </p>
-            {/* Badge Flip7 */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 text-xs font-black text-[#1E8C86] shadow-xs">
-              <UserIcon size={13} className="text-[#1E8C86]" />
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+              <UserIcon size={13} className="text-[#1E8C86] dark:text-white" />
               <span>{user?.auth_provider === 'google' ? 'Google Account Attivo' : 'Ospite Locale'}</span>
             </div>
           </div>
-          <ChevronRight size={20} className="text-[#2BA8A2] group-hover:translate-x-0.5 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-[#2BA8A2] dark:text-white group-hover:translate-x-0.5 transition-transform shrink-0" />
         </div>
       </div>
 
@@ -406,20 +408,20 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-xl bg-white border-2 border-[#2BA8A2]/30 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card"
+            className="w-full max-w-xl bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
               <div className="flex items-center gap-2">
-                <Palette size={20} className="text-[#1E8C86]" />
-                <h3 className="text-base font-black text-[#1E8C86]">Scegli tema di contrasto</h3>
+                <Palette size={20} className="text-[#1E8C86] dark:text-white" />
+                <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Scegli tema di contrasto</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
-                <X size={17} />
+                <X size={17} className="text-white" />
               </button>
             </div>
 
@@ -437,10 +439,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       onUpdateSettings({ ...settings, highContrastMode: opt.id });
                       setActiveModal(null);
                     }}
-                    className={`w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between gap-3 ${
+                    className={`w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between gap-3 cursor-pointer ${
                       isSelected
-                        ? 'border-[#2BA8A2] bg-[#E8F6F5] shadow-xs'
-                        : 'border-[#2BA8A2]/20 bg-white hover:bg-[#FFF8E7]'
+                        ? 'border-[#2BA8A2] dark:border-white bg-[#E8F6F5] dark:bg-white/20 shadow-xs text-white'
+                        : 'border-[#2BA8A2]/20 dark:border-white/40 bg-white dark:bg-transparent hover:bg-[#FFF8E7] dark:hover:bg-white/10 text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -450,17 +452,17 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         Aa
                       </div>
                       <div className="min-w-0">
-                        <span className="block text-sm font-black text-slate-900 truncate">
+                        <span className="block text-sm font-black text-slate-900 dark:text-white truncate">
                           {opt.title}
                         </span>
-                        <span className="block text-xs text-slate-500 font-medium truncate">
+                        <span className="block text-xs text-slate-500 dark:text-white/80 font-medium truncate">
                           {opt.badge}
                         </span>
                       </div>
                     </div>
 
                     {isSelected && (
-                      <div className="w-6 h-6 rounded-full bg-[#2BA8A2] text-white flex items-center justify-center shrink-0 shadow-teal-glow">
+                      <div className="w-6 h-6 rounded-full bg-[#2BA8A2] dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-teal-glow">
                         <Check size={14} className="stroke-[3]" />
                       </div>
                     )}
@@ -470,8 +472,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
 
             {/* Anteprima Live */}
-            <div className="pt-2 border-t-2 border-dashed border-[#2BA8A2]/20">
-              <span className="text-xs font-black text-[#1E8C86] block mb-2 uppercase tracking-wider">
+            <div className="pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20">
+              <span className="text-xs font-black text-[#1E8C86] dark:text-white block mb-2 uppercase tracking-wider">
                 Anteprima stile selezionato:
               </span>
               <div
@@ -491,13 +493,13 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-xl bg-white border-2 border-[#2BA8A2]/30 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card"
+            className="w-full max-w-xl bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
               <div className="flex items-center gap-2">
-                <Volume2 size={20} className="text-[#1E8C86]" />
-                <h3 className="text-base font-black text-[#1E8C86]">Scegli voce di lettura</h3>
+                <Volume2 size={20} className="text-[#1E8C86] dark:text-white" />
+                <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Scegli voce di lettura</h3>
               </div>
               <button
                 type="button"
@@ -506,36 +508,36 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   setPreviewingUri(null);
                   setActiveModal(null);
                 }}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
-                <X size={17} />
+                <X size={17} className="text-white" />
               </button>
             </div>
 
             {/* Tabs AI vs Sistema */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#E8F6F5] rounded-2xl border border-[#2BA8A2]/20">
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#E8F6F5] dark:bg-transparent rounded-2xl border border-[#2BA8A2]/20 dark:border-white/40">
               <button
                 type="button"
                 onClick={() => setVoiceTab('ai')}
-                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 ${
                   voiceTab === 'ai'
-                    ? 'bg-white text-[#1E8C86] font-black shadow-xs'
-                    : 'text-slate-600 hover:text-[#1E8C86]'
+                    ? 'bg-white dark:bg-white/20 text-[#1E8C86] dark:text-white border-transparent dark:border-white font-black shadow-xs'
+                    : 'text-slate-600 dark:text-white/80 border-transparent hover:text-[#1E8C86] dark:hover:text-white'
                 }`}
               >
-                <Sparkles size={14} className={voiceTab === 'ai' ? 'text-[#FFD23F] fill-[#FFD23F]' : 'text-slate-400'} />
+                <Sparkles size={14} className={voiceTab === 'ai' ? 'text-[#FFD23F] dark:text-white fill-current' : 'text-slate-400 dark:text-white/60'} />
                 <span>Voci AI Naturali ({aiVoices.length})</span>
               </button>
               <button
                 type="button"
                 onClick={() => setVoiceTab('system')}
-                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 ${
                   voiceTab === 'system'
-                    ? 'bg-white text-[#1E8C86] font-black shadow-xs'
-                    : 'text-slate-600 hover:text-[#1E8C86]'
+                    ? 'bg-white dark:bg-white/20 text-[#1E8C86] dark:text-white border-transparent dark:border-white font-black shadow-xs'
+                    : 'text-slate-600 dark:text-white/80 border-transparent hover:text-[#1E8C86] dark:hover:text-white'
                 }`}
               >
-                <Volume2 size={14} className={voiceTab === 'system' ? 'text-[#1E8C86]' : 'text-slate-400'} />
+                <Volume2 size={14} className={voiceTab === 'system' ? 'text-[#1E8C86] dark:text-white' : 'text-slate-400 dark:text-white/60'} />
                 <span>Voci di Sistema ({systemVoices.length})</span>
               </button>
             </div>
@@ -552,23 +554,23 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     onClick={() => handleSelectVoice(v)}
                     className={`p-3 rounded-2xl border-2 flex items-center justify-between gap-3 cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-[#2BA8A2] bg-[#E8F6F5] shadow-xs'
-                        : 'border-[#2BA8A2]/15 bg-white hover:bg-[#FFF8E7]'
+                        ? 'border-[#2BA8A2] dark:border-white bg-[#E8F6F5] dark:bg-white/20 shadow-xs'
+                        : 'border-[#2BA8A2]/15 dark:border-white/40 bg-white dark:bg-transparent hover:bg-[#FFF8E7] dark:hover:bg-white/10'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                          isSelected ? 'bg-[#2BA8A2] text-white' : 'border-2 border-slate-300'
+                          isSelected ? 'bg-[#2BA8A2] dark:bg-white text-white dark:text-black' : 'border-2 border-slate-300 dark:border-white/40'
                         }`}
                       >
                         {isSelected && <Check size={12} className="stroke-[3]" />}
                       </div>
                       <div className="min-w-0">
-                        <span className="block text-sm font-black text-slate-900 truncate">
+                        <span className="block text-sm font-black text-slate-900 dark:text-white truncate">
                           {v.name.split(' - ')[0]}
                         </span>
-                        <span className="block text-[11px] text-slate-500 uppercase font-bold">
+                        <span className="block text-[11px] text-slate-500 dark:text-white/80 uppercase font-bold">
                           {v.gender} {v.isAi ? '· AI Gemini' : ''}
                         </span>
                       </div>
@@ -577,10 +579,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     <button
                       type="button"
                       onClick={(e) => handleTestSpecificVoice(v, e)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 shrink-0 transition-all ${
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
                         isPlayingThis
-                          ? 'bg-[#EF6C4A] text-white border-[#EF6C4A] animate-pulse shadow-coral-glow'
-                          : 'bg-white text-[#1E8C86] border-[#2BA8A2]/30 hover:bg-[#E8F6F5]'
+                          ? 'bg-[#EF6C4A] dark:bg-white text-white dark:text-black border-[#EF6C4A] dark:border-white animate-pulse shadow-coral-glow'
+                          : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border-[#2BA8A2]/30 dark:border-white hover:bg-[#E8F6F5] dark:hover:bg-white/10'
                       }`}
                     >
                       {isPlayingThis ? <Square size={12} /> : <Play size={12} />}
@@ -601,28 +603,28 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white border-2 border-[#2BA8A2]/30 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
               <div className="flex items-center gap-2">
-                <Gauge size={20} className="text-[#1E8C86]" />
-                <h3 className="text-base font-black text-[#1E8C86]">Velocità di riproduzione</h3>
+                <Gauge size={20} className="text-[#1E8C86] dark:text-white" />
+                <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Velocità di riproduzione</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
-                <X size={17} />
+                <X size={17} className="text-white" />
               </button>
             </div>
 
             <div className="text-center py-2">
-              <span className="text-4xl font-black text-[#1E8C86]">
+              <span className="text-4xl font-black text-[#1E8C86] dark:text-white">
                 {settings.rate.toFixed(1)}x
               </span>
-              <p className="text-xs text-slate-500 font-semibold mt-1">
+              <p className="text-xs text-slate-500 dark:text-white/80 font-semibold mt-1">
                 {settings.rate === 1.0 ? 'Velocità Standard' : settings.rate < 1.0 ? 'Lettura Rallentata' : 'Lettura Accelerata'}
               </p>
             </div>
@@ -634,7 +636,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               step="0.1"
               value={settings.rate}
               onChange={(e) => onUpdateSettings({ ...settings, rate: parseFloat(e.target.value) })}
-              className="w-full h-2.5 bg-[#E8F6F5] rounded-lg appearance-none cursor-pointer accent-[#2BA8A2]"
+              className="w-full h-2.5 bg-[#E8F6F5] dark:bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
             />
 
             {/* Presets */}
@@ -650,10 +652,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   <button
                     key={preset.label}
                     onClick={() => handleRatePreset(preset.value)}
-                    className={`py-2 rounded-xl text-xs font-black border transition-all active:scale-95 ${
+                    className={`py-2 rounded-xl text-xs font-black border-2 transition-all active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'bg-[#2BA8A2] text-white border-[#2BA8A2] shadow-teal-glow'
-                        : 'bg-white text-[#1E8C86] border-[#2BA8A2]/30 hover:bg-[#E8F6F5]'
+                        ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-[#2BA8A2] dark:border-white shadow-teal-glow dark:shadow-none'
+                        : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border-[#2BA8A2]/30 dark:border-white/40 hover:bg-[#E8F6F5] dark:hover:bg-white/10'
                     }`}
                   >
                     {preset.label}
@@ -672,20 +674,20 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white border-2 border-[#2BA8A2]/30 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
               <div className="flex items-center gap-2">
-                <Type size={20} className="text-[#1E8C86]" />
-                <h3 className="text-base font-black text-[#1E8C86]">Dimensione del testo</h3>
+                <Type size={20} className="text-[#1E8C86] dark:text-white" />
+                <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Dimensione del testo</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
-                <X size={17} />
+                <X size={17} className="text-white" />
               </button>
             </div>
 
@@ -704,20 +706,20 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       onUpdateSettings({ ...settings, fontSize: fs.id });
                       setActiveModal(null);
                     }}
-                    className={`p-3.5 rounded-2xl border-2 text-left flex items-center justify-between transition-all active:scale-95 ${
+                    className={`p-3.5 rounded-2xl border-2 text-left flex items-center justify-between transition-all active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'bg-[#E8F6F5] text-[#1E8C86] border-[#2BA8A2] shadow-xs'
-                        : 'bg-white text-slate-800 border-[#2BA8A2]/20 hover:bg-[#FFF8E7]'
+                        ? 'bg-[#E8F6F5] dark:bg-white/20 text-[#1E8C86] dark:text-white border-[#2BA8A2] dark:border-white shadow-xs'
+                        : 'bg-white dark:bg-transparent text-slate-800 dark:text-white border-[#2BA8A2]/20 dark:border-white/40 hover:bg-[#FFF8E7] dark:hover:bg-white/10'
                     }`}
                   >
                     <div>
-                      <span className="block text-sm font-black">{fs.title}</span>
-                      <span className="block text-xs text-slate-500 font-medium">
+                      <span className="block text-sm font-black text-slate-900 dark:text-white">{fs.title}</span>
+                      <span className="block text-xs text-slate-500 dark:text-white/80 font-medium">
                         {fs.desc}
                       </span>
                     </div>
                     {isSelected && (
-                      <div className="w-6 h-6 rounded-full bg-[#2BA8A2] text-white flex items-center justify-center shrink-0 shadow-teal-glow">
+                      <div className="w-6 h-6 rounded-full bg-[#2BA8A2] dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-teal-glow">
                         <Check size={14} className="stroke-[3]" />
                       </div>
                     )}
@@ -736,28 +738,28 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white border-2 border-[#2BA8A2]/30 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
               <div className="flex items-center gap-2">
-                <Music size={20} className="text-[#1E8C86]" />
-                <h3 className="text-base font-black text-[#1E8C86]">Tonalità della voce (Pitch)</h3>
+                <Music size={20} className="text-[#1E8C86] dark:text-white" />
+                <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Tonalità della voce (Pitch)</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
-                <X size={17} />
+                <X size={17} className="text-white" />
               </button>
             </div>
 
             <div className="text-center py-2">
-              <span className="text-4xl font-black text-[#1E8C86]">
+              <span className="text-4xl font-black text-[#1E8C86] dark:text-white">
                 {settings.pitch.toFixed(1)}
               </span>
-              <p className="text-xs text-slate-500 font-semibold mt-1">
+              <p className="text-xs text-slate-500 dark:text-white/80 font-semibold mt-1">
                 {settings.pitch === 1.0 ? 'Tono Naturale' : settings.pitch > 1.0 ? 'Tono più Acuto' : 'Tono più Grave'}
               </p>
             </div>
@@ -769,7 +771,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               step="0.1"
               value={settings.pitch}
               onChange={(e) => onUpdateSettings({ ...settings, pitch: parseFloat(e.target.value) })}
-              className="w-full h-2.5 bg-[#E8F6F5] rounded-lg appearance-none cursor-pointer accent-[#2BA8A2]"
+              className="w-full h-2.5 bg-[#E8F6F5] dark:bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
             />
           </div>
         </div>
@@ -782,32 +784,32 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white border-2 border-[#2BA8A2]/30 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
               <div className="flex items-center gap-2">
-                <UserIcon size={20} className="text-[#1E8C86]" />
-                <h3 className="text-base font-black text-[#1E8C86]">Profilo e Accesso</h3>
+                <UserIcon size={20} className="text-[#1E8C86] dark:text-white" />
+                <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Profilo e Accesso</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] border border-[#2BA8A2]/30 hover:bg-[#2BA8A2]/20 active:scale-95 flex items-center justify-center text-[#1E8C86] transition-all"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
-                <X size={17} />
+                <X size={17} className="text-white" />
               </button>
             </div>
 
             {user ? (
               <div className="flex flex-col gap-3 py-2">
-                <div className="flex items-center gap-3 p-3 bg-[#E8F6F5] rounded-2xl border border-[#2BA8A2]/30">
-                  <div className="w-12 h-12 rounded-full bg-[#2BA8A2] text-white border-2 border-[#FFD23F] font-black flex items-center justify-center text-lg shrink-0 shadow-xs">
+                <div className="flex items-center gap-3 p-3 bg-[#E8F6F5] dark:bg-transparent rounded-2xl border border-[#2BA8A2]/30 dark:border-white">
+                  <div className="w-12 h-12 rounded-full bg-[#2BA8A2] dark:bg-transparent text-white border-2 border-[#FFD23F] dark:border-white font-black flex items-center justify-center text-lg shrink-0 shadow-xs">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <span className="block text-sm font-black text-slate-900 truncate">{user.name}</span>
-                    <span className="block text-xs text-slate-500 truncate font-medium">{user.email}</span>
+                    <span className="block text-sm font-black text-slate-900 dark:text-white truncate">{user.name}</span>
+                    <span className="block text-xs text-slate-500 dark:text-white/80 truncate font-medium">{user.email}</span>
                   </div>
                 </div>
 
@@ -819,7 +821,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         setActiveModal(null);
                         onOpenProfile();
                       }}
-                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-slate-900 font-black text-xs transition-all shadow-accent-glow"
+                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
                     >
                       Dettagli profilo e statistiche
                     </button>
@@ -831,7 +833,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         setActiveModal(null);
                         onLogout();
                       }}
-                      className="w-full py-2.5 rounded-full bg-white text-[#EF6C4A] border-2 border-[#EF6C4A]/30 font-black text-xs hover:bg-[#EF6C4A]/10 active:scale-95 transition-colors"
+                      className="w-full py-2.5 rounded-full bg-white dark:bg-transparent text-[#EF6C4A] dark:text-white border-2 border-[#EF6C4A]/30 dark:border-white font-black text-xs hover:bg-[#EF6C4A]/10 dark:hover:bg-white/10 active:scale-95 transition-colors cursor-pointer"
                     >
                       Disconnetti Google
                     </button>
@@ -843,7 +845,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         setActiveModal(null);
                         onOpenLogin();
                       }}
-                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-slate-900 font-black text-xs transition-all shadow-accent-glow"
+                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
                     >
                       Accedi o Registrati
                     </button>
@@ -852,7 +854,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
             ) : (
               <div className="py-3 text-center">
-                <p className="text-xs text-slate-500 mb-3 font-medium">Nessun account collegato.</p>
+                <p className="text-xs text-slate-500 dark:text-white/80 mb-3 font-medium">Nessun account collegato.</p>
                 {onOpenLogin && (
                   <button
                     type="button"
@@ -860,7 +862,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       setActiveModal(null);
                       onOpenLogin();
                     }}
-                    className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-slate-900 font-black text-xs transition-all shadow-accent-glow"
+                    className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
                   >
                     Accedi
                   </button>

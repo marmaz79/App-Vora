@@ -636,32 +636,32 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       {!ocrLoading && (
         <div className="flex flex-col gap-3">
           {/* Selettore Modalità: Scatto Singolo / Scatti Multipli (Libro PDF) */}
-          <div className="flex items-center justify-center p-1 bg-black border border-zinc-800 rounded-2xl max-w-sm mx-auto w-full shadow-md">
+          <div className="flex items-center justify-center p-1 bg-transparent border-2 border-white/30 rounded-2xl max-w-sm mx-auto w-full shadow-none">
             <button
               type="button"
               onClick={() => setMultiShotMode(false)}
-              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 !multiShotMode
-                  ? 'bg-white text-black shadow-md'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-transparent border-2 border-white text-white'
+                  : 'border-2 border-transparent text-white/80 hover:text-white'
               }`}
             >
-              <Camera size={14} />
+              <Camera size={14} className="text-white" />
               <span>Scatto Singolo</span>
             </button>
             <button
               type="button"
               onClick={() => setMultiShotMode(true)}
-              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 multiShotMode
-                  ? 'bg-white text-black shadow-md'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-transparent border-2 border-white text-white'
+                  : 'border-2 border-transparent text-white/80 hover:text-white'
               }`}
             >
-              <FileText size={14} />
+              <FileText size={14} className="text-white" />
               <span>Scatti Multipli (PDF)</span>
               {scannedPagesList.length > 0 && (
-                <span className="bg-white text-black text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                <span className="bg-transparent border border-white text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
                   {scannedPagesList.length}
                 </span>
               )}
@@ -669,7 +669,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
           </div>
 
           {/* Viewfinder Container */}
-          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border-2 border-zinc-800 shadow-2xl flex items-center justify-center group">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border-2 border-white/30 shadow-2xl flex items-center justify-center group">
             {/* Live Video Feed */}
             <video
               ref={videoRef}
@@ -700,7 +700,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
 
                   {/* Center hint badge */}
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full border border-white/25 text-[11px] font-bold text-white whitespace-nowrap shadow-md flex items-center gap-1.5">
-                    <Sparkles size={12} className="text-[#FFD23F]" />
+                    <Sparkles size={12} className="text-white" />
                     <span>Inquadra il foglio: ritaglio e pulizia automatici</span>
                   </div>
                 </div>
@@ -718,7 +718,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-[11px] font-bold text-white shadow-md">
-                  <Sparkles size={12} className="text-[#FFD23F]" />
+                  <Sparkles size={12} className="text-white" />
                   <span>Ritaglio & Pulizia attivi</span>
                 </div>
               </div>
@@ -732,7 +732,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                     aria-label="Attiva o disattiva torcia"
                     className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       torchOn
-                        ? 'bg-white text-black shadow-lg shadow-white/30'
+                        ? 'bg-transparent text-white border-2 border-white shadow-lg shadow-white/30'
                         : 'bg-black/60 text-white border border-white/20 hover:bg-black/80'
                     }`}
                   >
@@ -770,23 +770,23 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
 
             {/* Error or Inactive Camera Fallback message */}
             {!cameraActive && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/95 backdrop-blur-sm z-20">
-                <div className="w-16 h-16 rounded-2xl bg-zinc-900 text-white border border-zinc-700 flex items-center justify-center mb-3">
-                  <Camera size={32} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/90 backdrop-blur-sm z-20">
+                <div className="w-16 h-16 rounded-2xl bg-transparent text-white border-2 border-white flex items-center justify-center mb-3">
+                  <Camera size={32} className="text-white" />
                 </div>
                 <h3 className="text-base font-bold text-white mb-1">
                   Fotocamera del Dispositivo
                 </h3>
-                <p className="text-xs text-zinc-400 max-w-xs mb-4 leading-relaxed">
+                <p className="text-xs text-white/90 max-w-xs mb-4 leading-relaxed">
                   {cameraError ||
                     'Tocca il pulsante per scattare una foto direttamente con la fotocamera del tuo telefono o tablet.'}
                 </p>
                 <button
                   type="button"
                   onClick={() => nativeCameraInputRef.current?.click()}
-                  className="min-h-[46px] px-6 bg-white hover:bg-zinc-200 active:scale-95 text-black font-black text-sm rounded-2xl transition-all flex items-center gap-2 shadow-lg"
+                  className="min-h-[46px] px-6 bg-transparent hover:bg-white/10 active:scale-95 text-white font-black text-sm rounded-2xl border-2 border-white transition-all flex items-center gap-2 shadow-none cursor-pointer"
                 >
-                  <Camera size={18} />
+                  <Camera size={18} className="text-white" />
                   <span>Apri Fotocamera di Sistema</span>
                 </button>
               </div>
@@ -807,10 +807,10 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowDocGrid(true)}
-                  className="px-3.5 py-1.5 bg-white text-black hover:bg-zinc-200 active:scale-95 text-xs font-black rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 bg-transparent text-white hover:bg-white/10 active:scale-95 text-xs font-black rounded-xl border-2 border-white flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
                   title="Visualizza e disponi le pagine nel documento"
                 >
-                  <Check size={14} className="text-black stroke-[3]" />
+                  <Check size={14} className="text-white stroke-[3]" />
                   <span>Continua ({scannedPagesList.length}) → Documento</span>
                 </button>
               </div>

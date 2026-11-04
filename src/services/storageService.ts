@@ -1,5 +1,6 @@
 import { Book, User, TtsSettings, AppNotification, Bookmark, BookReadingStat } from '../types';
 import { fileParser } from './fileParser';
+import { saveBookToCloud, deleteBookFromCloud, loadBooksFromCloud, syncAllBooksToCloud } from './firebase';
 
 const BOOKS_KEY = 'vora_books_v1';
 const USER_KEY = 'vora_user_v1';
@@ -306,6 +307,15 @@ export const storageService = {
       }
     }
     this.saveBooks(deduped);
+
+    // Asynchronously backup uploaded book to Cloud Firestore
+    const user = this.getUser();
+    if (user?.user_id) {
+      saveBookToCloud(user.user_id, book).catch((cloudErr) => {
+        console.warn('Cloud save error notice:', cloudErr);
+      });
+    }
+
     return deduped;
   },
 
@@ -313,21 +323,106 @@ export const storageService = {
     const books = this.getBooks();
     const updated = books.filter(b => b.book_id !== bookId);
     this.saveBooks(updated);
+
+    // Asynchronously delete from Cloud Firestore
+    const user = this.getUser();
+    if (user?.user_id) {
+      deleteBookFromCloud(user.user_id, bookId).catch((cloudErr) => {
+        console.warn('Cloud delete error notice:', cloudErr);
+      });
+    }
+
     return updated;
   },
 
   updateBookPage(bookId: string, pageIndex: number) {
     const books = this.getBooks();
-    const updated = books.map(b => b.book_id === bookId ? { ...b, currentPage: pageIndex } : b);
+    let targetBook: Book | undefined;
+    const updated = books.map(b => {
+      if (b.book_id === bookId) {
+        targetBook = { ...b, currentPage: pageIndex };
+        return targetBook;
+      }
+      return b;
+    });
     this.saveBooks(updated);
+
+    // Sync progress to cloud
+    if (targetBook) {
+      const user = this.getUser();
+      if (user?.user_id) {
+        saveBookToCloud(user.user_id, targetBook).catch(() => {});
+      }
+    }
+
     return updated;
   },
 
   updateBookContent(bookId: string, pages: string[]) {
     const books = this.getBooks();
-    const updated = books.map(b => b.book_id === bookId ? { ...b, pages } : b);
+    let targetBook: Book | undefined;
+    const updated = books.map(b => {
+      if (b.book_id === bookId) {
+        targetBook = { ...b, pages };
+        return targetBook;
+      }
+      return b;
+    });
     this.saveBooks(updated);
+
+    // Sync content to cloud
+    if (targetBook) {
+      const user = this.getUser();
+      if (user?.user_id) {
+        saveBookToCloud(user.user_id, targetBook).catch(() => {});
+      }
+    }
+
     return updated;
+  },
+
+  /**
+   * Two-way sync with Cloud Firestore:
+   * 1. Downloads cloud books and merges them locally
+   * 2. Uploads any local user books not yet in cloud
+   */
+  async syncWithCloud(userId?: string): Promise<{ books: Book[]; syncedCount: number }> {
+    const uid = userId || this.getUser()?.user_id;
+    if (!uid) {
+      return { books: this.getBooks(), syncedCount: 0 };
+    }
+
+    try {
+      const cloudBooks = await loadBooksFromCloud(uid);
+      const localBooks = this.getBooks();
+      const localMap = new Map<string, Book>();
+
+      for (const b of localBooks) {
+        if (b && b.book_id) localMap.set(b.book_id, b);
+      }
+
+      let newFromCloud = 0;
+      for (const cb of cloudBooks) {
+        if (!localMap.has(cb.book_id)) {
+          localMap.set(cb.book_id, cb);
+          newFromCloud++;
+        }
+      }
+
+      const mergedBooks = Array.from(localMap.values());
+      this.saveBooks(mergedBooks);
+
+      // Upload local user books that are not in cloud yet
+      const { synced } = await syncAllBooksToCloud(uid, mergedBooks.filter(b => b.source !== 'sample'));
+
+      return {
+        books: mergedBooks,
+        syncedCount: newFromCloud + synced,
+      };
+    } catch (err) {
+      console.warn('Cloud sync warning:', err);
+      return { books: this.getBooks(), syncedCount: 0 };
+    }
   },
 
   getBookmarks(bookId: string): Bookmark[] {

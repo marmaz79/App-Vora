@@ -306,7 +306,7 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-60 bg-[#FFD23F] text-slate-900 font-black px-5 py-2.5 rounded-full shadow-accent-glow border border-[#1E8C86]/20 text-xs sm:text-sm animate-bounce"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-60 bg-slate-900/90 text-white font-black px-5 py-2.5 rounded-full border-2 border-white text-xs sm:text-sm animate-bounce shadow-xl"
         >
           {toastMessage}
         </div>
@@ -391,31 +391,31 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
 
           <button
             onClick={handleOpenReader}
-            className="min-h-[40px] px-4 sm:px-5 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all active:scale-95 shadow-accent-glow"
+            className="min-h-[40px] px-4 sm:px-5 rounded-full bg-transparent hover:bg-white/10 text-white border-2 border-white font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all active:scale-95 shadow-none cursor-pointer"
             aria-label="Apri nel Lettore Vora"
           >
-            <BookOpen size={16} />
+            <BookOpen size={16} className="text-white" />
             <span>Leggi nel Lettore</span>
           </button>
         </div>
       </header>
 
       {/* ===================== CONTROLS TOOLBAR & AUDIO BAR ===================== */}
-      <div className="bg-white border-b-2 border-dashed border-[#2BA8A2]/20 px-3 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-xs z-10">
+      <div className="bg-white dark:bg-[#122220] border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 px-3 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-xs z-10">
         {/* Playback Button with Audio status */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleTogglePlay}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 flex items-center justify-center transition-all active:scale-95 shadow-accent-glow shrink-0"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-transparent hover:bg-white/10 text-white border-2 border-white flex items-center justify-center transition-all active:scale-95 shadow-none shrink-0 cursor-pointer"
             aria-label={isLoadingAudio ? 'Caricamento audio...' : isPlaying ? 'Pausa ascolto' : 'Ascolta testo della pagina'}
             title={isPlaying ? 'Pausa' : 'Ascolta questa pagina'}
           >
             {isLoadingAudio ? (
-              <Loader2 size={28} className="animate-spin text-slate-900" />
+              <Loader2 size={28} className="animate-spin text-white" />
             ) : isPlaying ? (
-              <Pause size={28} className="fill-current text-slate-900" />
+              <Pause size={28} className="fill-current text-white" />
             ) : (
-              <Play size={28} className="fill-current text-slate-900 translate-x-0.5" />
+              <Play size={28} className="fill-current text-white translate-x-0.5" />
             )}
           </button>
 
@@ -477,22 +477,22 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
       </div>
 
       {/* ===================== AI REFINEMENT ACTIONS TOOLBAR ===================== */}
-      <div className="bg-[#EFF8F7] border-b-2 border-dashed border-[#2BA8A2]/20 px-3 sm:px-5 py-2 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
-        <span className="text-xs font-black text-[#1E8C86] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
-          <Sparkles size={13} className="text-[#FFD23F] fill-[#FFD23F]" />
+      <div className="bg-transparent border-b-2 border-dashed border-white/20 px-3 sm:px-5 py-2 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+        <span className="text-xs font-black text-white uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+          <Sparkles size={13} className="text-white fill-white" />
           AI:
         </span>
 
         <button
           onClick={() => handleEnhanceWithAi('comprehensive')}
           disabled={isEnhancingAi || !currentText.trim()}
-          className="min-h-[34px] px-3.5 rounded-full border border-[#2BA8A2]/30 bg-white hover:bg-[#E8F6F5] text-[#1E8C86] text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs disabled:opacity-50"
+          className="min-h-[34px] px-3.5 rounded-full border-2 border-white bg-transparent hover:bg-white/10 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-none disabled:opacity-50 cursor-pointer"
           title="Corregge refusi, congiunge parole spezzate e ripristina la formattazione dei paragrafi con Gemini AI"
         >
           {isEnhancingAi && activeAiMode === 'comprehensive' ? (
-            <Loader2 size={13} className="animate-spin text-[#1E8C86]" />
+            <Loader2 size={13} className="animate-spin text-white" />
           ) : (
-            <Wand2 size={13} className="text-[#1E8C86]" />
+            <Wand2 size={13} className="text-white" />
           )}
           <span>Ottimizza con Gemini AI</span>
         </button>
@@ -500,13 +500,13 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
         <button
           onClick={() => handleEnhanceWithAi('speech_tts')}
           disabled={isEnhancingAi || !currentText.trim()}
-          className="min-h-[34px] px-3.5 rounded-full border border-[#2BA8A2]/30 bg-white hover:bg-[#E8F6F5] text-[#1E8C86] text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs disabled:opacity-50"
+          className="min-h-[34px] px-3.5 rounded-full border-2 border-white bg-transparent hover:bg-white/10 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-none disabled:opacity-50 cursor-pointer"
           title="Formatta ed espande abbreviazioni per una sintesi vocale naturale e fluida"
         >
           {isEnhancingAi && activeAiMode === 'speech_tts' ? (
-            <Loader2 size={13} className="animate-spin text-[#1E8C86]" />
+            <Loader2 size={13} className="animate-spin text-white" />
           ) : (
-            <Volume2 size={13} className="text-[#5DADE2]" />
+            <Volume2 size={13} className="text-white" />
           )}
           <span>Formatta per Voce (TTS)</span>
         </button>
@@ -514,13 +514,13 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
         <button
           onClick={() => handleEnhanceWithAi('typos')}
           disabled={isEnhancingAi || !currentText.trim()}
-          className="min-h-[34px] px-3.5 rounded-full border border-[#2BA8A2]/30 bg-white hover:bg-[#E8F6F5] text-[#1E8C86] text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs disabled:opacity-50"
+          className="min-h-[34px] px-3.5 rounded-full border-2 border-white bg-transparent hover:bg-white/10 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-none disabled:opacity-50 cursor-pointer"
           title="Corregge i soli caratteri errati mantenendo il layout originale"
         >
           {isEnhancingAi && activeAiMode === 'typos' ? (
-            <Loader2 size={13} className="animate-spin text-[#1E8C86]" />
+            <Loader2 size={13} className="animate-spin text-white" />
           ) : (
-            <SpellCheck size={13} className="text-[#EF6C4A]" />
+            <SpellCheck size={13} className="text-white" />
           )}
           <span>Correggi Refusi</span>
         </button>
@@ -529,10 +529,10 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
           <button
             onClick={handleRestoreRawText}
             disabled={isEnhancingAi}
-            className="min-h-[34px] px-3.5 rounded-full border border-[#2BA8A2]/30 bg-white hover:bg-[#E8F6F5] text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs"
+            className="min-h-[34px] px-3.5 rounded-full border-2 border-white bg-transparent hover:bg-white/10 text-white text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-none cursor-pointer"
             title="Annulla modifiche AI e ripristina la trascrizione grezza originale"
           >
-            <RotateCcw size={13} />
+            <RotateCcw size={13} className="text-white" />
             <span>Testo Originale</span>
           </button>
         )}
@@ -704,7 +704,7 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
       </main>
 
       {/* ===================== BOTTOM PAGES STRIP & NEW PAGE BUTTON ===================== */}
-      <footer className="border-t-2 border-dashed border-[#2BA8A2]/20 bg-white px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3 shrink-0 shadow-lg z-20">
+      <footer className="border-t-2 border-dashed border-white/20 bg-white dark:bg-[#122220] px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3 shrink-0 shadow-lg z-20">
         {/* Pages Pagination Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto min-w-0 flex-1 py-1">
           {pages.map((_, idx) => (
@@ -715,10 +715,10 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
                 setIsPlaying(false);
                 setActivePageIndex(idx);
               }}
-              className={`min-h-[38px] px-4 rounded-full border text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 ${
+              className={`min-h-[38px] px-4 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
                 idx === activePageIndex
-                  ? 'bg-[#2BA8A2] text-white border-[#2BA8A2] shadow-teal-glow'
-                  : 'bg-[#E8F6F5] text-[#1E8C86] border-[#2BA8A2]/30 hover:bg-[#3CC4BD]/20'
+                  ? 'bg-transparent text-white border-2 border-white shadow-none'
+                  : 'bg-transparent text-zinc-300 border border-white/30 hover:border-white hover:text-white'
               }`}
               aria-label={`Vai a Pagina ${idx + 1}`}
             >
@@ -730,12 +730,12 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
           <button
             onClick={() => fileInputCameraRef.current?.click()}
             disabled={isCapturingNextPage}
-            className="min-h-[38px] px-4 rounded-full border-2 border-dashed border-[#FFD23F] bg-[#FFF8E7] hover:bg-[#FFE47A]/30 text-[#E6B800] text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs"
+            className="min-h-[38px] px-4 rounded-full border-2 border-dashed border-white bg-transparent hover:bg-white/10 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-none cursor-pointer"
             aria-label="Aggiungi un'altra pagina"
             title="Scatta foto per aggiungere la pagina successiva al libro"
           >
-            <Plus size={15} />
-            <Camera size={14} className="text-[#EF6C4A]" />
+            <Plus size={15} className="text-white" />
+            <Camera size={14} className="text-white" />
             <span className="hidden sm:inline">Aggiungi Pagina</span>
             <span className="sm:hidden">+ Pagina</span>
           </button>

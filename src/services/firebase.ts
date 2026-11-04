@@ -6,6 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
+  signInAnonymously,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -14,9 +15,12 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  collection,
+  getDocs,
+  deleteDoc,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { User } from '../types';
+import { User, Book } from '../types';
 
 // Initialize Firebase App
 export const app = initializeApp(firebaseConfig);
@@ -432,3 +436,150 @@ export function subscribeToAuthState(callback: (user: User | null) => void): () 
     }
   });
 }
+
+/**
+ * Ensure user has an active Firebase Auth session (either Google or Anonymous)
+ */
+export async function ensureAuthUser(): Promise<FirebaseUser | null> {
+  if (auth.currentUser) {
+    return auth.currentUser;
+  }
+  try {
+    const cred = await signInAnonymously(auth);
+    return cred.user;
+  } catch (err) {
+    console.warn('Anonymous auth initialization notice:', err);
+    return null;
+  }
+}
+
+/**
+ * Save a single book/document to user's Cloud Firestore subcollection
+ * Path: /users/{userId}/books/{bookId}
+ */
+export async function saveBookToCloud(userId: string, book: Book): Promise<boolean> {
+  if (!book || !book.book_id) return false;
+  const uid = userId || auth.currentUser?.uid;
+  if (!uid) return false;
+
+  const cleanId = book.book_id.replace(/[^a-zA-Z0-9_-]/g, '_');
+  try {
+    const bookDocRef = doc(db, 'users', uid, 'books', cleanId);
+    const data: Record<string, any> = {
+      id: cleanId,
+      userId: uid,
+      title: (book.title || 'Senza titolo').slice(0, 250),
+      fileType: book.file_type || 'txt',
+      createdAt: book.created_at || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (book.author) data.author = book.author.slice(0, 120);
+    if (typeof book.currentPage === 'number') data.currentPage = Math.max(0, book.currentPage);
+    if (book.pages && Array.isArray(book.pages)) {
+      data.pages = book.pages.slice(0, 1000);
+      data.totalPages = book.pages.length;
+    }
+    if (typeof book.size === 'number') data.size = Math.max(0, book.size);
+    if (book.source) data.source = book.source.slice(0, 60);
+    if (book.coverColor) data.coverColor = book.coverColor.slice(0, 60);
+    if (book.ocr_engine) data.ocrEngine = book.ocr_engine.slice(0, 120);
+    if (book.audioUrl && !book.audioUrl.startsWith('blob:')) {
+      data.audioUrl = book.audioUrl.slice(0, 2000);
+    }
+
+    await setDoc(bookDocRef, data, { merge: true });
+    console.info(`Book "${book.title}" backed up to Cloud Firestore (${cleanId})`);
+    return true;
+  } catch (err) {
+    console.warn(`Could not save book "${book.title}" to cloud:`, err);
+    return false;
+  }
+}
+
+/**
+ * Delete a book from user's Cloud Firestore subcollection
+ */
+export async function deleteBookFromCloud(userId: string, bookId: string): Promise<boolean> {
+  const uid = userId || auth.currentUser?.uid;
+  if (!uid || !bookId) return false;
+  const cleanId = bookId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  try {
+    const bookDocRef = doc(db, 'users', uid, 'books', cleanId);
+    await deleteDoc(bookDocRef);
+    console.info(`Book ${cleanId} deleted from Cloud Firestore`);
+    return true;
+  } catch (err) {
+    console.warn('Could not delete book from cloud:', err);
+    return false;
+  }
+}
+
+/**
+ * Load all books belonging to the user from Cloud Firestore
+ */
+export async function loadBooksFromCloud(userId: string): Promise<Book[]> {
+  const uid = userId || auth.currentUser?.uid;
+  if (!uid) return [];
+  try {
+    const booksColRef = collection(db, 'users', uid, 'books');
+    const snap = await getDocs(booksColRef);
+    const cloudBooks: Book[] = [];
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data && data.title) {
+        cloudBooks.push({
+          book_id: data.id || docSnap.id,
+          owner_id: uid,
+          title: data.title,
+          author: data.author || '',
+          file_type: (data.fileType as any) || 'txt',
+          size: typeof data.size === 'number' ? data.size : 1024,
+          pages: Array.isArray(data.pages) && data.pages.length > 0 ? data.pages : ['(Nessun contenuto disponibile)'],
+          currentPage: typeof data.currentPage === 'number' ? data.currentPage : 0,
+          source: (data.source as any) || 'upload',
+          ocr_engine: data.ocrEngine || 'Cloud Firestore',
+          created_at: data.createdAt || new Date().toISOString(),
+          coverColor: data.coverColor || '#FFFFFF',
+          audioUrl: data.audioUrl,
+        });
+      }
+    });
+
+    console.info(`Loaded ${cloudBooks.length} books from Cloud Firestore for user ${uid}`);
+    return cloudBooks;
+  } catch (err) {
+    console.warn('Could not load books from Cloud Firestore:', err);
+    return [];
+  }
+}
+
+/**
+ * Backup all local books to user's Cloud Firestore subcollection
+ */
+export async function syncAllBooksToCloud(
+  userId: string,
+  books: Book[]
+): Promise<{ synced: number; failed: number }> {
+  const uid = userId || auth.currentUser?.uid;
+  if (!uid || !Array.isArray(books) || books.length === 0) {
+    return { synced: 0, failed: 0 };
+  }
+
+  let synced = 0;
+  let failed = 0;
+
+  for (const book of books) {
+    try {
+      const ok = await saveBookToCloud(uid, book);
+      if (ok) synced++;
+      else failed++;
+    } catch {
+      failed++;
+    }
+  }
+
+  return { synced, failed };
+}
+

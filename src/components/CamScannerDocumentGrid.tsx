@@ -128,7 +128,7 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
               />
               <button
                 type="submit"
-                className="px-2 py-1 bg-white text-black text-xs font-bold rounded-lg shrink-0"
+                className="px-2.5 py-1 bg-transparent hover:bg-white/10 text-white border border-white text-xs font-bold rounded-lg shrink-0 cursor-pointer"
               >
                 OK
               </button>
@@ -186,13 +186,15 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
           <button
             type="button"
             onClick={() => setReorderMode((prev) => !prev)}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-              reorderMode ? 'bg-white text-black' : 'bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white'
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+              reorderMode
+                ? 'bg-transparent border-2 border-white text-white'
+                : 'bg-transparent border border-white/30 text-zinc-300 hover:text-white hover:border-white'
             }`}
             title="Riordina pagine"
             aria-label="Riordina pagine"
           >
-            <ArrowUpDown size={16} />
+            <ArrowUpDown size={16} className="text-white" />
           </button>
 
           {/* Pulsante PDF rapido in alto - sfondo trasparente con bordo bianco */}
@@ -200,10 +202,10 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
             type="button"
             onClick={onSavePdfBook}
             disabled={isSaving || pages.length === 0}
-            className="px-2.5 py-1 bg-transparent hover:bg-white/10 active:scale-95 text-white font-black text-xs rounded-full flex items-center gap-1.5 border border-white shadow-sm transition-all disabled:opacity-50"
+            className="px-2.5 py-1 bg-transparent hover:bg-white/10 active:scale-95 text-white font-black text-xs rounded-full flex items-center gap-1.5 border-2 border-white shadow-none transition-all disabled:opacity-50 cursor-pointer"
             title="Salva subito come PDF nella libreria"
           >
-            <span className="text-[10px] bg-white text-black px-1 py-0.2 rounded font-black tracking-tight">PDF</span>
+            <span className="text-[10px] bg-transparent border border-white text-white px-1 py-0.2 rounded font-black tracking-tight">PDF</span>
             <span className="hidden sm:inline">Salva</span>
           </button>
 
@@ -301,9 +303,9 @@ export const CamScannerDocumentGrid: React.FC<CamScannerDocumentGridProps> = ({
               <button
                 type="button"
                 onClick={onAddMorePages}
-                className="mt-2 px-5 py-2.5 rounded-full bg-white text-black font-extrabold text-xs shadow-lg hover:bg-gray-100 active:scale-95 transition-all flex items-center gap-2"
+                className="mt-2 px-5 py-2.5 rounded-full bg-transparent hover:bg-white/10 text-white border-2 border-white font-extrabold text-xs shadow-none active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
-                <Plus size={16} className="text-black stroke-[3]" />
+                <Plus size={16} className="text-white stroke-[3]" />
                 <span>Scatta Prima Pagina</span>
               </button>
             </div>

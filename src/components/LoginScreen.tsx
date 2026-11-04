@@ -185,7 +185,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <header className="w-full max-w-md mx-auto flex items-center justify-between pt-2 pb-2 z-20">
         <div className="flex items-center gap-2">
           <VoraLogo size={28} variant="flip7" showCircle={false} />
-          <span className={`text-sm font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} tracking-wider`}>VORA</span>
+          <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} tracking-wider`}>VORA</span>
         </div>
 
         {onSkip && (
@@ -194,7 +194,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             onClick={onSkip}
             className={`text-xs font-black ${
               isDarkMode
-                ? 'text-[#3CC4BD] bg-[#142322] hover:bg-[#1B2F2E] border-white/10'
+                ? 'text-white bg-transparent hover:bg-white/10 border-white'
                 : 'text-[#1E8C86] bg-white hover:bg-[#E8F6F5] border-[#2BA8A2]/30'
             } border-2 transition-all py-1.5 px-3.5 rounded-full shadow-xs active:scale-95`}
             title="Salta ed entra come ospite"
@@ -206,13 +206,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* Main Center Content */}
       <main className={`w-full max-w-[390px] mx-auto px-6 py-7 flex flex-col items-center my-auto ${
-        isDarkMode ? 'bg-[#142322] border-white/10 shadow-2xl' : 'bg-white border-[#2BA8A2]/30 shadow-card'
+        isDarkMode ? 'bg-transparent border-white shadow-2xl text-white' : 'bg-white border-[#2BA8A2]/30 shadow-card'
       } border-2 rounded-3xl transition-colors`}>
         {/* Vora Official Logo */}
         <div className="mb-4 flex items-center justify-center">
-          <div className={`w-16 h-16 rounded-2xl ${
-            isDarkMode ? 'bg-[#1A3130] border-[#2BA8A2]/50' : 'bg-[#E8F6F5] border-[#2BA8A2]/30'
-          } border-2 flex items-center justify-center shadow-xs`}>
+          <div className="w-16 h-16 rounded-full bg-transparent border-2 border-white flex items-center justify-center shadow-xs">
             <VoraLogo size={46} variant="flip7" showCircle={false} alt="Logo Vora" />
           </div>
         </div>
@@ -221,10 +219,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {viewMode === 'login' && (
           <div className="w-full flex flex-col items-center">
             {/* Title Header */}
-            <h1 className={`text-2xl font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} text-center mb-1 tracking-tight`}>
+            <h1 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} text-center mb-1 tracking-tight`}>
               Accedi a Vora
             </h1>
-            <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} font-semibold text-center mb-5`}>
+            <p className={`text-xs ${isDarkMode ? 'text-white/90' : 'text-slate-500'} font-semibold text-center mb-5`}>
               La voce dei tuoi libri
             </p>
 
@@ -249,7 +247,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="flex flex-col mb-3.5">
                 <label
                   htmlFor="login-username"
-                  className={`text-xs font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1.5`}
+                  className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1.5`}
                 >
                   Nome utente o email
                 </label>
@@ -263,7 +261,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="utente o email@esempio.com"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-[#0B1716] text-white border-white/10 focus:border-[#3CC4BD] placeholder:text-slate-500'
+                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
                       : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
                   } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all shadow-xs`}
                 />
@@ -274,7 +272,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <div className="flex items-center justify-between mb-1.5">
                   <label
                     htmlFor="login-password"
-                    className={`text-xs font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} uppercase tracking-wider`}
+                    className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} uppercase tracking-wider`}
                   >
                     Password
                   </label>
@@ -284,7 +282,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       setLoginError(null);
                       setViewMode('forgot_password');
                     }}
-                    className={`text-xs ${isDarkMode ? 'text-[#3CC4BD] hover:text-[#FFD23F]' : 'text-[#2BA8A2] hover:text-[#1E8C86]'} font-bold hover:underline`}
+                    className={`text-xs ${isDarkMode ? 'text-white hover:text-white/80' : 'text-[#2BA8A2] hover:text-[#1E8C86]'} font-bold hover:underline`}
                   >
                     Password dimenticata?
                   </button>
@@ -298,21 +296,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="••••••••••••"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-[#0B1716] text-white border-white/10 focus:border-[#3CC4BD] placeholder:text-slate-500'
+                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
                       : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
                   } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all shadow-xs`}
                 />
               </div>
 
-              {/* Primary Flip7 Gold CTA Button: Accedi */}
+              {/* Primary CTA Button: Accedi */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all mt-1 cursor-pointer flex items-center justify-center gap-2 shadow-accent-glow border-2 border-[#E6B800] disabled:opacity-70"
+                className={`w-full min-h-[46px] ${
+                  isDarkMode
+                    ? 'bg-transparent hover:bg-white/10 text-white border-2 border-white'
+                    : 'bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] border-2 border-[#E6B800] shadow-accent-glow'
+                } active:scale-95 font-black text-sm py-2.5 px-4 rounded-full transition-all mt-1 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70`}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 size={16} className="animate-spin text-[#1E8C86]" />
+                    <Loader2 size={16} className={`animate-spin ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'}`} />
                     <span>Accesso in corso...</span>
                   </>
                 ) : (
@@ -323,9 +325,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
             {/* Hairline Divider with centered 'oppure' */}
             <div className="w-full relative my-4">
-              <div className={`border-t-2 border-dashed ${isDarkMode ? 'border-white/10' : 'border-[#2BA8A2]/20'}`} />
+              <div className={`border-t-2 border-dashed ${isDarkMode ? 'border-white/20' : 'border-[#2BA8A2]/20'}`} />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className={`${isDarkMode ? 'bg-[#142322] text-[#3CC4BD]' : 'bg-white text-[#1E8C86]'} px-3 text-xs font-black uppercase tracking-wider`}>oppure</span>
+                <span className={`${isDarkMode ? 'bg-[#142322] text-white' : 'bg-white text-[#1E8C86]'} px-3 text-xs font-black uppercase tracking-wider`}>oppure</span>
               </div>
             </div>
 
@@ -338,7 +340,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 disabled={isLoading}
                 className={`w-full ${
                   isDarkMode
-                    ? 'bg-[#0B1716] hover:bg-[#1A3130] text-slate-200 border-white/10 hover:border-[#3CC4BD]/40'
+                    ? 'bg-transparent hover:bg-white/10 text-white border-white'
                     : 'bg-[#FFF8E7] hover:bg-white text-slate-800 border-slate-200 hover:border-[#2BA8A2]/40'
                 } border-2 py-2.5 px-4 rounded-full flex items-center justify-center gap-2.5 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95`}
               >
@@ -370,7 +372,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 disabled={isLoading}
                 className={`w-full ${
                   isDarkMode
-                    ? 'bg-[#0B1716] hover:bg-[#1A3130] text-slate-200 border-white/10 hover:border-[#3CC4BD]/40'
+                    ? 'bg-transparent hover:bg-white/10 text-white border-white'
                     : 'bg-[#FFF8E7] hover:bg-white text-slate-800 border-slate-200 hover:border-[#2BA8A2]/40'
                 } border-2 py-2.5 px-4 rounded-full flex items-center justify-center gap-2.5 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95`}
               >
@@ -382,7 +384,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
 
             {/* Link alla pagina di registrazione posizionato sotto i pulsanti */}
-            <div className={`text-center text-xs font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'} mt-5`}>
+            <div className={`text-center text-xs font-semibold ${isDarkMode ? 'text-white/90' : 'text-slate-600'} mt-5`}>
               <span>Non hai un account? </span>
               <button
                 type="button"
@@ -390,7 +392,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   setLoginError(null);
                   setViewMode('create_account');
                 }}
-                className={`${isDarkMode ? 'text-[#3CC4BD] hover:text-[#FFD23F]' : 'text-[#1E8C86] hover:text-[#2BA8A2]'} hover:underline cursor-pointer font-black`}
+                className={`${isDarkMode ? 'text-white hover:text-white/80' : 'text-[#1E8C86] hover:text-[#2BA8A2]'} hover:underline cursor-pointer font-black`}
               >
                 Registrati
               </button>
@@ -401,10 +403,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* View Mode: Registrazione nuovo account */}
         {viewMode === 'create_account' && (
           <div className="w-full flex flex-col items-center animate-fade-in">
-            <h1 className={`text-2xl font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} text-center mb-1 tracking-tight`}>
+            <h1 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} text-center mb-1 tracking-tight`}>
               Crea il tuo account
             </h1>
-            <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} font-semibold text-center mb-5`}>
+            <p className={`text-xs ${isDarkMode ? 'text-white/90' : 'text-slate-500'} font-semibold text-center mb-5`}>
               Registrati per accedere alla tua libreria
             </p>
 
@@ -412,7 +414,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="flex flex-col mb-3">
                 <label
                   htmlFor="reg-email"
-                  className={`text-xs font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
+                  className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
                 >
                   Indirizzo email
                 </label>
@@ -425,7 +427,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="iltuoindirizzo@email.com"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-[#0B1716] text-white border-white/10 focus:border-[#3CC4BD] placeholder:text-slate-500'
+                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
                       : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
                   } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
@@ -434,7 +436,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="flex flex-col mb-3">
                 <label
                   htmlFor="reg-username"
-                  className={`text-xs font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
+                  className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
                 >
                   Nome utente
                 </label>
@@ -447,7 +449,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="mariano_mazoni"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-[#0B1716] text-white border-white/10 focus:border-[#3CC4BD] placeholder:text-slate-500'
+                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
                       : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
                   } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
@@ -456,7 +458,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="flex flex-col mb-4">
                 <label
                   htmlFor="reg-password"
-                  className={`text-xs font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
+                  className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
                 >
                   Password
                 </label>
@@ -468,7 +470,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="Almeno 8 caratteri"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-[#0B1716] text-white border-white/10 focus:border-[#3CC4BD] placeholder:text-slate-500'
+                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
                       : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
                   } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
@@ -477,17 +479,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer shadow-accent-glow border-2 border-[#E6B800] flex items-center justify-center gap-2"
+                className={`w-full min-h-[46px] ${
+                  isDarkMode
+                    ? 'bg-transparent hover:bg-white/10 text-white border-2 border-white'
+                    : 'bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] border-2 border-[#E6B800] shadow-accent-glow'
+                } active:scale-95 font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2`}
               >
-                {isLoading ? <Loader2 size={16} className="animate-spin text-[#1E8C86]" /> : <span>Crea account</span>}
+                {isLoading ? <Loader2 size={16} className={`animate-spin ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'}`} /> : <span>Crea account</span>}
               </button>
 
-              <div className={`text-center text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-600'} font-semibold mt-4`}>
+              <div className={`text-center text-xs ${isDarkMode ? 'text-white/90' : 'text-slate-600'} font-semibold mt-4`}>
                 Hai già un account?{' '}
                 <button
                   type="button"
                   onClick={() => setViewMode('login')}
-                  className={`${isDarkMode ? 'text-[#3CC4BD] hover:text-[#FFD23F]' : 'text-[#1E8C86] hover:text-[#2BA8A2]'} hover:underline font-black cursor-pointer`}
+                  className={`${isDarkMode ? 'text-white hover:text-white/80' : 'text-[#1E8C86] hover:text-[#2BA8A2]'} hover:underline font-black cursor-pointer`}
                 >
                   Accedi &rarr;
                 </button>
@@ -499,10 +505,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* View Mode: Forgot Password */}
         {viewMode === 'forgot_password' && (
           <div className="w-full flex flex-col items-center animate-fade-in">
-            <h1 className={`text-2xl font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} text-center mb-1 tracking-tight`}>
+            <h1 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} text-center mb-1 tracking-tight`}>
               Reimposta password
             </h1>
-            <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} font-semibold text-center mb-5 leading-relaxed`}>
+            <p className={`text-xs ${isDarkMode ? 'text-white/90' : 'text-slate-500'} font-semibold text-center mb-5 leading-relaxed`}>
               Inserisci l'indirizzo email del tuo account per ricevere un link di ripristino.
             </p>
 
@@ -510,7 +516,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div className="flex flex-col mb-4">
                 <label
                   htmlFor="reset-email"
-                  className={`text-xs font-black ${isDarkMode ? 'text-[#3CC4BD]' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
+                  className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'} uppercase tracking-wider mb-1`}
                 >
                   Indirizzo email
                 </label>
@@ -523,22 +529,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="iltuoindirizzo@email.com"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-[#0B1716] text-white border-white/10 focus:border-[#3CC4BD] placeholder:text-slate-500'
+                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
                       : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
                   } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
               </div>
 
               {resetSent && (
-                <div className="mb-4 p-3 rounded-2xl bg-[#E8F6F5] dark:bg-[#1E3634] border-2 border-[#27AE60] text-xs text-[#27AE60] dark:text-[#2ECC71] font-black flex items-center gap-2 shadow-xs">
-                  <Check size={16} strokeWidth={3} />
+                <div className="mb-4 p-3 rounded-2xl bg-transparent border-2 border-white text-xs text-white font-black flex items-center gap-2 shadow-xs">
+                  <Check size={16} strokeWidth={3} className="text-white" />
                   <span>Link inviato! Controlla la tua casella email.</span>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] active:scale-95 text-[#1E8C86] font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer shadow-accent-glow border-2 border-[#E6B800]"
+                className={`w-full min-h-[46px] ${
+                  isDarkMode
+                    ? 'bg-transparent hover:bg-white/10 text-white border-2 border-white'
+                    : 'bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] border-2 border-[#E6B800] shadow-accent-glow'
+                } active:scale-95 font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer`}
               >
                 Invia link di reimpostazione
               </button>
@@ -546,7 +556,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setViewMode('login')}
-                className={`w-full mt-3 text-xs ${isDarkMode ? 'text-[#3CC4BD] hover:text-[#FFD23F]' : 'text-[#1E8C86] hover:text-[#2BA8A2]'} hover:underline text-center cursor-pointer font-black`}
+                className={`w-full mt-3 text-xs ${isDarkMode ? 'text-white hover:text-white/80' : 'text-[#1E8C86] hover:text-[#2BA8A2]'} hover:underline text-center cursor-pointer font-black`}
               >
                 Torna all'accesso
               </button>
