@@ -172,11 +172,11 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
       aria-labelledby="paste-audio-title"
       className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 select-none animate-fade-in font-sans"
     >
-      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-800 dark:text-white max-h-[92vh] overflow-hidden">
+      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-800 dark:text-white max-h-[92vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
               <Volume2 size={22} className="text-[#1E8C86] dark:text-white" />
             </div>
             <div className="min-w-0">
@@ -194,7 +194,7 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
             onClick={onClose}
             aria-label="Chiudi finestra"
             title="Chiudi"
-            className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 transition-all shrink-0 active:scale-95 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 transition-all shrink-0 active:scale-95 cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -202,14 +202,14 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
 
         {/* Feedback / Error notices */}
         {error && (
-          <div className="bg-[#EF6C4A]/10 border-2 border-[#EF6C4A]/30 dark:border-white p-3 rounded-2xl flex items-center gap-2.5 text-xs text-[#D45233] dark:text-white font-bold shrink-0">
+          <div className="bg-[#EF6C4A]/10 border-2 border-[#EF6C4A]/30 dark:border-none p-3 rounded-2xl flex items-center gap-2.5 text-xs text-[#D45233] dark:text-white font-bold shrink-0">
             <AlertCircle size={17} className="text-[#EF6C4A] dark:text-white shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {pastedNotice && (
-          <div className="bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/40 dark:border-white p-3 rounded-2xl flex items-center gap-2.5 text-xs text-[#1E8C86] dark:text-white font-black shrink-0 animate-fade-in shadow-xs">
+          <div className="bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/40 dark:border-none p-3 rounded-2xl flex items-center gap-2.5 text-xs text-[#1E8C86] dark:text-white font-black shrink-0 animate-fade-in shadow-xs">
             <Check size={17} className="text-[#2BA8A2] dark:text-white shrink-0" />
             <span>{pastedNotice}</span>
           </div>
@@ -223,7 +223,7 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
             <button
               type="button"
               onClick={handlePasteFromClipboard}
-              className="h-10 px-4 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-white font-black text-xs active:scale-95 transition-all shadow-none flex items-center gap-2 cursor-pointer"
+              className="h-10 px-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-black text-xs active:scale-95 transition-all shadow-none flex items-center gap-2 cursor-pointer border-none"
               title="Tocca per incollare il testo copiato"
             >
               <ClipboardPaste size={16} className="text-white" />
@@ -236,7 +236,7 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
                 <button
                   type="button"
                   onClick={handleInsertSample}
-                  className="h-10 px-4 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-white font-black text-xs transition-all flex items-center gap-1.5 active:scale-95 shadow-none cursor-pointer"
+                  className="h-10 px-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-black text-xs transition-all flex items-center gap-1.5 active:scale-95 shadow-none cursor-pointer border-none"
                   title="Inserisci testo di esempio"
                 >
                   <Sparkles size={15} className="text-white fill-white" />
@@ -252,7 +252,7 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
                     setText('');
                     setTitle('');
                   }}
-                  className="h-10 px-3.5 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-white font-black text-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                  className="h-10 px-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-black text-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer border-none"
                   title="Cancella tutto il testo"
                 >
                   <Trash2 size={15} className="text-white" />
@@ -288,7 +288,7 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
                 if (error) setError(null);
               }}
               placeholder="Incolla qui il testo copiato da una pagina web, articolo, messaggio, email o documento..."
-              className="w-full flex-1 min-h-[190px] sm:min-h-[220px] bg-transparent border-2 border-white rounded-2xl p-4 text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none resize-none leading-relaxed transition-all shadow-none"
+              className="w-full flex-1 min-h-[190px] sm:min-h-[220px] bg-white/5 border border-zinc-800 focus:border-[#2BA8A2] rounded-2xl p-4 text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none resize-none leading-relaxed transition-all shadow-none"
             />
           </div>
 
@@ -318,17 +318,17 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Es. Articolo, Appunti, Capitolo..."
-              className="w-full bg-transparent border-2 border-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none transition-all shadow-none"
+              className="w-full bg-white/5 border border-zinc-800 focus:border-[#2BA8A2] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none transition-all shadow-none"
             />
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-3 border-t-2 border-dashed border-white/30 flex items-center justify-between gap-3 shrink-0">
+        <div className="pt-3 border-t border-zinc-800 flex items-center justify-between gap-3 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="h-11 px-5 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-white font-black text-xs transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-none"
+            className="h-11 px-5 rounded-full bg-white/10 hover:bg-white/20 text-white font-black text-xs transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-none border-none"
             title="Annulla"
           >
             <X size={16} className="text-white" />
@@ -338,10 +338,10 @@ export const PasteAudioModal: React.FC<PasteAudioModalProps> = ({
           <button
             type="button"
             onClick={handleStartListening}
-            className="flex-1 h-11 px-6 rounded-full bg-transparent hover:bg-white/10 text-white border-2 border-white font-black text-xs sm:text-sm active:scale-95 transition-all shadow-none flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 h-11 px-6 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black text-xs sm:text-sm active:scale-95 transition-all shadow-accent-glow flex items-center justify-center gap-2 cursor-pointer border-none"
             title="Avvia lettura vocale nel lettore"
           >
-            <Play size={18} className="fill-white text-white" />
+            <Play size={18} className="fill-slate-900 text-slate-900" />
             <span>Ascolta Subito</span>
           </button>
         </div>

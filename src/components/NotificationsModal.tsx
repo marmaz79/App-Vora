@@ -116,15 +116,15 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-white max-h-[90vh] overflow-hidden animate-slide-up"
+        className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-white max-h-[90vh] overflow-hidden animate-slide-up"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3.5">
+        <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="relative w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
               <Bell size={22} className="text-[#1E8C86] dark:text-white" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFD23F] dark:bg-white border border-[#1E8C86] dark:border-white text-[9px] font-black text-slate-900 dark:text-black shadow-accent-glow">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFD23F] dark:bg-white border border-[#1E8C86] dark:border-none text-[9px] font-black text-slate-900 dark:text-black shadow-accent-glow">
                   {unreadCount}
                 </span>
               )}
@@ -139,11 +139,11 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                   Notifiche
                 </h2>
                 {unreadCount > 0 ? (
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF8E7] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#FFD23F] dark:border-white">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF8E7] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#FFD23F] dark:border-none">
                     {unreadCount} nuove
                   </span>
                 ) : (
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none">
                     Tutte lette
                   </span>
                 )}
@@ -160,7 +160,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 type="button"
                 onClick={onMarkAllAsRead}
                 aria-label="Segna tutte come lette"
-                className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border border-[#2BA8A2]/30 dark:border-none flex items-center justify-center transition-all active:scale-95 cursor-pointer"
                 title="Segna tutte come lette"
               >
                 <CheckCheck size={18} />
@@ -171,7 +171,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Chiudi notifiche"
-              className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+              className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border border-[#2BA8A2]/30 dark:border-none flex items-center justify-center transition-all active:scale-95 cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -185,8 +185,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             onClick={() => setActiveFilter('all')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'all'
-                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
-                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-none'
             }`}
           >
             <span>Tutte</span>
@@ -194,7 +194,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
                 activeFilter === 'all'
                   ? 'bg-[#1E8C86] dark:bg-white dark:text-black text-white'
-                  : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white'
+                  : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none'
               }`}
             >
               {notifications.length}
@@ -206,8 +206,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             onClick={() => setActiveFilter('unread')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'unread'
-                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
-                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-none'
             }`}
           >
             <span>Non lette</span>
@@ -223,8 +223,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             onClick={() => setActiveFilter('reading')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'reading'
-                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
-                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-none'
             }`}
           >
             <Volume2 size={13} className="text-white" />
@@ -236,8 +236,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             onClick={() => setActiveFilter('system')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               activeFilter === 'system'
-                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow dark:shadow-none'
-                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white/40'
+                ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-teal-glow dark:shadow-none'
+                : 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#3CC4BD]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-none'
             }`}
           >
             <Sparkles size={13} className="text-white" />
@@ -249,7 +249,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1 max-h-[50vh] sm:max-h-[55vh] select-text">
           {filteredNotifications.length === 0 ? (
             <div className="p-8 text-center flex flex-col items-center justify-center gap-3 my-auto">
-              <div className="w-14 h-14 rounded-full bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white flex items-center justify-center text-[#1E8C86] dark:text-white">
+              <div className="w-14 h-14 rounded-full bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none flex items-center justify-center text-[#1E8C86] dark:text-white">
                 <BellOff size={26} className="text-white" />
               </div>
               <div>
@@ -265,7 +265,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 <button
                   type="button"
                   onClick={onResetSample}
-                  className="mt-2 text-xs font-black text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  className="mt-2 text-xs font-black text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                 >
                   <RotateCcw size={14} className="text-white" />
                   <span>Ripristina notifiche demo</span>
@@ -277,19 +277,19 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               <div
                 key={notif.id}
                 onClick={() => onMarkAsRead(notif.id)}
-                className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative group flex flex-col gap-2.5 ${
+                className={`p-3.5 rounded-2xl border-2 dark:border-none transition-all cursor-pointer relative group flex flex-col gap-2.5 ${
                   notif.read
-                    ? 'bg-white dark:bg-transparent border-slate-200 dark:border-white/40 border-l-[6px] border-l-slate-300 dark:border-l-white/60 opacity-80 hover:opacity-100 hover:bg-[#FFF8E7]/30 dark:hover:bg-white/10'
-                    : 'bg-white dark:bg-transparent border-[#2BA8A2]/30 dark:border-white border-l-[6px] border-l-[#2BA8A2] dark:border-l-white shadow-xs hover:border-[#2BA8A2] dark:hover:border-white dark:hover:bg-white/10'
+                    ? 'bg-white dark:bg-transparent border-slate-200 border-l-[6px] border-l-slate-300 dark:border-none opacity-80 hover:opacity-100 hover:bg-[#FFF8E7]/30 dark:hover:bg-white/10'
+                    : 'bg-white dark:bg-transparent border-[#2BA8A2]/30 border-l-[6px] border-l-[#2BA8A2] dark:border-none shadow-xs hover:border-[#2BA8A2] dark:hover:bg-white/10'
                 }`}
               >
                 {/* Header item: Icon, Badge, Time, Actions */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-xl bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-xl bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-none flex items-center justify-center shrink-0">
                       {getNotificationIcon(notif.type)}
                     </div>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border bg-[#E8F6F5] dark:bg-transparent border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white">
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border bg-[#E8F6F5] dark:bg-transparent border-[#2BA8A2]/30 dark:border-none text-[#1E8C86] dark:text-white">
                       {getNotificationTypeLabel(notif.type)}
                     </span>
                     {!notif.read && (
@@ -336,7 +336,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         e.stopPropagation();
                         handleActionClick(notif);
                       }}
-                      className="text-xs font-black text-slate-900 dark:text-white bg-[#FFD23F] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white hover:bg-[#FFE47A] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all shadow-accent-glow dark:shadow-none active:scale-95 cursor-pointer"
+                      className="text-xs font-black text-slate-900 dark:text-white bg-[#FFD23F] dark:bg-transparent dark:hover:bg-white/10 dark:border-none hover:bg-[#FFE47A] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all shadow-accent-glow dark:shadow-none active:scale-95 cursor-pointer"
                     >
                       <span>{notif.actionLabel}</span>
                       <ArrowRight size={13} className="text-white" />
@@ -363,7 +363,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 text-xs text-slate-500 dark:text-white/80">
+        <div className="flex items-center justify-between pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-none text-xs text-slate-500 dark:text-white/80">
           {notifications.length > 0 ? (
             <button
               type="button"
@@ -380,7 +380,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-black text-[#1E8C86] dark:text-white bg-[#E8F6F5] dark:bg-transparent hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-white px-5 py-2 rounded-full transition-all active:scale-95 cursor-pointer"
+            className="text-xs font-black text-[#1E8C86] dark:text-white bg-[#E8F6F5] dark:bg-transparent hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 border-2 border-[#2BA8A2]/30 dark:border-none px-5 py-2 rounded-full transition-all active:scale-95 cursor-pointer"
           >
             Chiudi
           </button>

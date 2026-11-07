@@ -17,7 +17,7 @@ export const ScanTab: React.FC<ScanTabProps> = ({
   return (
     <section className="flex flex-col gap-4 animate-fade-in select-none pb-28 text-slate-800 dark:text-slate-100" aria-label="Funzione Scan OCR">
       {/* Header Flip7 Style */}
-      <div className="pt-2 px-1 flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-[#2BA8A2]/40 pb-2.5">
+      <div className="pt-2 px-1 flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-none pb-2.5">
         <div>
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-[#EF6C4A] text-white flex items-center justify-center shadow-coral-glow">
@@ -33,7 +33,7 @@ export const ScanTab: React.FC<ScanTabProps> = ({
           </p>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E7] dark:bg-transparent text-[#D45233] dark:text-white border border-[#EF6C4A]/40 dark:border-white text-xs font-black shadow-xs">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E7] dark:bg-transparent text-[#D45233] dark:text-white border border-[#EF6C4A]/40 dark:border-none text-xs font-black shadow-xs">
           <Sparkles size={14} className="text-[#EF6C4A] dark:text-white" />
           <span>OCR attivo</span>
         </div>

@@ -35,33 +35,33 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDismiss, isDarkMod
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             {/* Card 1: Coral */}
             <div
-              className="absolute w-20 h-28 rounded-xl bg-[#EF6C4A] border-2 border-white/60 shadow-coral-glow"
+              className="absolute w-20 h-28 rounded-xl bg-[#EF6C4A] shadow-coral-glow"
               style={{ transform: 'rotate(-24deg) translateY(-8px)' }}
             />
             {/* Card 2: Sky Blue */}
             <div
-              className="absolute w-20 h-28 rounded-xl bg-[#5DADE2] border-2 border-white/60 shadow-sky-glow"
+              className="absolute w-20 h-28 rounded-xl bg-[#5DADE2] shadow-sky-glow"
               style={{ transform: 'rotate(-12deg) translateY(-14px)' }}
             />
             {/* Card 3: Accent Gold */}
             <div
-              className="absolute w-20 h-28 rounded-xl bg-[#FFD23F] border-2 border-white/80 shadow-accent-glow"
+              className="absolute w-20 h-28 rounded-xl bg-[#FFD23F] shadow-accent-glow"
               style={{ transform: 'rotate(0deg) translateY(-18px)' }}
             />
             {/* Card 4: Primary Teal */}
             <div
-              className="absolute w-20 h-28 rounded-xl bg-[#2BA8A2] border-2 border-white/60 shadow-teal-glow"
+              className="absolute w-20 h-28 rounded-xl bg-[#2BA8A2] shadow-teal-glow"
               style={{ transform: 'rotate(12deg) translateY(-14px)' }}
             />
             {/* Card 5: Warm Cream / Deep Teal */}
             <div
-              className="absolute w-20 h-28 rounded-xl bg-[#162E2C] border-2 border-white/30 shadow-sm"
+              className="absolute w-20 h-28 rounded-xl bg-[#162E2C] shadow-sm"
               style={{ transform: 'rotate(24deg) translateY(-8px)' }}
             />
           </div>
 
-          {/* Central Vora Icon Badge - Bordo tondo e BIANCO */}
-          <div className="relative w-36 h-36 rounded-full bg-black/95 border-4 border-white shadow-2xl flex items-center justify-center z-10 transition-transform duration-300 hover:scale-105">
+          {/* Central Vora Icon Badge - Sfondo trasparente e bordo tondo bianco */}
+          <div className="relative w-36 h-36 rounded-full bg-transparent border-2 border-white shadow-2xl flex items-center justify-center z-10 transition-transform duration-300 hover:scale-105">
             <VoraLogo
               size={84}
               variant="flip7"

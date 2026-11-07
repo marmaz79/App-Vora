@@ -58,12 +58,12 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       aria-label="Profilo e statistiche"
     >
       {/* Header */}
-      <div className="flex items-center gap-2.5 pt-1 border-b-2 border-dashed border-white/20 pb-2.5">
+      <div className="flex items-center gap-2.5 pt-1 border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-none pb-2.5">
         {onBack && (
           <button
             onClick={onBack}
             aria-label="Torna indietro"
-            className="w-10 h-10 rounded-full border-2 border-white bg-transparent flex items-center justify-center shrink-0 text-white hover:bg-white/10 active:scale-95 transition-all shadow-xs"
+            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white hover:bg-white/20 active:scale-95 transition-all shadow-xs border-none"
             title="Torna indietro"
           >
             <ArrowLeft size={20} className="text-white" />
@@ -79,16 +79,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </div>
 
       {/* User Info Card */}
-      <div className="bg-transparent border-2 border-white rounded-3xl p-5 flex flex-col gap-3 shadow-card text-white">
+      <div className="bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-3xl p-5 flex flex-col gap-3 shadow-card text-white">
         <div className="flex items-center gap-3.5">
-          <div className="w-14 h-14 rounded-2xl bg-transparent border-2 border-white text-white font-black text-2xl flex items-center justify-center shadow-xs shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-white/10 text-white font-black text-2xl flex items-center justify-center shadow-xs shrink-0 border-none">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-black text-white truncate">{user.name}</h3>
             <p className="text-xs font-semibold text-white/90 truncate">{user.email}</p>
             <div className="flex items-center gap-1.5 mt-1.5">
-              <span className="inline-block text-[10px] font-black uppercase bg-transparent text-white border border-white px-3 py-0.5 rounded-full shadow-xs">
+              <span className="inline-block text-[10px] font-black uppercase bg-white/10 text-white px-3 py-0.5 rounded-full shadow-xs border-none">
                 {user.auth_provider === 'google' ? 'Google Auth (Firebase)' : 'Account Locale / Ospite'}
               </span>
             </div>
@@ -96,13 +96,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
 
         {saveSuccess && (
-          <div className="bg-transparent border-2 border-white text-white text-xs font-black p-3 rounded-2xl flex items-center gap-2 shadow-xs">
+          <div className="bg-white/10 text-white text-xs font-black p-3 rounded-2xl flex items-center gap-2 shadow-xs border-none">
             <Check size={16} strokeWidth={3} className="text-white" /> Profilo aggiornato con successo!
           </div>
         )}
 
         {isEditing ? (
-          <form onSubmit={handleSave} className="flex flex-col gap-3 pt-3 border-t-2 border-dashed border-white/20">
+          <form onSubmit={handleSave} className="flex flex-col gap-3 pt-3 border-t-2 border-dashed border-[#2BA8A2]/20">
             <div>
               <label htmlFor="user-name-input" className="text-xs font-black text-white uppercase tracking-wider block mb-1">
                 Nome completo
@@ -112,7 +112,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-transparent border-2 border-white focus:border-white rounded-xl p-3 text-white font-bold text-sm outline-none shadow-xs placeholder:text-white/60"
+                className="w-full bg-white/5 border border-[#2BA8A2]/30 focus:border-[#2BA8A2] rounded-xl p-3 text-white font-bold text-sm outline-none shadow-xs placeholder:text-white/60"
                 required
               />
             </div>
@@ -125,31 +125,31 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent border-2 border-white focus:border-white rounded-xl p-3 text-white font-bold text-sm outline-none shadow-xs placeholder:text-white/60"
+                className="w-full bg-white/5 border border-[#2BA8A2]/30 focus:border-[#2BA8A2] rounded-xl p-3 text-white font-bold text-sm outline-none shadow-xs placeholder:text-white/60"
                 required
               />
             </div>
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 min-h-[46px] bg-transparent hover:bg-white/10 text-white font-black text-sm rounded-full transition-all active:scale-95 border-2 border-white cursor-pointer"
+                className="flex-1 min-h-[46px] bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black text-sm rounded-full transition-all active:scale-95 border-none cursor-pointer shadow-accent-glow"
               >
                 Salva modifiche
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="min-h-[46px] px-5 bg-transparent text-white font-bold text-sm rounded-full hover:bg-white/10 border-2 border-white active:scale-95 transition-all cursor-pointer"
+                className="min-h-[46px] px-5 bg-white/10 text-white font-bold text-sm rounded-full hover:bg-white/20 border-none active:scale-95 transition-all cursor-pointer"
               >
                 Annulla
               </button>
             </div>
           </form>
         ) : (
-          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t-2 border-dashed border-white/20">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t-2 border-dashed border-[#2BA8A2]/20">
             <button
               onClick={() => setIsEditing(true)}
-              className="flex-1 min-h-[42px] bg-transparent border-2 border-white hover:bg-white/10 text-white font-black text-xs rounded-full transition-all active:scale-95 shadow-xs cursor-pointer"
+              className="flex-1 min-h-[42px] bg-white/10 hover:bg-white/20 text-white font-black text-xs rounded-full transition-all active:scale-95 shadow-xs cursor-pointer border-none"
             >
               Modifica profilo
             </button>
@@ -158,7 +158,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <button
                 type="button"
                 onClick={onLogout}
-                className="min-h-[42px] bg-transparent hover:bg-white/10 text-white border-2 border-white font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all active:scale-95 px-4 shadow-xs cursor-pointer"
+                className="min-h-[42px] bg-white/10 hover:bg-white/20 text-white font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all active:scale-95 px-4 shadow-xs cursor-pointer border-none"
               >
                 <LogOut size={15} className="text-white" />
                 <span>Disconnetti account</span>
@@ -169,9 +169,9 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <button
                 type="button"
                 onClick={onOpenLogin}
-                className="min-h-[42px] bg-transparent hover:bg-white/10 text-white font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all border-2 border-white active:scale-95 px-4 cursor-pointer"
+                className="min-h-[42px] bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all border-none active:scale-95 px-4 cursor-pointer shadow-accent-glow"
               >
-                <LogIn size={15} className="text-white" />
+                <LogIn size={15} className="text-slate-900" />
                 <span>Accedi o Registrati</span>
               </button>
             )}
@@ -180,10 +180,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </div>
 
       {/* Cloud Storage & Backup Status */}
-      <div className="bg-transparent border-2 border-white rounded-3xl p-5 flex flex-col gap-3 shadow-card text-white">
+      <div className="bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-3xl p-5 flex flex-col gap-3 shadow-card text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-transparent border border-white text-white flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shadow-xs border-none">
               <Cloud size={20} className="text-white" />
             </div>
             <div>
@@ -196,7 +196,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-white bg-transparent border border-white px-2.5 py-1 rounded-full shadow-xs">
+          <span className="text-[10px] font-black uppercase tracking-wider text-white bg-white/10 px-2.5 py-1 rounded-full shadow-xs border-none">
             {books.filter((b) => b.source !== 'sample').length} salvati
           </span>
         </div>
@@ -206,7 +206,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </p>
 
         {syncResult && (
-          <div className="bg-transparent border-2 border-white text-white text-xs font-bold p-2.5 rounded-xl flex items-center gap-2 shadow-xs">
+          <div className="bg-white/10 text-white text-xs font-bold p-2.5 rounded-xl flex items-center gap-2 shadow-xs border-none">
             <Check size={14} strokeWidth={3} className="text-white" /> {syncResult}
           </div>
         )}
@@ -229,16 +229,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               setIsSyncing(false);
             }
           }}
-          className="min-h-[42px] bg-transparent hover:bg-white/10 text-white border-2 border-white font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs cursor-pointer disabled:opacity-50"
+          className="min-h-[42px] bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 border-none font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all active:scale-95 shadow-accent-glow cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw size={14} className={`text-white ${isSyncing ? 'animate-spin' : ''}`} />
-          <span className="text-white">{isSyncing ? 'Sincronizzazione cloud in corso...' : 'Sincronizza ora tutti i contenuti nel Cloud'}</span>
+          <RefreshCw size={14} className={`text-slate-900 ${isSyncing ? 'animate-spin' : ''}`} />
+          <span className="text-slate-900">{isSyncing ? 'Sincronizzazione cloud in corso...' : 'Sincronizza ora tutti i contenuti nel Cloud'}</span>
         </button>
       </div>
 
       {/* Reading Statistics */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="bg-transparent border-2 border-white rounded-2xl p-4 flex flex-col justify-between shadow-card text-white">
+        <div className="bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-2xl p-4 flex flex-col justify-between shadow-card text-white">
           <div className="flex items-center gap-2 text-white">
             <BookOpen size={18} className="text-white" />
             <span className="text-[10px] font-black uppercase tracking-wider text-white">Pagine lette</span>
@@ -249,7 +249,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           <span className="text-[11px] font-bold text-white/90">su {totalPages} totali</span>
         </div>
 
-        <div className="bg-transparent border-2 border-white rounded-2xl p-4 flex flex-col justify-between shadow-card text-white">
+        <div className="bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-2xl p-4 flex flex-col justify-between shadow-card text-white">
           <div className="flex items-center gap-2 text-white">
             <Clock size={18} className="text-white" />
             <span className="text-[10px] font-black uppercase tracking-wider text-white">Tempo dedicato</span>
@@ -259,15 +259,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
-      {/* Button to open Full Reading Stats Panel (Transparent Background with White Borders & White Text) */}
+      {/* Button to open Full Reading Stats Panel (Transparent Background with No Borders & White Text) */}
       {onOpenStats && (
         <button
           type="button"
           onClick={onOpenStats}
-          className="w-full bg-transparent hover:bg-white/10 text-white font-black text-sm p-4 rounded-2xl flex items-center justify-between transition-all active:scale-98 border-2 border-white cursor-pointer shadow-xs"
+          className="w-full bg-white/10 hover:bg-white/20 text-white font-black text-sm p-4 rounded-2xl flex items-center justify-between transition-all active:scale-98 border-none cursor-pointer shadow-xs"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-transparent border border-white text-white flex items-center justify-center shadow-xs shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shadow-xs shrink-0 border-none">
               <BarChart3 size={20} className="text-white" />
             </div>
             <div className="flex flex-col text-left">

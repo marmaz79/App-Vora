@@ -83,11 +83,11 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
       aria-labelledby="bookmarks-modal-title"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none font-sans"
     >
-      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-card text-slate-800 dark:text-white overflow-hidden animate-fade-in">
+      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-card text-slate-800 dark:text-white overflow-hidden animate-fade-in">
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 flex items-center justify-between shrink-0 bg-white dark:bg-transparent">
+        <div className="p-4 sm:p-5 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none flex items-center justify-between shrink-0 bg-white dark:bg-transparent">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white flex items-center justify-center text-[#1E8C86] dark:text-white shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none flex items-center justify-center text-[#1E8C86] dark:text-white shadow-xs">
               <BookmarkCheck size={20} className="text-[#1E8C86] dark:text-white" />
             </div>
             <div>
@@ -104,7 +104,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
             aria-label="Chiudi pannello segnalibri"
           >
             <X size={18} />
@@ -112,15 +112,15 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
         </div>
 
         {/* Quick Add / Manage Current Page Section */}
-        <div className="p-3 sm:p-4 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 bg-[#EFF8F7] dark:bg-transparent shrink-0">
+        <div className="p-3 sm:p-4 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none bg-[#EFF8F7] dark:bg-transparent shrink-0">
           {isCurrentPageBookmarked && currentBookmark ? (
-            <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white dark:bg-transparent border-2 border-[#FFD23F] dark:border-white shadow-xs">
+            <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white dark:bg-transparent border-2 border-[#FFD23F] dark:border-none shadow-xs">
               <div className="flex items-center gap-2 min-w-0">
                 <BookmarkIcon size={18} className="fill-[#FFD23F] dark:fill-white text-[#FFD23F] dark:text-white shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                     Pagina {currentPage + 1} già salvata
-                    <span className="text-[10px] bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-white text-[#1E8C86] dark:text-white px-2 py-0.2 rounded-full font-black">
+                    <span className="text-[10px] bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-none text-[#1E8C86] dark:text-white px-2 py-0.2 rounded-full font-black">
                       In lettura
                     </span>
                   </p>
@@ -134,7 +134,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
               <button
                 type="button"
                 onClick={() => onRemoveBookmark(currentBookmark.id)}
-                className="px-3 py-1.5 rounded-full border border-[#EF6C4A]/40 dark:border-white text-[#EF6C4A] dark:text-white hover:bg-[#EF6C4A]/10 dark:hover:bg-white/10 text-xs font-black flex items-center gap-1.5 transition-colors shrink-0 active:scale-95 cursor-pointer"
+                className="px-3 py-1.5 rounded-full border border-[#EF6C4A]/40 dark:border-none text-[#EF6C4A] dark:text-white hover:bg-[#EF6C4A]/10 dark:hover:bg-white/10 text-xs font-black flex items-center gap-1.5 transition-colors shrink-0 active:scale-95 cursor-pointer"
                 title="Rimuovi questo segnalibro"
               >
                 <Trash2 size={13} className="text-current" />
@@ -155,11 +155,11 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Nota opzionale (es. Citazione chiave, Capitolo 2)..."
-                  className="flex-1 bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-white rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/60 focus:outline-none focus:border-[#2BA8A2] dark:focus:border-white transition-all"
+                  className="flex-1 bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/60 focus:outline-none focus:border-[#2BA8A2] dark:focus:border-none transition-all"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#2BA8A2] hover:bg-[#1E8C86] dark:bg-transparent dark:hover:bg-white/10 text-white font-black text-xs rounded-full border-2 border-transparent dark:border-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs cursor-pointer"
+                  className="px-4 py-2 bg-[#2BA8A2] hover:bg-[#1E8C86] dark:bg-transparent dark:hover:bg-white/10 text-white font-black text-xs rounded-full border-2 border-transparent dark:border-none flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-xs cursor-pointer"
                 >
                   <Plus size={16} className="text-white" />
                   <span>Salva</span>
@@ -173,7 +173,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
         <div className="p-3 sm:p-4 overflow-y-auto flex-1 flex flex-col gap-2.5">
           {bookmarks.length === 0 ? (
             <div className="py-12 px-4 text-center flex flex-col items-center justify-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white flex items-center justify-center text-[#1E8C86] dark:text-white">
+              <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none flex items-center justify-center text-[#1E8C86] dark:text-white">
                 <BookmarkIcon size={28} />
               </div>
               <div className="max-w-xs">
@@ -187,7 +187,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
               <button
                 type="button"
                 onClick={() => onAddBookmark(currentPage)}
-                className="mt-2 px-5 py-2.5 bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 text-slate-900 dark:text-white font-black text-xs rounded-full border-2 border-transparent dark:border-white flex items-center gap-1.5 transition-all active:scale-95 shadow-accent-glow dark:shadow-none cursor-pointer"
+                className="mt-2 px-5 py-2.5 bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 text-slate-900 dark:text-white font-black text-xs rounded-full border-2 border-transparent dark:border-none flex items-center gap-1.5 transition-all active:scale-95 shadow-accent-glow dark:shadow-none cursor-pointer"
               >
                 <BookmarkIcon size={14} className="fill-current" />
                 Salva Pagina {currentPage + 1} ora
@@ -201,17 +201,17 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
               return (
                 <div
                   key={bm.id}
-                  className={`rounded-2xl border-2 dark:border-white p-3.5 sm:p-4 transition-all flex flex-col gap-2.5 bg-white dark:bg-transparent shadow-xs`}
+                  className={`rounded-2xl border-2 dark:border-none p-3.5 sm:p-4 transition-all flex flex-col gap-2.5 bg-white dark:bg-transparent shadow-xs`}
                 >
                   {/* Top line: Page badge, Status, and Controls */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white flex items-center gap-1">
+                      <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none flex items-center gap-1">
                         <BookmarkIcon size={12} className="fill-[#1E8C86] dark:fill-white text-[#1E8C86] dark:text-white" />
                         Pagina {bm.pageIndex + 1}
                       </span>
                       {isCurrent && (
-                        <span className="text-[10px] font-black uppercase bg-[#FFD23F] dark:bg-transparent border dark:border-white text-slate-900 dark:text-white px-2 py-0.5 rounded-full shadow-xs">
+                        <span className="text-[10px] font-black uppercase bg-[#FFD23F] dark:bg-transparent border dark:border-none text-slate-900 dark:text-white px-2 py-0.5 rounded-full shadow-xs">
                           In lettura
                         </span>
                       )}
@@ -253,13 +253,13 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
                         value={editNoteText}
                         onChange={(e) => setEditNoteText(e.target.value)}
                         placeholder="Inserisci o modifica la nota..."
-                        className="flex-1 bg-white dark:bg-transparent border-2 border-[#2BA8A2] dark:border-white rounded-xl px-3 py-1 text-xs text-slate-900 dark:text-white focus:outline-none"
+                        className="flex-1 bg-white dark:bg-transparent border-2 border-[#2BA8A2] dark:border-none rounded-xl px-3 py-1 text-xs text-slate-900 dark:text-white focus:outline-none"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={() => handleSaveEdit(bm.id)}
-                        className="p-1.5 bg-[#2BA8A2] dark:bg-transparent border dark:border-white text-white rounded-lg hover:bg-[#1E8C86] dark:hover:bg-white/10 transition-colors cursor-pointer"
+                        className="p-1.5 bg-[#2BA8A2] dark:bg-transparent border dark:border-none text-white rounded-lg hover:bg-[#1E8C86] dark:hover:bg-white/10 transition-colors cursor-pointer"
                         title="Salva nota"
                       >
                         <Check size={14} />
@@ -267,21 +267,21 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setEditingId(null)}
-                        className="p-1.5 bg-[#E8F6F5] dark:bg-transparent border dark:border-white text-[#1E8C86] dark:text-white rounded-lg hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                        className="p-1.5 bg-[#E8F6F5] dark:bg-transparent border dark:border-none text-[#1E8C86] dark:text-white rounded-lg hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 transition-colors cursor-pointer"
                         title="Annulla"
                       >
                         <X size={14} />
                       </button>
                     </div>
                   ) : bm.note ? (
-                    <div className="px-3 py-1.5 rounded-xl bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-white/60 text-xs text-slate-800 dark:text-white italic font-medium flex items-center gap-1.5">
+                    <div className="px-3 py-1.5 rounded-xl bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-none text-xs text-slate-800 dark:text-white italic font-medium flex items-center gap-1.5">
                       <span className="text-[#1E8C86] dark:text-white font-black not-italic text-[11px]">Nota:</span>
                       <span>"{bm.note}"</span>
                     </div>
                   ) : null}
 
                   {/* Snippet preview */}
-                  <p className="text-xs text-slate-600 dark:text-white font-normal line-clamp-2 leading-relaxed bg-[#EFF8F7]/50 dark:bg-transparent p-2.5 rounded-xl border border-[#2BA8A2]/15 dark:border-white/30">
+                  <p className="text-xs text-slate-600 dark:text-white font-normal line-clamp-2 leading-relaxed bg-[#EFF8F7]/50 dark:bg-transparent p-2.5 rounded-xl border border-[#2BA8A2]/15 dark:border-none">
                     {bm.snippet || '(Nessun testo estratto)'}
                   </p>
 
@@ -295,8 +295,8 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
                       }}
                       className={`min-h-[36px] px-4 rounded-full font-black text-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
                         isCurrent
-                          ? 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10'
-                          : 'bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 text-slate-900 dark:text-white border-2 border-transparent dark:border-white shadow-accent-glow dark:shadow-none'
+                          ? 'bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10'
+                          : 'bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 text-slate-900 dark:text-white border-2 border-transparent dark:border-none shadow-accent-glow dark:shadow-none'
                       }`}
                     >
                       <BookOpen size={14} />
@@ -311,12 +311,12 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-3 sm:p-4 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 flex items-center justify-between text-xs text-slate-500 dark:text-white/80 shrink-0 bg-white dark:bg-transparent font-medium">
+        <div className="p-3 sm:p-4 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-none flex items-center justify-between text-xs text-slate-500 dark:text-white/80 shrink-0 bg-white dark:bg-transparent font-medium">
           <span>{bookmarks.length} {bookmarks.length === 1 ? 'segnalibro salvato' : 'segnalibri salvati'}</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-1.5 rounded-full border-2 border-[#2BA8A2]/30 dark:border-white bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 font-black transition-all active:scale-95 cursor-pointer"
+            className="px-5 py-1.5 rounded-full border-2 border-[#2BA8A2]/30 dark:border-none bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 font-black transition-all active:scale-95 cursor-pointer"
           >
             Chiudi
           </button>

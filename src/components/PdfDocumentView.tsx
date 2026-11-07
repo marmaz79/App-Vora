@@ -405,8 +405,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           aria-label="Torna indietro ed esci da pieno schermo"
           className={`min-h-[44px] px-3.5 sm:px-4 py-2 rounded-xl flex items-center gap-2.5 transition-all shrink-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 ${
             isNightMode
-              ? 'border border-white/20 hover:border-white bg-black hover:bg-white hover:text-black text-white focus-visible:ring-white'
-              : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border border-white/25 shadow-xs focus-visible:ring-[#FFD23F]'
+              ? 'border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white focus-visible:ring-[#2BA8A2]'
+              : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border-none shadow-xs focus-visible:ring-[#FFD23F]'
           }`}
           title="Torna indietro ed esci da pieno schermo"
         >
@@ -448,8 +448,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
             isCurrentPageBookmarked
               ? 'bg-[#FFD23F] text-slate-950 border-[#E6B800] font-black shadow-accent-glow focus-visible:ring-[#FFD23F]'
               : isNightMode
-                ? 'bg-black text-white border-white/20 hover:border-white hover:bg-zinc-900 focus-visible:ring-white'
-                : 'bg-[#2BA8A2] text-white border-white/25 hover:bg-[#3CC4BD] shadow-xs focus-visible:ring-[#FFD23F]'
+                ? 'bg-zinc-900 text-white border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 focus-visible:ring-[#2BA8A2]'
+                : 'bg-[#2BA8A2] text-white border-none hover:bg-[#3CC4BD] shadow-xs focus-visible:ring-[#FFD23F]'
           }`}
           aria-label={
             isCurrentPageBookmarked
@@ -479,7 +479,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
           aria-live="polite"
           className={`text-xs font-bold py-2 px-4 text-center shrink-0 animate-in fade-in border-b ${
             isNightMode
-              ? 'bg-black border-white text-white'
+              ? 'bg-black border-zinc-800 text-white'
               : 'bg-[#FFF8E7] border-[#2BA8A2]/30 text-[#1E8C86]'
           }`}
         >
@@ -539,10 +539,10 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                       className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all active:scale-95 ${
                         bookmarks.some((b) => b.pageIndex === index)
                           ? isNightMode
-                            ? 'bg-white text-black border-white shadow-xs'
+                            ? 'bg-[#FFD23F] text-slate-950 border-[#FFD23F] shadow-xs'
                             : 'bg-[#FFD23F] text-slate-950 border-[#E6B800] shadow-accent-glow font-black'
                           : isNightMode
-                            ? 'bg-zinc-900 text-zinc-300 border-zinc-700 hover:border-white hover:text-white'
+                            ? 'bg-zinc-900 text-zinc-300 border-zinc-750 hover:border-zinc-600 hover:text-white'
                             : 'bg-[#EFF8F7] text-[#1E8C86] border-[#2BA8A2]/20 hover:bg-[#E8F6F5]'
                       }`}
                       title={
@@ -707,10 +707,10 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                     className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all active:scale-95 ${
                       isCurrentPageBookmarked
                         ? isNightMode
-                          ? 'bg-white text-black border-white shadow-xs'
+                          ? 'bg-[#FFD23F] text-slate-950 border-[#FFD23F] shadow-xs'
                           : 'bg-[#FFD23F] text-slate-950 border-[#E6B800] shadow-accent-glow font-black'
                         : isNightMode
-                          ? 'bg-zinc-900 text-zinc-300 border-zinc-700 hover:border-white hover:text-white'
+                          ? 'bg-zinc-900 text-zinc-300 border-zinc-750 hover:border-zinc-600 hover:text-white'
                           : 'bg-[#EFF8F7] text-[#1E8C86] border-[#2BA8A2]/20 hover:bg-[#E8F6F5]'
                     }`}
                     title={
@@ -895,7 +895,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
 
         {/* ===================== RIGA DELLE ICONE AZIONE (SPOSTATE SOTTO) ===================== */}
         <div className={`px-3 sm:px-6 py-2.5 sm:py-3.5 overflow-x-auto no-scrollbar select-none border-b ${
-          isNightMode ? 'bg-black border-zinc-800' : 'bg-[#1E8C86] border-white/10'
+          isNightMode ? 'bg-black border-zinc-800' : 'bg-[#1E8C86] border-teal-700/40'
         }`}>
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4">
             {/* 1. Passa a Leggi libro (Audio Voce AI) */}
@@ -904,8 +904,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               onClick={() => onSwitchToReader(book)}
               className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
                 isNightMode
-                  ? 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white focus-visible:ring-white'
-                  : 'border-white/25 hover:border-white bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                  ? 'border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white focus-visible:ring-[#2BA8A2]'
+                  : 'border-none bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               title="Passa al lettore eBook con voce AI"
               aria-label="Leggi libro con voce AI"
@@ -924,8 +924,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 isFullscreen
                   ? 'bg-[#FFD23F] text-slate-950 border-[#E6B800] font-black shadow-accent-glow focus-visible:ring-[#FFD23F]'
                   : isNightMode
-                    ? 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white focus-visible:ring-white'
-                    : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] border-white/25 hover:border-white text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                    ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 hover:border-zinc-700 text-white focus-visible:ring-[#2BA8A2]'
+                    : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] border-none text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               title={
                 isFullscreen
@@ -951,8 +951,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               onClick={() => setViewMode((prev) => (prev === 'continuous' ? 'single' : 'continuous'))}
               className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
                 isNightMode
-                  ? 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white focus-visible:ring-white'
-                  : 'border-white/25 hover:border-white bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                  ? 'border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white focus-visible:ring-[#2BA8A2]'
+                  : 'border-none bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               title={viewMode === 'continuous' ? 'Modalità: Scorrimento continuo (tocca per pagina singola)' : 'Modalità: Pagina singola (tocca per continuo)'}
               aria-label="Cambia visualizzazione pagine"
@@ -970,7 +970,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
                 isNightMode
                   ? 'bg-[#FFD23F] text-slate-950 border-[#E6B800] font-black shadow-accent-glow focus-visible:ring-[#FFD23F]'
-                  : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] border-white/25 hover:border-white text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                  : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] border-none text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               title={
                 isNightMode
@@ -997,8 +997,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 onClick={handleToggleInvertScans}
                 className={`min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
                   invertScansMode
-                    ? 'border-white/40 bg-zinc-900 text-white hover:bg-zinc-800'
-                    : 'border-white/20 bg-black text-zinc-400 hover:text-white hover:bg-zinc-900'
+                    ? 'border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700'
+                    : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800'
                 }`}
                 title={
                   invertScansMode
@@ -1023,8 +1023,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 showSearch
                   ? 'bg-[#FFD23F] text-slate-950 border-[#E6B800] font-black shadow-accent-glow focus-visible:ring-[#FFD23F]'
                   : isNightMode
-                    ? 'bg-black hover:bg-zinc-900 border-white/20 hover:border-white text-white focus-visible:ring-white'
-                    : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] border-white/25 hover:border-white text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                    ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 hover:border-zinc-700 text-white focus-visible:ring-[#2BA8A2]'
+                    : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] border-none text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               title="Cerca nel testo"
             >
@@ -1041,11 +1041,11 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
                 bookmarks.length > 0
                   ? isNightMode
-                    ? 'border-white/40 bg-zinc-950 hover:bg-zinc-900 text-white focus-visible:ring-white'
-                    : 'border-white/40 bg-[#3CC4BD] hover:bg-[#2BA8A2] text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                    ? 'border-zinc-700 bg-zinc-800 hover:bg-zinc-750 text-white focus-visible:ring-[#2BA8A2]'
+                    : 'border-none bg-[#3CC4BD] hover:bg-[#2BA8A2] text-white shadow-xs focus-visible:ring-[#FFD23F]'
                   : isNightMode
-                    ? 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white focus-visible:ring-white'
-                    : 'border-white/25 hover:border-white bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                    ? 'border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white focus-visible:ring-[#2BA8A2]'
+                    : 'border-none bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               aria-label={`Lista rapida segnalibri. ${bookmarks.length} salvati.`}
               title="Lista Segnalibri"
@@ -1054,11 +1054,11 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
                 <BookmarkCheck
                   size={18}
                   className={`text-white shrink-0 group-hover:scale-105 transition-transform ${
-                    isCurrentPageBookmarked ? 'fill-white' : ''
+                    isCurrentPageBookmarked ? 'fill-[#FFD23F] text-[#FFD23F]' : ''
                   }`}
                 />
                 {bookmarks.length > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-[#FFD23F] text-slate-950 font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-amber-500 shadow-xs">
+                  <span className="absolute -top-1.5 -right-2 bg-[#FFD23F] text-slate-950 font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border-none shadow-xs">
                     {bookmarks.length}
                   </span>
                 )}
@@ -1070,7 +1070,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
 
             {/* 7. Zoom Controls (Riduci / Ingrandisci / Percentuale) */}
             <div className={`flex-1 min-w-[80px] sm:min-w-0 sm:flex-none min-h-[50px] flex items-center justify-center gap-1 sm:gap-2 py-1.5 px-2.5 sm:px-3 rounded-xl border text-white ${
-              isNightMode ? 'border-white/20 bg-black' : 'border-white/25 bg-[#2BA8A2] shadow-xs'
+              isNightMode ? 'border-zinc-800 bg-zinc-900' : 'border-none bg-[#2BA8A2] shadow-xs'
             }`}>
               <button
                 type="button"
@@ -1106,8 +1106,8 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               onClick={handlePrintPdf}
               className={`flex-1 min-w-[66px] sm:min-w-0 sm:flex-none min-h-[50px] flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2.5 sm:px-3.5 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 ${
                 isNightMode
-                  ? 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white focus-visible:ring-white'
-                  : 'border-white/25 hover:border-white bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
+                  ? 'border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white focus-visible:ring-[#2BA8A2]'
+                  : 'border-none bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white shadow-xs focus-visible:ring-[#FFD23F]'
               }`}
               title="Stampa o Salva documento in PDF"
               aria-label="Stampa o Salva PDF"
@@ -1130,7 +1130,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
             className={`min-h-[44px] px-3.5 sm:px-4.5 rounded-xl disabled:opacity-40 disabled:pointer-events-none font-bold text-xs flex items-center gap-2 transition-all active:scale-95 ${
               isNightMode
                 ? 'bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white'
-                : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border border-white/25 shadow-xs'
+                : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border-none shadow-xs'
             }`}
             aria-label="Pagina precedente"
           >
@@ -1146,7 +1146,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               onChange={(e) => scrollToPage(Number(e.target.value))}
               className={`rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none cursor-pointer ${
                 isNightMode
-                  ? 'bg-zinc-900 border border-zinc-700 text-white focus:border-white'
+                  ? 'bg-zinc-900 border border-zinc-700 text-white focus:border-[#2BA8A2]'
                   : 'bg-[#FFF8E7] border border-[#2BA8A2]/30 text-slate-900 shadow-xs focus:ring-2 focus:ring-[#FFD23F]'
               }`}
               aria-label="Seleziona pagina del PDF"
@@ -1168,7 +1168,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               className={`hidden sm:flex min-h-[44px] px-3.5 rounded-xl font-bold text-xs items-center gap-2 transition-all ${
                 isNightMode
                   ? 'bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white'
-                  : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border border-white/25 shadow-xs'
+                  : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border-none shadow-xs'
               }`}
               title="Copia testo della pagina"
             >
@@ -1183,7 +1183,7 @@ export const PdfDocumentView: React.FC<PdfDocumentViewProps> = ({
               className={`min-h-[44px] px-3.5 sm:px-4.5 rounded-xl disabled:opacity-40 disabled:pointer-events-none font-bold text-xs flex items-center gap-2 transition-all active:scale-95 ${
                 isNightMode
                   ? 'bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white'
-                  : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border border-white/25 shadow-xs'
+                  : 'bg-[#2BA8A2] hover:bg-[#3CC4BD] text-white border-none shadow-xs'
               }`}
               aria-label="Pagina successiva"
             >

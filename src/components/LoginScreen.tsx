@@ -194,9 +194,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             onClick={onSkip}
             className={`text-xs font-black ${
               isDarkMode
-                ? 'text-white bg-transparent hover:bg-white/10 border-white'
-                : 'text-[#1E8C86] bg-white hover:bg-[#E8F6F5] border-[#2BA8A2]/30'
-            } border-2 transition-all py-1.5 px-3.5 rounded-full shadow-xs active:scale-95`}
+                ? 'text-white bg-white/10 hover:bg-white/20 border-none'
+                : 'text-[#1E8C86] bg-white hover:bg-[#E8F6F5] border-2 border-[#2BA8A2]/30'
+            } transition-all py-1.5 px-3.5 rounded-full shadow-xs active:scale-95`}
             title="Salta ed entra come ospite"
           >
             Continua come ospite &rarr;
@@ -206,8 +206,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* Main Center Content */}
       <main className={`w-full max-w-[390px] mx-auto px-6 py-7 flex flex-col items-center my-auto ${
-        isDarkMode ? 'bg-transparent border-white shadow-2xl text-white' : 'bg-white border-[#2BA8A2]/30 shadow-card'
-      } border-2 rounded-3xl transition-colors`}>
+        isDarkMode ? 'bg-transparent border-transparent shadow-none text-white' : 'bg-white border-2 border-[#2BA8A2]/30 shadow-card'
+      } rounded-3xl transition-colors`}>
         {/* Vora Official Logo */}
         <div className="mb-4 flex items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-transparent border-2 border-white flex items-center justify-center shadow-xs">
@@ -261,9 +261,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="utente o email@esempio.com"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
-                      : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
-                  } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all shadow-xs`}
+                      ? 'bg-white/5 text-white border border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-white/60'
+                      : 'bg-[#FFF8E7] text-slate-900 border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
+                  } font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all shadow-xs`}
                 />
               </div>
 
@@ -296,9 +296,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="••••••••••••"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
-                      : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
-                  } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all shadow-xs`}
+                      ? 'bg-white/5 text-white border border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-white/60'
+                      : 'bg-[#FFF8E7] text-slate-900 border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
+                  } font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all shadow-xs`}
                 />
               </div>
 
@@ -308,13 +308,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 disabled={isLoading}
                 className={`w-full min-h-[46px] ${
                   isDarkMode
-                    ? 'bg-transparent hover:bg-white/10 text-white border-2 border-white'
+                    ? 'bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 shadow-accent-glow'
                     : 'bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] border-2 border-[#E6B800] shadow-accent-glow'
                 } active:scale-95 font-black text-sm py-2.5 px-4 rounded-full transition-all mt-1 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70`}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 size={16} className={`animate-spin ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'}`} />
+                    <Loader2 size={16} className={`animate-spin ${isDarkMode ? 'text-slate-900' : 'text-[#1E8C86]'}`} />
                     <span>Accesso in corso...</span>
                   </>
                 ) : (
@@ -325,7 +325,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
             {/* Hairline Divider with centered 'oppure' */}
             <div className="w-full relative my-4">
-              <div className={`border-t-2 border-dashed ${isDarkMode ? 'border-white/20' : 'border-[#2BA8A2]/20'}`} />
+              <div className="border-t-2 border-dashed border-[#2BA8A2]/20" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className={`${isDarkMode ? 'bg-[#142322] text-white' : 'bg-white text-[#1E8C86]'} px-3 text-xs font-black uppercase tracking-wider`}>oppure</span>
               </div>
@@ -340,9 +340,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 disabled={isLoading}
                 className={`w-full ${
                   isDarkMode
-                    ? 'bg-transparent hover:bg-white/10 text-white border-white'
-                    : 'bg-[#FFF8E7] hover:bg-white text-slate-800 border-slate-200 hover:border-[#2BA8A2]/40'
-                } border-2 py-2.5 px-4 rounded-full flex items-center justify-center gap-2.5 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95`}
+                    ? 'bg-white/10 hover:bg-white/20 text-white'
+                    : 'bg-[#FFF8E7] hover:bg-white text-slate-800 border-2 border-slate-200 hover:border-[#2BA8A2]/40'
+                } py-2.5 px-4 rounded-full flex items-center justify-center gap-2.5 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95`}
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -372,9 +372,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 disabled={isLoading}
                 className={`w-full ${
                   isDarkMode
-                    ? 'bg-transparent hover:bg-white/10 text-white border-white'
-                    : 'bg-[#FFF8E7] hover:bg-white text-slate-800 border-slate-200 hover:border-[#2BA8A2]/40'
-                } border-2 py-2.5 px-4 rounded-full flex items-center justify-center gap-2.5 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95`}
+                    ? 'bg-white/10 hover:bg-white/20 text-white'
+                    : 'bg-[#FFF8E7] hover:bg-white text-slate-800 border-2 border-slate-200 hover:border-[#2BA8A2]/40'
+                } py-2.5 px-4 rounded-full flex items-center justify-center gap-2.5 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95`}
               >
                 <svg className={`w-4 h-4 shrink-0 ${isDarkMode ? 'fill-white' : 'fill-slate-900'}`} viewBox="0 0 170 170">
                   <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.66-7.79-11.88-14.24-7.23-10.98-12.87-23.77-16.92-38.38-4.05-14.61-6.08-28.78-6.08-42.5 0-16.3 3.97-30.01 11.91-41.14 7.94-11.12 18.06-16.78 30.37-16.98 5.43 0 11.22 1.45 17.38 4.35 6.16 2.9 10.15 4.35 11.96 4.35 1.59 0 5.65-1.52 12.18-4.57 6.53-3.04 12.25-4.42 17.18-4.13 13.55.65 24.57 5.79 33.06 15.44-11.88 7.17-17.7 17.06-17.47 29.68.22 9.78 3.99 17.93 11.31 24.46 7.32 6.52 16.09 10.21 26.31 11.08-2.61 7.82-5.94 15.65-10.01 23.49zM119.22 31.84c0-7.39 2.68-14.35 8.05-20.87 5.36-6.52 12.03-10.51 20-11.97.22 1.09.33 2.17.33 3.26 0 7.39-2.82 14.42-8.48 21.09-5.65 6.67-12.28 10.43-19.9 11.29z" />
@@ -427,9 +427,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="iltuoindirizzo@email.com"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
-                      : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
-                  } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
+                      ? 'bg-white/5 text-white border border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-white/60'
+                      : 'bg-[#FFF8E7] text-slate-900 border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
+                  } font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
               </div>
 
@@ -449,9 +449,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="mariano_mazoni"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
-                      : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
-                  } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
+                      ? 'bg-white/5 text-white border border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-white/60'
+                      : 'bg-[#FFF8E7] text-slate-900 border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
+                  } font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
               </div>
 
@@ -470,9 +470,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="Almeno 8 caratteri"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
-                      : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
-                  } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
+                      ? 'bg-white/5 text-white border border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-white/60'
+                      : 'bg-[#FFF8E7] text-slate-900 border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
+                  } font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
               </div>
 
@@ -481,11 +481,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 disabled={isLoading}
                 className={`w-full min-h-[46px] ${
                   isDarkMode
-                    ? 'bg-transparent hover:bg-white/10 text-white border-2 border-white'
+                    ? 'bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 shadow-accent-glow'
                     : 'bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] border-2 border-[#E6B800] shadow-accent-glow'
                 } active:scale-95 font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2`}
               >
-                {isLoading ? <Loader2 size={16} className={`animate-spin ${isDarkMode ? 'text-white' : 'text-[#1E8C86]'}`} /> : <span>Crea account</span>}
+                {isLoading ? <Loader2 size={16} className={`animate-spin ${isDarkMode ? 'text-slate-900' : 'text-[#1E8C86]'}`} /> : <span>Crea account</span>}
               </button>
 
               <div className={`text-center text-xs ${isDarkMode ? 'text-white/90' : 'text-slate-600'} font-semibold mt-4`}>
@@ -529,14 +529,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   placeholder="iltuoindirizzo@email.com"
                   className={`w-full ${
                     isDarkMode
-                      ? 'bg-transparent text-white border-white focus:border-white placeholder:text-white/60'
-                      : 'bg-[#FFF8E7] text-slate-900 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
-                  } border-2 font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
+                      ? 'bg-white/5 text-white border border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-white/60'
+                      : 'bg-[#FFF8E7] text-slate-900 border-2 border-[#2BA8A2]/30 focus:border-[#2BA8A2] placeholder:text-slate-400'
+                  } font-bold text-sm rounded-xl px-3.5 py-2.5 outline-none shadow-xs`}
                 />
               </div>
 
               {resetSent && (
-                <div className="mb-4 p-3 rounded-2xl bg-transparent border-2 border-white text-xs text-white font-black flex items-center gap-2 shadow-xs">
+                <div className="mb-4 p-3 rounded-2xl bg-white/10 text-xs text-white font-black flex items-center gap-2 shadow-xs">
                   <Check size={16} strokeWidth={3} className="text-white" />
                   <span>Link inviato! Controlla la tua casella email.</span>
                 </div>
@@ -546,7 +546,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="submit"
                 className={`w-full min-h-[46px] ${
                   isDarkMode
-                    ? 'bg-transparent hover:bg-white/10 text-white border-2 border-white'
+                    ? 'bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 shadow-accent-glow'
                     : 'bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] border-2 border-[#E6B800] shadow-accent-glow'
                 } active:scale-95 font-black text-sm py-2.5 px-4 rounded-full transition-all cursor-pointer`}
               >

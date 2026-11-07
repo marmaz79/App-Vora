@@ -46,7 +46,7 @@ export const ScanProgressCircle: React.FC<ScanProgressCircleProps> = ({
       className="flex flex-col items-center text-center max-w-md w-full mx-auto select-none p-2 sm:p-4 font-sans"
     >
       {/* Brand Header */}
-      <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-white/20 shadow-2xs mb-4">
+      <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 shadow-2xs mb-4">
         {/* White Drive Icon */}
         <svg
           className="w-4 h-4 shrink-0 text-white fill-white"
@@ -84,7 +84,7 @@ export const ScanProgressCircle: React.FC<ScanProgressCircleProps> = ({
           Scanner Documenti
         </span>
 
-        <span className="text-[10px] bg-black text-white font-bold px-2 py-0.5 rounded-full border border-white/30">
+        <span className="text-[10px] bg-black text-white font-bold px-2 py-0.5 rounded-full border border-zinc-800">
           AI OCR
         </span>
       </div>
@@ -143,10 +143,10 @@ export const ScanProgressCircle: React.FC<ScanProgressCircleProps> = ({
       </div>
 
       {/* FILE NAME & PROGRESS BAR */}
-      <div className="w-full max-w-sm bg-black border border-white/20 rounded-2xl p-3.5 mb-3.5 shadow-2xs">
+      <div className="w-full max-w-sm bg-black border border-zinc-800 rounded-2xl p-3.5 mb-3.5 shadow-2xs">
         <div className="flex items-center justify-between gap-2 mb-2 text-left">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-white/20 text-white flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center shrink-0">
               <FileText size={16} />
             </div>
             <div className="min-w-0 flex-1">
@@ -230,7 +230,7 @@ export const ScanProgressCircle: React.FC<ScanProgressCircleProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="mt-2 text-xs font-bold text-white hover:bg-zinc-900 border border-white/20 px-4 py-2 rounded-full transition-colors active:scale-95"
+          className="mt-2 text-xs font-bold text-white hover:bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-full transition-colors active:scale-95"
         >
           Annulla operazione
         </button>
@@ -246,7 +246,7 @@ export const ScanProgressCircle: React.FC<ScanProgressCircleProps> = ({
         aria-modal="true"
         aria-label="Avanzamento scansione"
       >
-        <div className="bg-black rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-white/20 flex flex-col items-center">
+        <div className="bg-black rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-zinc-800 flex flex-col items-center">
           {content}
         </div>
       </div>
@@ -254,7 +254,7 @@ export const ScanProgressCircle: React.FC<ScanProgressCircleProps> = ({
   }
 
   return (
-    <div className="w-full bg-black border border-white/20 rounded-3xl p-4 sm:p-5 shadow-sm my-2">
+    <div className="w-full bg-black border border-zinc-800 rounded-3xl p-4 sm:p-5 shadow-sm my-2">
       {content}
     </div>
   );

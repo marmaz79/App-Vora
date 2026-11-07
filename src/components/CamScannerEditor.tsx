@@ -17,10 +17,18 @@ import {
   ScanLine,
   Eye,
   CheckCheck,
-  ZoomIn,
+  Palette,
+  Sun,
 } from 'lucide-react';
+import {
+  opencvService,
+  QuadCorners,
+  Point,
+  CamScannerFilterType,
+  OpenCvStatus,
+} from '../services/opencvService';
 
-export type CamScannerFilter = 'magic_color' | 'bw' | 'grayscale' | 'original';
+export type CamScannerFilter = CamScannerFilterType;
 
 export type AutoCropOption =
   | 'ai_auto'
@@ -30,24 +38,14 @@ export type AutoCropOption =
   | 'full_frame'
   | 'manual';
 
-export interface Point {
-  x: number; // 0 to 1 normalized
-  y: number; // 0 to 1 normalized
-}
-
-export interface QuadCorners {
-  tl: Point; // Angolo superiore sinistro
-  tr: Point; // Angolo superiore destro
-  br: Point; // Angolo inferiore destro
-  bl: Point; // Angolo inferiore sinistro
-}
-
 export interface CropBox {
   x: number;
   y: number;
   width: number;
   height: number;
 }
+
+export type { QuadCorners, Point };
 
 interface CamScannerEditorProps {
   imageFile: File;
@@ -60,22 +58,12 @@ interface CamScannerEditorProps {
   onCancel?: () => void;
 }
 
-// Converte un CropBox asse-allineato nei 4 vertici del quadrilatero CamScanner
-export function boxToQuad(box: CropBox): QuadCorners {
-  return {
-    tl: { x: box.x, y: box.y },
-    tr: { x: Math.min(1, box.x + box.width), y: box.y },
-    br: { x: Math.min(1, box.x + box.width), y: Math.min(1, box.y + box.height) },
-    bl: { x: box.x, y: Math.min(1, box.y + box.height) },
-  };
-}
-
 // Calcola i 4 vertici del quadrilatero per i preset CamScanner
 export function calculatePresetQuad(
   preset: AutoCropOption,
   imgWidth: number,
   imgHeight: number,
-  aiCorners?: QuadCorners | null
+  detectedCorners?: QuadCorners | null
 ): QuadCorners {
   const w = Math.max(1, imgWidth);
   const h = Math.max(1, imgHeight);
@@ -182,377 +170,25 @@ export function calculatePresetQuad(
     }
 
     case 'ai_auto':
-      if (aiCorners) return aiCorners;
+      if (detectedCorners) return detectedCorners;
       return {
-        tl: { x: 0.04, y: 0.04 },
-        tr: { x: 0.96, y: 0.04 },
-        br: { x: 0.96, y: 0.96 },
-        bl: { x: 0.04, y: 0.96 },
+        tl: { x: 0.02, y: 0.02 },
+        tr: { x: 0.98, y: 0.02 },
+        br: { x: 0.98, y: 0.98 },
+        bl: { x: 0.02, y: 0.98 },
       };
 
     case 'manual':
     default:
       return (
-        aiCorners || {
-          tl: { x: 0.04, y: 0.04 },
-          tr: { x: 0.96, y: 0.04 },
-          br: { x: 0.96, y: 0.96 },
-          bl: { x: 0.04, y: 0.96 },
+        detectedCorners || {
+          tl: { x: 0.02, y: 0.02 },
+          tr: { x: 0.98, y: 0.02 },
+          br: { x: 0.98, y: 0.98 },
+          bl: { x: 0.02, y: 0.98 },
         }
       );
   }
-}
-
-/**
- * Rilevamento avanzato e rigoroso dei contorni del foglio del libro.
- * Segmenta la pagina di carta dallo sfondo (tavolo, scrivania, legno, dita),
- * identifica i 4 vertici esatti (TL, TR, BR, BL) ed applica un inset di sicurezza
- * verso l'interno per escludere totalmente il tavolo circostante.
- */
-function detectPaperCornersAdvanced(canvas: HTMLCanvasElement): QuadCorners {
-  const w = canvas.width;
-  const h = canvas.height;
-  const defaultQuad: QuadCorners = {
-    tl: { x: 0.02, y: 0.02 },
-    tr: { x: 0.98, y: 0.02 },
-    br: { x: 0.98, y: 0.98 },
-    bl: { x: 0.02, y: 0.98 },
-  };
-
-  if (!w || !h) return defaultQuad;
-
-  const sampleW = 240;
-  const sampleH = Math.max(120, Math.round((h / w) * sampleW));
-  const off = document.createElement('canvas');
-  off.width = sampleW;
-  off.height = sampleH;
-  const ctx = off.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return defaultQuad;
-
-  ctx.drawImage(canvas, 0, 0, sampleW, sampleH);
-  const imgData = ctx.getImageData(0, 0, sampleW, sampleH);
-  const data = imgData.data;
-
-  const totalPixels = sampleW * sampleH;
-  const lums = new Float32Array(totalPixels);
-  const sats = new Float32Array(totalPixels);
-
-  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    lums[p] = 0.299 * r + 0.587 * g + 0.114 * b;
-    const maxVal = Math.max(r, g, b);
-    const minVal = Math.min(r, g, b);
-    sats[p] = maxVal > 0 ? (maxVal - minVal) / maxVal : 0;
-  }
-
-  // 1. Campionamento dello sfondo perimetrale (margine esterno 5%)
-  const marginX = Math.max(2, Math.floor(sampleW * 0.05));
-  const marginY = Math.max(2, Math.floor(sampleH * 0.05));
-  let bgLumSum = 0;
-  let bgSatSum = 0;
-  let bgCount = 0;
-
-  for (let y = 0; y < sampleH; y++) {
-    for (let x = 0; x < sampleW; x++) {
-      if (x < marginX || x >= sampleW - marginX || y < marginY || y >= sampleH - marginY) {
-        const p = y * sampleW + x;
-        bgLumSum += lums[p];
-        bgSatSum += sats[p];
-        bgCount++;
-      }
-    }
-  }
-  const bgMeanLum = bgCount > 0 ? bgLumSum / bgCount : 100;
-  const bgMeanSat = bgCount > 0 ? bgSatSum / bgCount : 0.3;
-
-  // 2. Campionamento del centro del foglio (rettangolo centrale 40%)
-  const cx0 = Math.floor(sampleW * 0.3);
-  const cx1 = Math.floor(sampleW * 0.7);
-  const cy0 = Math.floor(sampleH * 0.3);
-  const cy1 = Math.floor(sampleH * 0.7);
-  let centerLumSum = 0;
-  let centerCount = 0;
-
-  for (let y = cy0; y < cy1; y++) {
-    for (let x = cx0; x < cx1; x++) {
-      centerLumSum += lums[y * sampleW + x];
-      centerCount++;
-    }
-  }
-  const centerMeanLum = centerCount > 0 ? centerLumSum / centerCount : 180;
-
-  // 3. Calcolo soglia di separazione foglio vs tavolo/sfondo
-  let isPaper: (p: number) => boolean;
-
-  if (centerMeanLum > bgMeanLum + 8) {
-    // Caso standard: foglio di carta chiaro su tavolo scuro / in legno
-    const lumThreshold = bgMeanLum + (centerMeanLum - bgMeanLum) * 0.36;
-    const maxAllowedSat = Math.max(0.35, bgMeanSat * 0.85);
-    isPaper = (p: number) => {
-      return lums[p] >= lumThreshold || (lums[p] >= bgMeanLum + 10 && sats[p] <= maxAllowedSat);
-    };
-  } else if (bgMeanLum > centerMeanLum + 15) {
-    // Foglio scuro su tavolo chiaro
-    const lumThreshold = centerMeanLum + (bgMeanLum - centerMeanLum) * 0.40;
-    isPaper = (p: number) => lums[p] <= lumThreshold;
-  } else {
-    // Contrasto basso: calcolo soglia adattiva
-    let sumLum = 0;
-    for (let i = 0; i < totalPixels; i++) sumLum += lums[i];
-    const mean = sumLum / totalPixels;
-    const threshold = Math.max(80, Math.min(220, mean * 0.95));
-    isPaper = (p: number) => lums[p] >= threshold;
-  }
-
-  // 4. Scansione profilo righe e colonne per delimitare il foglio
-  const rowPaperCounts = new Int32Array(sampleH);
-  const colPaperCounts = new Int32Array(sampleW);
-  const minPointsPerRow: number[] = new Array(sampleH).fill(-1);
-  const maxPointsPerRow: number[] = new Array(sampleH).fill(-1);
-
-  for (let y = 0; y < sampleH; y++) {
-    const rowOffset = y * sampleW;
-    for (let x = 0; x < sampleW; x++) {
-      if (isPaper(rowOffset + x)) {
-        rowPaperCounts[y]++;
-        colPaperCounts[x]++;
-        if (minPointsPerRow[y] === -1) minPointsPerRow[y] = x;
-        maxPointsPerRow[y] = x;
-      }
-    }
-  }
-
-  // Il foglio di un libro occupa una porzione consistente della larghezza e dell'altezza
-  const rowThreshold = Math.max(10, Math.floor(sampleW * 0.30));
-  const colThreshold = Math.max(10, Math.floor(sampleH * 0.30));
-
-  let minY = 0;
-  while (minY < sampleH - 15 && rowPaperCounts[minY] < rowThreshold) minY++;
-  let maxY = sampleH - 1;
-  while (maxY > minY + 15 && rowPaperCounts[maxY] < rowThreshold) maxY--;
-
-  let minX = 0;
-  while (minX < sampleW - 15 && colPaperCounts[minX] < colThreshold) minX++;
-  let maxX = sampleW - 1;
-  while (maxX > minX + 15 && colPaperCounts[maxX] < colThreshold) maxX--;
-
-  // Verifica validità della regione rilevata
-  if (maxX - minX < sampleW * 0.25 || maxY - minY < sampleH * 0.25) {
-    // Se non si distingue chiaramente, usa margini di sicurezza interni al 2.5%
-    return {
-      tl: { x: 0.025, y: 0.025 },
-      tr: { x: 0.975, y: 0.025 },
-      br: { x: 0.975, y: 0.975 },
-      bl: { x: 0.025, y: 0.975 },
-    };
-  }
-
-  // 5. Ricerca angoli geometrici precisi (TL, TR, BR, BL) all'interno del foglio
-  let tlScore = Infinity;
-  let trScore = Infinity;
-  let brScore = Infinity;
-  let blScore = Infinity;
-
-  let bestTL = { x: minX, y: minY };
-  let bestTR = { x: maxX, y: minY };
-  let bestBR = { x: maxX, y: maxY };
-  let bestBL = { x: minX, y: maxY };
-
-  for (let y = minY; y <= maxY; y++) {
-    const leftX = minPointsPerRow[y];
-    const rightX = maxPointsPerRow[y];
-    if (leftX === -1 || rightX === -1) continue;
-
-    // TL: minimizza x + y
-    const scoreTL = leftX + y;
-    if (scoreTL < tlScore) {
-      tlScore = scoreTL;
-      bestTL = { x: leftX, y };
-    }
-
-    // TR: minimizza (sampleW - x) + y
-    const scoreTR = (sampleW - rightX) + y;
-    if (scoreTR < trScore) {
-      trScore = scoreTR;
-      bestTR = { x: rightX, y };
-    }
-
-    // BR: minimizza (sampleW - x) + (sampleH - y)
-    const scoreBR = (sampleW - rightX) + (sampleH - y);
-    if (scoreBR < brScore) {
-      brScore = scoreBR;
-      bestBR = { x: rightX, y };
-    }
-
-    // BL: minimizza x + (sampleH - y)
-    const scoreBL = leftX + (sampleH - y);
-    if (scoreBL < blScore) {
-      blScore = scoreBL;
-      bestBL = { x: leftX, y };
-    }
-  }
-
-  // Normalizza le coordinate tra 0 e 1
-  const normTL = { x: bestTL.x / sampleW, y: bestTL.y / sampleH };
-  const normTR = { x: bestTR.x / sampleW, y: bestTR.y / sampleH };
-  const normBR = { x: bestBR.x / sampleW, y: bestBR.y / sampleH };
-  const normBL = { x: bestBL.x / sampleW, y: bestBL.y / sampleH };
-
-  // 6. Inset di sicurezza interno verso il baricentro del foglio
-  // Questo elimina completamente tavolo, venature di legno, ombre esterne o bordi sfocati!
-  const centerX = (normTL.x + normTR.x + normBR.x + normBL.x) / 4;
-  const centerY = (normTL.y + normTR.y + normBR.y + normBL.y) / 4;
-  const insetFactor = 0.016; // 1.6% verso il centro del foglio
-
-  const applyInwardInset = (pt: { x: number; y: number }) => ({
-    x: Number(Math.max(0.005, Math.min(0.995, pt.x + (centerX - pt.x) * insetFactor)).toFixed(4)),
-    y: Number(Math.max(0.005, Math.min(0.995, pt.y + (centerY - pt.y) * insetFactor)).toFixed(4)),
-  });
-
-  return {
-    tl: applyInwardInset(normTL),
-    tr: applyInwardInset(normTR),
-    br: applyInwardInset(normBR),
-    bl: applyInwardInset(normBL),
-  };
-}
-
-// Algoritmo locale ultra-rapido per individuare la carta nella foto escludendo lo sfondo
-function detectPaperBoundsLocal(canvas: HTMLCanvasElement): CropBox {
-  const quad = detectPaperCornersAdvanced(canvas);
-  const minX = Math.min(quad.tl.x, quad.bl.x);
-  const maxX = Math.max(quad.tr.x, quad.br.x);
-  const minY = Math.min(quad.tl.y, quad.tr.y);
-  const maxY = Math.max(quad.bl.y, quad.br.y);
-  return {
-    x: Number(minX.toFixed(4)),
-    y: Number(minY.toFixed(4)),
-    width: Number(Math.max(0.1, maxX - minX).toFixed(4)),
-    height: Number(Math.max(0.1, maxY - minY).toFixed(4)),
-  };
-}
-
-/**
- * Renderizza un triangolo affine per il raddrizzamento prospettico a tassellatura bilineare
- */
-function renderAffineTriangle(
-  ctx: CanvasRenderingContext2D,
-  srcCanvas: HTMLCanvasElement,
-  x0: number, y0: number,
-  x1: number, y1: number,
-  x2: number, y2: number,
-  u0: number, v0: number,
-  u1: number, v1: number,
-  u2: number, v2: number
-) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(x0, y0);
-  ctx.lineTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.closePath();
-  ctx.clip();
-
-  const delta = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
-  if (Math.abs(delta) < 1e-7) {
-    ctx.restore();
-    return;
-  }
-
-  const a = (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1)) / delta;
-  const b = (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1)) / delta;
-  const c = (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0)) / delta;
-  const d = (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0)) / delta;
-  const e = (x0 * (u1 * v2 - u2 * v1) + x1 * (u2 * v0 - u0 * v2) + x2 * (u0 * v1 - u1 * v0)) / delta;
-  const f = (y0 * (u1 * v2 - u2 * v1) + y1 * (u2 * v0 - u0 * v2) + y2 * (u0 * v1 - u1 * v0)) / delta;
-
-  ctx.transform(a, b, c, d, e, f);
-  ctx.drawImage(srcCanvas, 0, 0);
-  ctx.restore();
-}
-
-/**
- * Raddrizzamento prospettico stile CamScanner (Perspective Homography Warp):
- * trasforma il quadrilatero a 4 vertici in un documento piatto, rettangolare, dritto e nitido.
- */
-function warpPerspective(
-  srcCanvas: HTMLCanvasElement,
-  corners: QuadCorners,
-  dstWidth: number,
-  dstHeight: number
-): HTMLCanvasElement {
-  const dstCanvas = document.createElement('canvas');
-  dstCanvas.width = dstWidth;
-  dstCanvas.height = dstHeight;
-  const ctx = dstCanvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return dstCanvas;
-
-  const srcW = srcCanvas.width;
-  const srcH = srcCanvas.height;
-
-  // Coordinate in pixel dei 4 vertici sorgente
-  const p0 = { x: corners.tl.x * srcW, y: corners.tl.y * srcH };
-  const p1 = { x: corners.tr.x * srcW, y: corners.tr.y * srcH };
-  const p2 = { x: corners.br.x * srcW, y: corners.br.y * srcH };
-  const p3 = { x: corners.bl.x * srcW, y: corners.bl.y * srcH };
-
-  // Interpolazione bilineare per coordinate normalizzate (u, v)
-  const sample = (u: number, v: number) => ({
-    x: (1 - u) * (1 - v) * p0.x + u * (1 - v) * p1.x + u * v * p2.x + (1 - u) * v * p3.x,
-    y: (1 - u) * (1 - v) * p0.y + u * (1 - v) * p1.y + u * v * p2.y + (1 - u) * v * p3.y,
-  });
-
-  // Griglia 12x12 (288 triangoli GPU) per un raddrizzamento fluido e accurato senza distorsioni
-  const gridN = 12;
-  const stepU = 1 / gridN;
-  const stepV = 1 / gridN;
-
-  for (let i = 0; i < gridN; i++) {
-    const u0 = i * stepU;
-    const u1 = (i + 1) * stepU;
-    const dx0 = u0 * dstWidth;
-    const dx1 = u1 * dstWidth;
-
-    for (let j = 0; j < gridN; j++) {
-      const v0 = j * stepV;
-      const v1 = (j + 1) * stepV;
-      const dy0 = v0 * dstHeight;
-      const dy1 = v1 * dstHeight;
-
-      const s00 = sample(u0, v0);
-      const s10 = sample(u1, v0);
-      const s11 = sample(u1, v1);
-      const s01 = sample(u0, v1);
-
-      // Triangolo 1
-      renderAffineTriangle(
-        ctx,
-        srcCanvas,
-        dx0, dy0,
-        dx1, dy0,
-        dx0, dy1,
-        s00.x, s00.y,
-        s10.x, s10.y,
-        s01.x, s01.y
-      );
-
-      // Triangolo 2
-      renderAffineTriangle(
-        ctx,
-        srcCanvas,
-        dx1, dy0,
-        dx1, dy1,
-        dx0, dy1,
-        s10.x, s10.y,
-        s11.x, s11.y,
-        s01.x, s01.y
-      );
-    }
-  }
-
-  return dstCanvas;
 }
 
 export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
@@ -571,24 +207,25 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   const [brightness] = useState<number>(10);
   const [contrast] = useState<number>(25);
 
-  // Modalità: mostra subito la pagina ritagliata e pulita automaticamente
-  const [showCropMode, setShowCropMode] = useState<boolean>(false);
+  // Modalità iniziale: mostra l'anteprima con i 4 angoli trascinabili per regolare il ritaglio manualmente
+  const [showCropMode, setShowCropMode] = useState<boolean>(true);
   const [selectedPreset, setSelectedPreset] = useState<AutoCropOption>('ai_auto');
 
-  // I 4 vertici del quadrilatero prospettico (TL, TR, BR, BL)
+  // I 4 vertici del quadrilatero prospettico
   const [corners, setCorners] = useState<QuadCorners>({
     tl: { x: 0.02, y: 0.02 },
     tr: { x: 0.98, y: 0.02 },
     br: { x: 0.98, y: 0.98 },
     bl: { x: 0.02, y: 0.98 },
   });
-  const [aiDetectedCorners, setAiDetectedCorners] = useState<QuadCorners | null>(null);
+  const [detectedCorners, setDetectedCorners] = useState<QuadCorners | null>(null);
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [isAiDetecting, setIsAiDetecting] = useState<boolean>(false);
-  const [aiStatusMessage, setAiStatusMessage] = useState<string>('');
+  const [isDetecting, setIsDetecting] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [openCvStatus, setOpenCvStatus] = useState<OpenCvStatus>(opencvService.getStatus());
 
-  // Lente di ingrandimento (Loupe) interattiva durante il trascinamento delle maniglie
+  // Loupe (lente d'ingrandimento 2.4x)
   const [activeDraggingHandle, setActiveDraggingHandle] = useState<string | null>(null);
   const [loupePoint, setLoupePoint] = useState<Point | null>(null);
 
@@ -597,7 +234,6 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   const cropSvgContainerRef = useRef<SVGSVGElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  // Riferimenti per il drag delle 8 maniglie
   const isDraggingRef = useRef<string | null>(null);
   const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const startCornersRef = useRef<QuadCorners>({ ...corners });
@@ -607,131 +243,20 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     rotationRef.current = rotation;
   }, [rotation]);
 
-  /**
-   * Filtro Pulizia Carta CamScanner (Magic Color / B/N / Grayscale)
-   */
-  const applyCamScannerCleanFilter = useCallback(
-    (imageData: ImageData, filter: CamScannerFilter, bVal: number, cVal: number) => {
-      const data = imageData.data;
-      const w = imageData.width;
-      const h = imageData.height;
-      const len = data.length;
-
-      if (filter === 'original') {
-        if (bVal === 0 && cVal === 0) return;
-        const factor = (259 * (cVal + 255)) / (255 * (259 - cVal));
-        for (let i = 0; i < len; i += 4) {
-          data[i] = Math.max(0, Math.min(255, factor * (data[i] - 128) + 128 + bVal));
-          data[i + 1] = Math.max(0, Math.min(255, factor * (data[i + 1] - 128) + 128 + bVal));
-          data[i + 2] = Math.max(0, Math.min(255, factor * (data[i + 2] - 128) + 128 + bVal));
-        }
-        return;
-      }
-
-      const gridCols = 16;
-      const gridRows = 16;
-      const bgGrid: number[][] = Array.from({ length: gridRows }, () =>
-        new Array(gridCols).fill(160)
-      );
-
-      const cellW = w / gridCols;
-      const cellH = h / gridRows;
-
-      for (let gy = 0; gy < gridRows; gy++) {
-        const startY = Math.floor(gy * cellH);
-        const endY = Math.floor((gy + 1) * cellH);
-        for (let gx = 0; gx < gridCols; gx++) {
-          const startX = Math.floor(gx * cellW);
-          const endX = Math.floor((gx + 1) * cellW);
-
-          let maxLum = 0;
-          let lumSum = 0;
-          let count = 0;
-          const stepX = Math.max(2, Math.floor(cellW / 12));
-          const stepY = Math.max(2, Math.floor(cellH / 12));
-
-          for (let y = startY; y < endY; y += stepY) {
-            for (let x = startX; x < endX; x += stepX) {
-              const idx = (y * w + x) * 4;
-              const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-              if (lum > maxLum) maxLum = lum;
-              lumSum += lum;
-              count++;
-            }
-          }
-
-          const avgLum = count > 0 ? lumSum / count : 128;
-          bgGrid[gy][gx] = Math.max(60, Math.min(252, maxLum * 0.72 + avgLum * 0.28));
-        }
-      }
-
-      const contrastFactor = (259 * (cVal + 255)) / (255 * (259 - cVal));
-
-      for (let y = 0; y < h; y++) {
-        const gy = Math.max(0, Math.min(gridRows - 1.001, y / cellH - 0.5));
-        const gy0 = Math.floor(gy);
-        const gy1 = Math.min(gridRows - 1, gy0 + 1);
-        const wy = gy - gy0;
-
-        for (let x = 0; x < w; x++) {
-          const gx = Math.max(0, Math.min(gridCols - 1.001, x / cellW - 0.5));
-          const gx0 = Math.floor(gx);
-          const gx1 = Math.min(gridCols - 1, gx0 + 1);
-          const wx = gx - gx0;
-
-          const top = bgGrid[gy0][gx0] * (1 - wx) + bgGrid[gy0][gx1] * wx;
-          const bot = bgGrid[gy1][gx0] * (1 - wx) + bgGrid[gy1][gx1] * wx;
-          const localBg = Math.max(50, top * (1 - wy) + bot * wy);
-
-          const idx = (y * w + x) * 4;
-          let r = data[idx];
-          let g = data[idx + 1];
-          let b = data[idx + 2];
-          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-
-          const ratio = lum / localBg;
-
-          if (filter === 'magic_color') {
-            if (ratio >= 0.84) {
-              const norm = Math.min(1, (ratio - 0.84) / 0.16);
-              const whiten = Math.pow(norm, 0.55);
-              r = r + (255 - r) * whiten;
-              g = g + (255 - g) * whiten;
-              b = b + (255 - b) * whiten;
-            } else {
-              const inkFactor = Math.pow(ratio / 0.84, 1.3);
-              r = r * inkFactor * 0.75;
-              g = g * inkFactor * 0.75;
-              b = b * inkFactor * 0.75;
-            }
-            r = contrastFactor * (r - 128) + 128 + bVal;
-            g = contrastFactor * (g - 128) + 128 + bVal;
-            b = contrastFactor * (b - 128) + 128 + bVal;
-          } else if (filter === 'bw') {
-            const isWhite = ratio >= 0.78;
-            const val = isWhite ? 255 : 0;
-            r = val;
-            g = val;
-            b = val;
-          } else if (filter === 'grayscale') {
-            let gVal = ratio >= 0.84 ? 255 : (lum / localBg) * 210;
-            gVal = contrastFactor * (gVal - 128) + 128 + bVal;
-            r = gVal;
-            g = gVal;
-            b = gVal;
-          }
-
-          data[idx] = Math.max(0, Math.min(255, r));
-          data[idx + 1] = Math.max(0, Math.min(255, g));
-          data[idx + 2] = Math.max(0, Math.min(255, b));
-        }
-      }
-    },
-    []
-  );
+  // Ascolta lo stato di caricamento di OpenCV.js
+  useEffect(() => {
+    const unsub = opencvService.onStatusChange((status) => {
+      setOpenCvStatus(status);
+    });
+    // Avvia il caricamento lazy
+    opencvService.loadOpenCv().catch((err) => {
+      console.warn('Avviso caricamento OpenCV:', err);
+    });
+    return () => unsub();
+  }, []);
 
   /**
-   * Genera la rotazione corrente dell'immagine sorgente in un canvas
+   * Genera canvas della foto con rotazione corrente
    */
   const getRotatedSourceCanvas = useCallback((): HTMLCanvasElement | null => {
     const img = imgRef.current;
@@ -758,7 +283,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   }, []);
 
   /**
-   * Raddrizza prospetticamente il quadrilatero e applica la pulizia carta
+   * Renderizza l'anteprima pulita del documento raddrizzato
    */
   const renderProcessedPreview = useCallback(() => {
     const canvas = previewCanvasRef.current;
@@ -767,61 +292,30 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     const rotCanvas = getRotatedSourceCanvas();
     if (!rotCanvas) return;
 
-    const rotW = rotCanvas.width;
-    const rotH = rotCanvas.height;
+    // Step 2: Ritaglio prospettico
+    const warped = opencvService.warpPerspective(rotCanvas, corners, 1600);
 
-    // Calcolo dimensioni target del rettangolo raddrizzato
-    const p0 = { x: corners.tl.x * rotW, y: corners.tl.y * rotH };
-    const p1 = { x: corners.tr.x * rotW, y: corners.tr.y * rotH };
-    const p2 = { x: corners.br.x * rotW, y: corners.br.y * rotH };
-    const p3 = { x: corners.bl.x * rotW, y: corners.bl.y * rotH };
+    // Step 3: Pulizia stile CamScanner con filtro selezionato
+    const filtered = opencvService.applyFilter(warped, selectedFilter, brightness, contrast);
 
-    const topW = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-    const botW = Math.hypot(p2.x - p3.x, p2.y - p3.y);
-    const leftH = Math.hypot(p3.x - p0.x, p3.y - p0.y);
-    const rightH = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-
-    let targetW = Math.round(Math.max(topW, botW));
-    let targetH = Math.round(Math.max(leftH, rightH));
-
-    const maxDim = 1400;
-    if (targetW > maxDim || targetH > maxDim) {
-      if (targetW > targetH) {
-        targetH = Math.round((targetH * maxDim) / targetW);
-        targetW = maxDim;
-      } else {
-        targetW = Math.round((targetW * maxDim) / targetH);
-        targetH = maxDim;
-      }
+    canvas.width = filtered.width;
+    canvas.height = filtered.height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(filtered, 0, 0);
     }
-    targetW = Math.max(100, targetW);
-    targetH = Math.max(100, targetH);
-
-    // Esegue il raddrizzamento prospettico a 4 angoli
-    const warped = warpPerspective(rotCanvas, corners, targetW, targetH);
-
-    canvas.width = targetW;
-    canvas.height = targetH;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    ctx.drawImage(warped, 0, 0);
-
-    const imageData = ctx.getImageData(0, 0, targetW, targetH);
-    applyCamScannerCleanFilter(imageData, selectedFilter, brightness, contrast);
-    ctx.putImageData(imageData, 0, 0);
-  }, [corners, selectedFilter, brightness, contrast, applyCamScannerCleanFilter, getRotatedSourceCanvas]);
+  }, [corners, selectedFilter, brightness, contrast, getRotatedSourceCanvas]);
 
   /**
-   * Esegue il rilevamento prospettico intelligente con Computer Vision locale e Gemini AI
+   * Esegue la pipeline di rilevamento automatico del documento con OpenCV.js
    */
-  const runAiSmartCrop = useCallback(async (currentRot?: number): Promise<QuadCorners | null> => {
+  const runOpenCvDetection = useCallback(async (currentRot?: number): Promise<QuadCorners> => {
     const img = imgRef.current;
-    if (!img) return null;
+    if (!img) return corners;
 
     const rot = typeof currentRot === 'number' ? currentRot : rotationRef.current;
-    setIsAiDetecting(true);
-    setAiStatusMessage('Rilevamento contorni del documento in corso...');
+    setIsDetecting(true);
+    setStatusMessage('Rilevamento documento con OpenCV.js...');
 
     const isSideways = rot === 90 || rot === 270;
     const rotW = isSideways ? img.naturalHeight : img.naturalWidth;
@@ -839,123 +333,30 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       rotCtx.restore();
     }
 
-    // 1. Rilevamento locale istantaneo ai bordi del foglio
-    let bestQuad: QuadCorners = {
-      tl: { x: 0.02, y: 0.02 },
-      tr: { x: 0.98, y: 0.02 },
-      br: { x: 0.98, y: 0.98 },
-      bl: { x: 0.02, y: 0.98 },
-    };
     try {
-      bestQuad = detectPaperCornersAdvanced(rotCanvas);
-      setCorners(bestQuad);
-      setAiDetectedCorners(bestQuad);
-      setAiStatusMessage('✓ Bordi del foglio ritagliati automaticamente');
-    } catch (e) {
-      console.warn('Errore locale ritaglio foglio:', e);
-    }
-
-    // 2. Perfezionamento con Gemini CamScanner Perspective Vision
-    try {
-      const thumbCanvas = document.createElement('canvas');
-      const maxDim = 800;
-      let tw = rotW;
-      let th = rotH;
-      if (tw > maxDim || th > maxDim) {
-        if (tw > th) {
-          th = Math.round((th * maxDim) / tw);
-          tw = maxDim;
-        } else {
-          tw = Math.round((tw * maxDim) / th);
-          th = maxDim;
-        }
-      }
-      thumbCanvas.width = tw;
-      thumbCanvas.height = th;
-      const tctx = thumbCanvas.getContext('2d');
-      if (tctx) {
-        tctx.drawImage(rotCanvas, 0, 0, tw, th);
-      }
-      const base64Data = thumbCanvas.toDataURL('image/jpeg', 0.85);
-
-      const res = await fetch('/api/ai/smart-crop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64Data }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.corners && typeof data.corners.tl?.x === 'number') {
-          bestQuad = data.corners;
-          setCorners(bestQuad);
-          setAiDetectedCorners(bestQuad);
-          setAiStatusMessage('✓ 4 vertici documento rilevati con precisione');
-        } else if (data?.cropBox && typeof data.cropBox.x === 'number') {
-          bestQuad = boxToQuad(data.cropBox);
-          setCorners(bestQuad);
-          setAiDetectedCorners(bestQuad);
-          setAiStatusMessage('✓ Contorni documento rilevati');
-        } else {
-          setAiStatusMessage('✓ Contorni rilevati');
-        }
-      } else {
-        setAiStatusMessage('✓ Contorni rilevati');
-      }
-    } catch (apiErr) {
-      console.warn('CamScanner AI API error:', apiErr);
-      setAiStatusMessage('✓ Contorni rilevati');
+      // Step 1: Document detection con OpenCV.js (lato lungo ~800px, gray, blur, canny, dilate, approxPolyDP 4 vertici)
+      const detected = await opencvService.detectDocumentCorners(rotCanvas);
+      setCorners(detected);
+      setDetectedCorners(detected);
+      setStatusMessage('✓ 4 angoli del documento rilevati');
+      return detected;
+    } catch (err) {
+      console.warn('Fallback contorni documento:', err);
+      const fallback: QuadCorners = {
+        tl: { x: 0.02, y: 0.02 },
+        tr: { x: 0.98, y: 0.02 },
+        br: { x: 0.98, y: 0.98 },
+        bl: { x: 0.02, y: 0.98 },
+      };
+      setCorners(fallback);
+      return fallback;
     } finally {
-      setIsAiDetecting(false);
-      setTimeout(() => {
-        setAiStatusMessage('');
-      }, 2400);
+      setIsDetecting(false);
+      setTimeout(() => setStatusMessage(''), 2200);
     }
+  }, [corners]);
 
-    return bestQuad;
-  }, []);
-
-  /**
-   * Seleziona un preset di ritaglio CamScanner
-   */
-  const handleSelectCropPreset = async (preset: AutoCropOption) => {
-    setSelectedPreset(preset);
-
-    const img = imgRef.current;
-    if (!img) return;
-
-    const rot = rotationRef.current;
-    const isSideways = rot === 90 || rot === 270;
-    const rotW = isSideways ? img.naturalHeight : img.naturalWidth;
-    const rotH = isSideways ? img.naturalWidth : img.naturalHeight;
-
-    if (preset === 'ai_auto') {
-      await runAiSmartCrop();
-      return;
-    }
-
-    if (preset === 'manual') {
-      setAiStatusMessage('Ritaglio manuale: sposta gli 8 punti');
-      setTimeout(() => setAiStatusMessage(''), 2000);
-      return;
-    }
-
-    const newQuad = calculatePresetQuad(preset, rotW, rotH, aiDetectedCorners);
-    setCorners(newQuad);
-
-    const labels: Record<string, string> = {
-      a4_doc: 'Formato A4 Documento applicato',
-      book_spread: 'Formato Libro (2 Pagine) applicato',
-      safe_margins: 'Margini 90% applicati',
-      full_frame: 'Seleziona Tutto (100%) ripristinato',
-    };
-    if (labels[preset]) {
-      setAiStatusMessage(`✓ ${labels[preset]}`);
-      setTimeout(() => setAiStatusMessage(''), 2200);
-    }
-  };
-
-  // Caricamento immagine iniziale ed esecuzione del ritaglio automatico CamScanner
+  // Caricamento immagine iniziale ed esecuzione automatica di orientamento & ritaglio
   useEffect(() => {
     if (!imageFile) return;
     const url = URL.createObjectURL(imageFile);
@@ -963,54 +364,61 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => {
+    img.onload = async () => {
       imgRef.current = img;
 
-      // Mostra subito la pagina ritagliata e pulita automaticamente con filtro Magic Color
-      setShowCropMode(false);
+      // Inizia in modalità ritaglio a 4 angoli trascinabili
+      setShowCropMode(true);
       setSelectedPreset('ai_auto');
       setSelectedFilter('magic_color');
 
-      // Calcola subito i bordi del foglio isolandoli dal tavolo circostante
-      const rotCanvas = document.createElement('canvas');
-      rotCanvas.width = img.naturalWidth;
-      rotCanvas.height = img.naturalHeight;
-      const rotCtx = rotCanvas.getContext('2d');
-      if (rotCtx) {
-        rotCtx.drawImage(img, 0, 0);
-      }
-      try {
-        const detectedQuad = detectPaperCornersAdvanced(rotCanvas);
-        setCorners(detectedQuad);
-        setAiDetectedCorners(detectedQuad);
-        setAiStatusMessage('✓ Ritaglio bordi & Pulizia automatica attivi');
-      } catch (e) {
-        console.warn('Errore ritaglio locale iniziale:', e);
+      // Crea canvas di verifica iniziale
+      const testCanvas = document.createElement('canvas');
+      testCanvas.width = img.naturalWidth;
+      testCanvas.height = img.naturalHeight;
+      const tctx = testCanvas.getContext('2d');
+      if (tctx) {
+        tctx.drawImage(img, 0, 0);
       }
 
-      runAiSmartCrop(0);
+      // Step 4: Raddrizzamento automatico dell'orientamento se rilevabile
+      try {
+        const autoAngle = await opencvService.detectOrientation(testCanvas);
+        if (autoAngle !== 0) {
+          setRotation(autoAngle);
+          rotationRef.current = autoAngle;
+        }
+      } catch (e) {
+        console.warn('Errore orientamento automatico:', e);
+      }
+
+      // Step 1: Esegui rilevamento automatico 4 vertici
+      await runOpenCvDetection(rotationRef.current);
     };
     img.src = url;
 
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [imageFile, runAiSmartCrop]);
+  }, [imageFile, runOpenCvDetection]);
 
-  // Aggiorna l'anteprima sul canvas quando cambiano i vertici o i filtri
+  // Aggiorna anteprima quando cambiano le selezioni
   useEffect(() => {
-    renderProcessedPreview();
-  }, [renderProcessedPreview]);
+    if (!showCropMode) {
+      renderProcessedPreview();
+    }
+  }, [showCropMode, renderProcessedPreview]);
 
-  // Ruota di 90 gradi in senso orario o antiorario
+  // Ruota 90 gradi
   const handleRotate = (direction: 'cw' | 'ccw' = 'cw') => {
     setRotation((prev) => {
       const next = direction === 'cw' ? (prev + 90) % 360 : (prev - 90 + 360) % 360;
+      rotationRef.current = next;
       return next;
     });
   };
 
-  // Disegna l'anteprima 2.5x nella Lente d'ingrandimento circolare (Loupe)
+  // Aggiorna mirino e lente d'ingrandimento 2.4x
   const updateLoupeCanvas = useCallback(
     (pt: Point) => {
       const loupeCanvas = loupeCanvasRef.current;
@@ -1036,7 +444,6 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
 
       ctx.clearRect(0, 0, size, size);
 
-      // Ritaglio circolare per la lente
       ctx.save();
       ctx.beginPath();
       ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
@@ -1054,29 +461,25 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         size
       );
 
-      // Mirino a croce CamScanner verde / bianco
-      ctx.strokeStyle = '#10B981';
-      ctx.lineWidth = 1.5;
+      // Mirino a croce CamScanner con accento giallo / bianco
+      ctx.strokeStyle = '#FFD23F';
+      ctx.lineWidth = 1.6;
 
-      // Linea orizzontale
       ctx.beginPath();
       ctx.moveTo(0, size / 2);
       ctx.lineTo(size, size / 2);
       ctx.stroke();
 
-      // Linea verticale
       ctx.beginPath();
       ctx.moveTo(size / 2, 0);
       ctx.lineTo(size / 2, size);
       ctx.stroke();
 
-      // Punto centrale
-      ctx.fillStyle = '#10B981';
+      ctx.fillStyle = '#FFD23F';
       ctx.beginPath();
       ctx.arc(size / 2, size / 2, 3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cerchio interno di collimazione
       ctx.strokeStyle = '#FFFFFF';
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -1088,7 +491,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     [getRotatedSourceCanvas]
   );
 
-  // Calcolo dei 4 punti mediani sui lati del quadrilatero
+  // Punti mediani sui 4 lati
   const midTop: Point = {
     x: (corners.tl.x + corners.tr.x) / 2,
     y: (corners.tl.y + corners.tr.y) / 2,
@@ -1106,7 +509,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     y: (corners.tl.y + corners.bl.y) / 2,
   };
 
-  // Gestione PointerDown per le 8 maniglie CamScanner
+  // Drag handles (4 angoli + 4 lati)
   const handlePointerDown = (handle: string, e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1122,7 +525,6 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
 
     setActiveDraggingHandle(handle);
 
-    // Determina il punto corrente della maniglia per la lente
     let currentPoint = corners.tl;
     if (handle === 'tl') currentPoint = corners.tl;
     else if (handle === 'tr') currentPoint = corners.tr;
@@ -1149,12 +551,11 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
 
     const handle = isDraggingRef.current;
     const prev = startCornersRef.current;
+    const clamp = (v: number) => Math.max(0.00, Math.min(1.00, v));
 
     if (selectedPreset !== 'manual') {
       setSelectedPreset('manual');
     }
-
-    const clamp = (v: number) => Math.max(0.00, Math.min(1.00, v));
 
     setCorners(() => {
       const next: QuadCorners = {
@@ -1173,23 +574,18 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
       } else if (handle === 'bl') {
         next.bl = { x: clamp(prev.bl.x + deltaX), y: clamp(prev.bl.y + deltaY) };
       } else if (handle === 'mid_top') {
-        // Trascina l'intero bordo superiore
         next.tl = { x: clamp(prev.tl.x + deltaX), y: clamp(prev.tl.y + deltaY) };
         next.tr = { x: clamp(prev.tr.x + deltaX), y: clamp(prev.tr.y + deltaY) };
       } else if (handle === 'mid_right') {
-        // Trascina l'intero bordo destro
         next.tr = { x: clamp(prev.tr.x + deltaX), y: clamp(prev.tr.y + deltaY) };
         next.br = { x: clamp(prev.br.x + deltaX), y: clamp(prev.br.y + deltaY) };
       } else if (handle === 'mid_bottom') {
-        // Trascina l'intero bordo inferiore
         next.bl = { x: clamp(prev.bl.x + deltaX), y: clamp(prev.bl.y + deltaY) };
         next.br = { x: clamp(prev.br.x + deltaX), y: clamp(prev.br.y + deltaY) };
       } else if (handle === 'mid_left') {
-        // Trascina l'intero bordo sinistro
         next.tl = { x: clamp(prev.tl.x + deltaX), y: clamp(prev.tl.y + deltaY) };
         next.bl = { x: clamp(prev.bl.x + deltaX), y: clamp(prev.bl.y + deltaY) };
       } else if (handle === 'body') {
-        // Sposta l'intero poligono
         const dx = Math.max(-prev.tl.x, Math.min(1 - prev.tr.x, deltaX));
         const dy = Math.max(-prev.tl.y, Math.min(1 - prev.bl.y, deltaY));
         next.tl = { x: clamp(prev.tl.x + dx), y: clamp(prev.tl.y + dy) };
@@ -1198,7 +594,6 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
         next.bl = { x: clamp(prev.bl.x + dx), y: clamp(prev.bl.y + dy) };
       }
 
-      // Aggiorna la lente di ingrandimento
       let updatedPt = next.tl;
       if (handle === 'tl') updatedPt = next.tl;
       else if (handle === 'tr') updatedPt = next.tr;
@@ -1231,41 +626,48 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     }
   };
 
-  // Ottieni il file immagine ritagliato e processato
+  // Esegue warpPerspective e applyFilter per produrre il file JPEG pulito finale
   const getProcessedResult = (): Promise<{ file: File; url: string } | null> => {
     return new Promise((resolve) => {
-      const canvas = previewCanvasRef.current;
-      if (!canvas) return resolve(null);
       try {
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        canvas.toBlob(
+        const rotCanvas = getRotatedSourceCanvas();
+        if (!rotCanvas) return resolve(null);
+
+        // Step 2: Prospettiva a piena risoluzione
+        const warped = opencvService.warpPerspective(rotCanvas, corners, 2400);
+
+        // Step 3: Filtro CamScanner scelto (Magic Color, B/N, Grayscale, Originale)
+        const filtered = opencvService.applyFilter(warped, selectedFilter, brightness, contrast);
+
+        filtered.toBlob(
           (blob) => {
             if (!blob) {
+              const dataUrl = filtered.toDataURL('image/jpeg', 0.9);
               const byteString = atob(dataUrl.split(',')[1]);
-              const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
               const ab = new ArrayBuffer(byteString.length);
               const ia = new Uint8Array(ab);
               for (let i = 0; i < byteString.length; i++) {
                 ia[i] = byteString.charCodeAt(i);
               }
-              const fallbackBlob = new Blob([ab], { type: mimeString });
+              const fallbackBlob = new Blob([ab], { type: 'image/jpeg' });
               const fallbackFile = new File(
                 [fallbackBlob],
-                `scansione-pulita-${Date.now()}.jpg`,
+                `camscanner-pulita-${Date.now()}.jpg`,
                 { type: 'image/jpeg' }
               );
               resolve({ file: fallbackFile, url: dataUrl });
               return;
             }
+            const dataUrl = URL.createObjectURL(blob);
             const processedFile = new File(
               [blob],
-              `scansione-pulita-${Date.now()}.jpg`,
+              `camscanner-pulita-${Date.now()}.jpg`,
               { type: 'image/jpeg' }
             );
             resolve({ file: processedFile, url: dataUrl });
           },
           'image/jpeg',
-          0.85
+          0.9
         );
       } catch (err) {
         console.error('Errore getProcessedResult:', err);
@@ -1298,46 +700,69 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     }
   };
 
-  // Lista opzioni veloci stile CamScanner
-  const cropPresets = [
+  // Preset ritaglio rapido
+  const handleSelectCropPreset = async (preset: AutoCropOption) => {
+    setSelectedPreset(preset);
+
+    const img = imgRef.current;
+    if (!img) return;
+
+    const rot = rotationRef.current;
+    const isSideways = rot === 90 || rot === 270;
+    const rotW = isSideways ? img.naturalHeight : img.naturalWidth;
+    const rotH = isSideways ? img.naturalWidth : img.naturalHeight;
+
+    if (preset === 'ai_auto') {
+      await runOpenCvDetection();
+      return;
+    }
+
+    if (preset === 'manual') {
+      setStatusMessage('Ritaglio manuale: trascina i 4 angoli');
+      setTimeout(() => setStatusMessage(''), 2000);
+      return;
+    }
+
+    const newQuad = calculatePresetQuad(preset, rotW, rotH, detectedCorners);
+    setCorners(newQuad);
+  };
+
+  // 4 Filtri con striscia anteprime
+  const filterOptions: Array<{
+    id: CamScannerFilter;
+    label: string;
+    sublabel: string;
+    icon: any;
+    badge?: string;
+  }> = [
     {
-      id: 'ai_auto' as AutoCropOption,
-      label: 'Rileva Auto',
-      badge: 'Smart AI',
-      desc: 'Rilevamento prospettico intelligente dei 4 angoli',
+      id: 'magic_color',
+      label: 'Magic Color',
+      sublabel: 'Rimozione ombre',
       icon: Sparkles,
+      badge: 'CamScanner',
     },
     {
-      id: 'full_frame' as AutoCropOption,
-      label: 'Tutto',
-      badge: '100%',
-      desc: 'Seleziona l\'intera foto senza ritaglio',
-      icon: Maximize2,
+      id: 'original',
+      label: 'Originale',
+      sublabel: 'Colori fedeli',
+      icon: Palette,
     },
     {
-      id: 'a4_doc' as AutoCropOption,
-      label: 'Doc. A4',
-      badge: '1:1.41',
-      desc: 'Formato pagina standard verticale',
-      icon: FileText,
+      id: 'grayscale',
+      label: 'Scala grigi',
+      sublabel: 'Doc. pulito',
+      icon: Sun,
     },
     {
-      id: 'book_spread' as AutoCropOption,
-      label: 'Libro 2 Pagg.',
-      badge: 'Doppia',
-      desc: 'Formato orizzontale per 2 pagine aperte',
-      icon: BookOpen,
-    },
-    {
-      id: 'safe_margins' as AutoCropOption,
-      label: 'Margini 90%',
-      badge: 'Bordi puliti',
-      desc: 'Ritaglio sicuro che elimina ombre periferiche',
-      icon: ScanLine,
+      id: 'bw',
+      label: 'Bianco & Nero',
+      sublabel: 'Alto contrasto',
+      icon: Contrast,
     },
   ];
 
-  // Coordinate normalizzate per l'SVG (0 a 1000)
+  // Coordinate normalizzate per SVG (0 - 1000)
   const cTL = { x: corners.tl.x * 1000, y: corners.tl.y * 1000 };
   const cTR = { x: corners.tr.x * 1000, y: corners.tr.y * 1000 };
   const cBR = { x: corners.br.x * 1000, y: corners.br.y * 1000 };
@@ -1348,7 +773,6 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
   const mBottom = { x: (cBL.x + cBR.x) / 2, y: (cBL.y + cBR.y) / 2 };
   const mLeft = { x: (cTL.x + cBL.x) / 2, y: (cTL.y + cBL.y) / 2 };
 
-  // Posizionamento intelligente della lente per non essere coperta dalla mano dell'utente
   const isLoupeOnTop = loupePoint ? loupePoint.y > 0.45 : true;
   const isLoupeOnLeft = loupePoint ? loupePoint.x > 0.5 : false;
 
@@ -1356,30 +780,45 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Editor Scansione - Ritaglio Prospettico a 8 Punti"
+      aria-label="Editor Scansione CamScanner - Ritaglio Prospettico e Pulizia"
       className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between overflow-hidden select-none font-sans"
     >
-      {/* 1. Header superiore Scanner */}
-      <header className="bg-[#1E8C86] border-b border-[#1E8C86]/50 text-white px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20 shadow-md">
-        <div className="flex items-center gap-2">
+      {/* 1. Header con stile scuro, bordo bianco e badge OpenCV.js */}
+      <header className="bg-black/90 border-b border-white/20 text-white px-3 sm:px-4 py-2.5 flex items-center justify-between shrink-0 z-20 backdrop-blur-md">
+        <div className="flex items-center gap-2 min-w-0">
           <Wand2 size={18} className="text-[#FFD23F] shrink-0" />
-          <h2 className="text-sm font-bold text-white tracking-wide">Scanner Documenti</h2>
-          <span className="text-[11px] font-bold bg-[#2BA8A2] px-2.5 py-0.5 rounded-full text-white border border-white/20 whitespace-nowrap shadow-xs">
-            Pagina {pageIndex + 1} {totalPages > 1 ? `di ${totalPages}` : ''}
-          </span>
+          <div className="flex flex-col min-w-0">
+            <h2 className="text-sm font-bold text-white tracking-wide truncate">
+              Scanner CamScanner
+            </h2>
+            <div className="flex items-center gap-1.5 text-[10px] text-white/70">
+              <span>Pag. {pageIndex + 1} {totalPages > 1 ? `di ${totalPages}` : ''}</span>
+              {openCvStatus === 'loading' && (
+                <span className="flex items-center gap-1 text-[#FFD23F] font-medium">
+                  <Loader2 size={10} className="animate-spin" />
+                  Caricamento OpenCV...
+                </span>
+              )}
+              {openCvStatus === 'ready' && (
+                <span className="text-emerald-400 font-medium">✓ OpenCV.js Pronto</span>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Selettore Vista: Ritaglio Prospettico vs Anteprima Sbiancata */}
-        <div className="flex items-center bg-[#2BA8A2] border border-white/25 rounded-full p-0.5 shadow-xs">
+        {/* Selettore Vista: Ritaglio 4 Angoli vs Anteprima Pulita */}
+        <div className="flex items-center bg-transparent border-2 border-white rounded-full p-0.5 shadow-sm">
           <button
             type="button"
             onClick={() => setShowCropMode(true)}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              showCropMode ? 'bg-white text-[#1E8C86] shadow-sm' : 'text-white/80 hover:text-white'
+              showCropMode
+                ? 'bg-[#FFD23F] text-slate-950 font-black shadow-accent-glow'
+                : 'text-white hover:text-white/80'
             }`}
-            title="Mostra gli 8 punti di ritaglio prospettico"
+            title="Mostra i 4 angoli trascinabili di ritaglio prospettico"
           >
-            <Crop size={12} className={showCropMode ? 'text-[#1E8C86]' : 'text-white'} />
+            <Crop size={12} className={showCropMode ? 'text-slate-950 stroke-[2.5]' : 'text-white'} />
             <span>Ritaglio</span>
           </button>
           <button
@@ -1389,102 +828,106 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               renderProcessedPreview();
             }}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              !showCropMode ? 'bg-white text-[#1E8C86] shadow-sm' : 'text-white/80 hover:text-white'
+              !showCropMode
+                ? 'bg-[#FFD23F] text-slate-950 font-black shadow-accent-glow'
+                : 'text-white hover:text-white/80'
             }`}
-            title="Mostra anteprima del documento raddrizzato e sbiancato"
+            title="Mostra anteprima del documento pulito e raddrizzato"
           >
-            <Eye size={12} className={!showCropMode ? 'text-[#1E8C86]' : 'text-white'} />
+            <Eye size={12} className={!showCropMode ? 'text-slate-950 stroke-[2.5]' : 'text-white'} />
             <span>Anteprima</span>
           </button>
         </div>
 
+        {/* Pulsante Continua rapido nell'header */}
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleContinueSavePdf}
             disabled={isProcessing}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FFD23F] text-slate-950 font-black text-xs hover:bg-[#FFE47A] active:scale-95 transition-all disabled:opacity-50 shadow-accent-glow border border-[#E6B800]"
-            title="Raddrizza prospettiva e salva documento"
+            className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#FFD23F] text-slate-950 font-black text-xs hover:bg-[#FFE47A] active:scale-95 transition-all disabled:opacity-50 shadow-accent-glow"
+            title="Crea PDF con le sole immagini già ritagliate e pulite, senza OCR"
           >
-            <Check size={14} className="text-slate-950 stroke-[3]" />
-            <span>Prossimo</span>
+            {isProcessing ? (
+              <Loader2 size={13} className="animate-spin text-slate-950" />
+            ) : (
+              <Check size={14} className="text-slate-950 stroke-[3]" />
+            )}
+            <span>Continua</span>
           </button>
 
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="w-8 h-8 rounded-full bg-[#2BA8A2] text-white hover:bg-[#3CC4BD] flex items-center justify-center transition-colors border border-white/25 shrink-0"
+              className="w-8 h-8 rounded-full bg-transparent border-2 border-white text-white hover:bg-white/10 flex items-center justify-center transition-colors"
               aria-label="Chiudi"
             >
-              <X size={16} className="text-white" />
+              <X size={15} className="text-white" />
             </button>
           )}
         </div>
       </header>
 
-      {/* 2. Barra Presets e Strumenti Rapidi CamScanner */}
-      <section className="bg-[#EFF8F7] border-b border-[#2BA8A2]/20 px-2.5 py-2 shrink-0 z-20 overflow-x-auto scrollbar-thin">
-        <div className="flex items-center gap-1.5 max-w-full min-w-max mx-auto justify-start sm:justify-center">
-          <span className="text-[11px] font-bold text-[#1E8C86] uppercase tracking-wider pr-1 flex items-center gap-1">
-            <Crop size={12} className="text-[#1E8C86]" />
-            <span>Modalità:</span>
-          </span>
+      {/* 2. Barra Preset di Ritaglio Rapido */}
+      {showCropMode && (
+        <section className="bg-black/60 border-b border-white/10 px-2.5 py-1.5 shrink-0 z-20 overflow-x-auto scrollbar-thin">
+          <div className="flex items-center gap-1.5 max-w-full min-w-max mx-auto justify-start sm:justify-center">
+            <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider pr-1 flex items-center gap-1">
+              <ScanLine size={12} className="text-[#FFD23F]" />
+              <span>Ritaglio:</span>
+            </span>
 
-          {cropPresets.map((preset) => {
-            const Icon = preset.icon;
-            const isSelected = selectedPreset === preset.id;
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => handleSelectCropPreset(preset.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all relative cursor-pointer active:scale-95 ${
-                  isSelected
-                    ? 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] shadow-accent-glow font-black'
-                    : 'bg-white text-slate-700 border border-[#2BA8A2]/20 hover:border-[#2BA8A2] hover:bg-[#FFF8E7]'
-                }`}
-                title={preset.desc}
-              >
-                <Icon size={13} className={isSelected ? 'text-slate-950' : 'text-[#1E8C86]'} />
-                <span>{preset.label}</span>
-                {preset.badge && (
-                  <span
-                    className={`text-[9px] px-1 py-0.2 rounded font-black ${
-                      isSelected ? 'bg-slate-950 text-[#FFD23F]' : 'bg-[#E8F6F5] text-[#1E8C86]'
-                    }`}
-                  >
-                    {preset.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+            {[
+              { id: 'ai_auto' as AutoCropOption, label: 'Auto OpenCV', icon: Sparkles },
+              { id: 'full_frame' as AutoCropOption, label: 'Tutto', icon: Maximize2 },
+              { id: 'a4_doc' as AutoCropOption, label: 'Doc. A4', icon: FileText },
+              { id: 'book_spread' as AutoCropOption, label: '2 Pagine', icon: BookOpen },
+              { id: 'safe_margins' as AutoCropOption, label: 'Margini 90%', icon: ScanLine },
+            ].map((preset) => {
+              const Icon = preset.icon;
+              const isSelected = selectedPreset === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleSelectCropPreset(preset.id)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    isSelected
+                      ? 'bg-[#FFD23F] text-slate-950 font-black shadow-accent-glow'
+                      : 'bg-transparent border border-white/30 text-white hover:border-white'
+                  }`}
+                >
+                  <Icon size={12} className={isSelected ? 'text-slate-950' : 'text-[#FFD23F]'} />
+                  <span>{preset.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-      {/* 3. Main Viewport: Editor Prospettico CamScanner a 8 Punti */}
+      {/* 3. Main Viewport */}
       <main className="flex-1 overflow-hidden relative flex items-center justify-center p-2 sm:p-4 bg-black select-none">
-        {/* CROP MODE INTERATTIVA A 8 PUNTI STILE CAMSCANNER */}
+        {/* MODALITÀ RITAGLIO A 4 ANGOLI TRASCINABILI */}
         <div
-          className={`relative max-w-full max-h-[64vh] sm:max-h-[70vh] items-center justify-center touch-none overflow-hidden select-none ${
+          className={`relative max-w-full max-h-[62vh] sm:max-h-[68vh] items-center justify-center touch-none overflow-hidden select-none ${
             showCropMode ? 'flex' : 'hidden'
           }`}
         >
-          {/* Immagine con rotazione applicata */}
           {imageSrc && (
             <img
               src={imageSrc}
-              alt="Foto scansionata da ritagliare"
+              alt="Scansione da ritagliare"
               style={{
                 transform: `rotate(${rotation}deg)`,
                 transformOrigin: 'center center',
               }}
-              className="max-h-[60vh] sm:max-h-[66vh] max-w-full object-contain pointer-events-none rounded-lg"
+              className="max-h-[58vh] sm:max-h-[64vh] max-w-full object-contain pointer-events-none rounded-lg"
             />
           )}
 
-          {/* SVG Overlay a 8 punti di CamScanner: maschera scura, quadrilatero verde/bianco, 4 angoli e 4 punti mediani */}
+          {/* SVG Overlay dei 4 angoli trascinabili */}
           <svg
             ref={cropSvgContainerRef}
             viewBox="0 0 1000 1000"
@@ -1493,29 +936,29 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             onPointerUp={handlePointerUp}
             className="absolute inset-0 w-full h-full touch-none select-none cursor-crosshair z-10"
           >
-            {/* Maschera oscurante esterna */}
+            {/* Maschera esterna oscurante */}
             <path
               d={`M 0 0 L 1000 0 L 1000 1000 L 0 1000 Z M ${cTL.x} ${cTL.y} L ${cBL.x} ${cBL.y} L ${cBR.x} ${cBR.y} L ${cTR.x} ${cTR.y} Z`}
-              fill="rgba(0, 0, 0, 0.62)"
+              fill="rgba(0, 0, 0, 0.64)"
               fillRule="evenodd"
               className="pointer-events-none"
             />
 
-            {/* Area interna cliccabile per spostare tutto il foglio */}
+            {/* Area interna per trascinamento dell'intero foglio */}
             <polygon
               points={`${cTL.x},${cTL.y} ${cTR.x},${cTR.y} ${cBR.x},${cBR.y} ${cBL.x},${cBL.y}`}
-              fill="rgba(255, 255, 255, 0.05)"
+              fill="rgba(255, 255, 255, 0.04)"
               onPointerDown={(e) => handlePointerDown('body', e)}
               className="cursor-move"
             />
 
-            {/* Griglia a terzi prospettica interna CamScanner */}
+            {/* Griglia interna a terzi */}
             <line
               x1={cTL.x * 0.66 + cBL.x * 0.34}
               y1={cTL.y * 0.66 + cBL.y * 0.34}
               x2={cTR.x * 0.66 + cBR.x * 0.34}
               y2={cTR.y * 0.66 + cBR.y * 0.34}
-              stroke="rgba(255, 255, 255, 0.25)"
+              stroke="rgba(255, 255, 255, 0.28)"
               strokeWidth="1.2"
               strokeDasharray="4 4"
               className="pointer-events-none"
@@ -1525,7 +968,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               y1={cTL.y * 0.34 + cBL.y * 0.66}
               x2={cTR.x * 0.34 + cBR.x * 0.66}
               y2={cTR.y * 0.34 + cBR.y * 0.66}
-              stroke="rgba(255, 255, 255, 0.25)"
+              stroke="rgba(255, 255, 255, 0.28)"
               strokeWidth="1.2"
               strokeDasharray="4 4"
               className="pointer-events-none"
@@ -1535,7 +978,7 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               y1={cTL.y * 0.66 + cTR.y * 0.34}
               x2={cBL.x * 0.66 + cBR.x * 0.34}
               y2={cBL.y * 0.66 + cBR.y * 0.34}
-              stroke="rgba(255, 255, 255, 0.25)"
+              stroke="rgba(255, 255, 255, 0.28)"
               strokeWidth="1.2"
               strokeDasharray="4 4"
               className="pointer-events-none"
@@ -1545,179 +988,80 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
               y1={cTL.y * 0.34 + cTR.y * 0.66}
               x2={cBL.x * 0.34 + cBR.x * 0.66}
               y2={cBL.y * 0.34 + cBR.y * 0.66}
-              stroke="rgba(255, 255, 255, 0.25)"
+              stroke="rgba(255, 255, 255, 0.28)"
               strokeWidth="1.2"
               strokeDasharray="4 4"
               className="pointer-events-none"
             />
 
-            {/* Bordo quadrilatero luminoso con tratteggio CamScanner */}
+            {/* Bordo quadrilatero bianco luminoso con accento CamScanner */}
             <polygon
               points={`${cTL.x},${cTL.y} ${cTR.x},${cTR.y} ${cBR.x},${cBR.y} ${cBL.x},${cBL.y}`}
               fill="none"
               stroke="#FFFFFF"
               strokeWidth="2.5"
-              strokeDasharray="8 5"
+              strokeDasharray="7 4"
               className="pointer-events-none"
             />
 
-            {/* 4 PUNTI MEDIANI SUI BORDI (per trascinare l'intero lato) */}
-            {/* Lato Superiore */}
-            <g
-              onPointerDown={(e) => handlePointerDown('mid_top', e)}
-              className="cursor-ns-resize"
-            >
-              <rect
-                x={mTop.x - 22}
-                y={mTop.y - 8}
-                width="44"
-                height="16"
-                rx="8"
-                fill="#FFFFFF"
-                stroke="#000000"
-                strokeWidth="2"
-              />
-              <line
-                x1={mTop.x - 10}
-                y1={mTop.y}
-                x2={mTop.x + 10}
-                y2={mTop.y}
-                stroke="#10B981"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
+            {/* 4 Maniglie sui lati mediani */}
+            <g onPointerDown={(e) => handlePointerDown('mid_top', e)} className="cursor-ns-resize">
+              <rect x={mTop.x - 20} y={mTop.y - 7} width="40" height="14" rx="7" fill="#FFFFFF" stroke="#000000" strokeWidth="2" />
+              <line x1={mTop.x - 8} y1={mTop.y} x2={mTop.x + 8} y2={mTop.y} stroke="#FFD23F" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+            <g onPointerDown={(e) => handlePointerDown('mid_right', e)} className="cursor-ew-resize">
+              <rect x={mRight.x - 7} y={mRight.y - 20} width="14" height="40" rx="7" fill="#FFFFFF" stroke="#000000" strokeWidth="2" />
+              <line x1={mRight.x} y1={mRight.y - 8} x2={mRight.x} y2={mRight.y + 8} stroke="#FFD23F" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+            <g onPointerDown={(e) => handlePointerDown('mid_bottom', e)} className="cursor-ns-resize">
+              <rect x={mBottom.x - 20} y={mBottom.y - 7} width="40" height="14" rx="7" fill="#FFFFFF" stroke="#000000" strokeWidth="2" />
+              <line x1={mBottom.x - 8} y1={mBottom.y} x2={mBottom.x + 8} y2={mBottom.y} stroke="#FFD23F" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+            <g onPointerDown={(e) => handlePointerDown('mid_left', e)} className="cursor-ew-resize">
+              <rect x={mLeft.x - 7} y={mLeft.y - 20} width="14" height="40" rx="7" fill="#FFFFFF" stroke="#000000" strokeWidth="2" />
+              <line x1={mLeft.x} y1={mLeft.y - 8} x2={mLeft.x} y2={mLeft.y + 8} stroke="#FFD23F" strokeWidth="2.5" strokeLinecap="round" />
             </g>
 
-            {/* Lato Destro */}
-            <g
-              onPointerDown={(e) => handlePointerDown('mid_right', e)}
-              className="cursor-ew-resize"
-            >
-              <rect
-                x={mRight.x - 8}
-                y={mRight.y - 22}
-                width="16"
-                height="44"
-                rx="8"
-                fill="#FFFFFF"
-                stroke="#000000"
-                strokeWidth="2"
-              />
-              <line
-                x1={mRight.x}
-                y1={mRight.y - 10}
-                x2={mRight.x}
-                y2={mRight.y + 10}
-                stroke="#10B981"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </g>
-
-            {/* Lato Inferiore */}
-            <g
-              onPointerDown={(e) => handlePointerDown('mid_bottom', e)}
-              className="cursor-ns-resize"
-            >
-              <rect
-                x={mBottom.x - 22}
-                y={mBottom.y - 8}
-                width="44"
-                height="16"
-                rx="8"
-                fill="#FFFFFF"
-                stroke="#000000"
-                strokeWidth="2"
-              />
-              <line
-                x1={mBottom.x - 10}
-                y1={mBottom.y}
-                x2={mBottom.x + 10}
-                y2={mBottom.y}
-                stroke="#10B981"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </g>
-
-            {/* Lato Sinistro */}
-            <g
-              onPointerDown={(e) => handlePointerDown('mid_left', e)}
-              className="cursor-ew-resize"
-            >
-              <rect
-                x={mLeft.x - 8}
-                y={mLeft.y - 22}
-                width="16"
-                height="44"
-                rx="8"
-                fill="#FFFFFF"
-                stroke="#000000"
-                strokeWidth="2"
-              />
-              <line
-                x1={mLeft.x}
-                y1={mLeft.y - 10}
-                x2={mLeft.x}
-                y2={mLeft.y + 10}
-                stroke="#10B981"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </g>
-
-            {/* 4 ANGOLI PRINCIPALI CAMSCANNER (TL, TR, BR, BL) */}
+            {/* I 4 ANGOLI PRINCIPALI TRASCINABILI (TL, TR, BR, BL) */}
             {/* Top-Left */}
-            <g
-              onPointerDown={(e) => handlePointerDown('tl', e)}
-              className="cursor-nwse-resize"
-            >
+            <g onPointerDown={(e) => handlePointerDown('tl', e)} className="cursor-nwse-resize">
               <circle cx={cTL.x} cy={cTL.y} r="28" fill="transparent" />
               <circle cx={cTL.x} cy={cTL.y} r="18" fill="#FFFFFF" stroke="#000000" strokeWidth="3" />
-              <circle cx={cTL.x} cy={cTL.y} r="7" fill="#10B981" />
+              <circle cx={cTL.x} cy={cTL.y} r="7" fill="#FFD23F" />
             </g>
 
             {/* Top-Right */}
-            <g
-              onPointerDown={(e) => handlePointerDown('tr', e)}
-              className="cursor-nesw-resize"
-            >
+            <g onPointerDown={(e) => handlePointerDown('tr', e)} className="cursor-nesw-resize">
               <circle cx={cTR.x} cy={cTR.y} r="28" fill="transparent" />
               <circle cx={cTR.x} cy={cTR.y} r="18" fill="#FFFFFF" stroke="#000000" strokeWidth="3" />
-              <circle cx={cTR.x} cy={cTR.y} r="7" fill="#10B981" />
+              <circle cx={cTR.x} cy={cTR.y} r="7" fill="#FFD23F" />
             </g>
 
             {/* Bottom-Right */}
-            <g
-              onPointerDown={(e) => handlePointerDown('br', e)}
-              className="cursor-nwse-resize"
-            >
+            <g onPointerDown={(e) => handlePointerDown('br', e)} className="cursor-nwse-resize">
               <circle cx={cBR.x} cy={cBR.y} r="28" fill="transparent" />
               <circle cx={cBR.x} cy={cBR.y} r="18" fill="#FFFFFF" stroke="#000000" strokeWidth="3" />
-              <circle cx={cBR.x} cy={cBR.y} r="7" fill="#10B981" />
+              <circle cx={cBR.x} cy={cBR.y} r="7" fill="#FFD23F" />
             </g>
 
             {/* Bottom-Left */}
-            <g
-              onPointerDown={(e) => handlePointerDown('bl', e)}
-              className="cursor-nesw-resize"
-            >
+            <g onPointerDown={(e) => handlePointerDown('bl', e)} className="cursor-nesw-resize">
               <circle cx={cBL.x} cy={cBL.y} r="28" fill="transparent" />
               <circle cx={cBL.x} cy={cBL.y} r="18" fill="#FFFFFF" stroke="#000000" strokeWidth="3" />
-              <circle cx={cBL.x} cy={cBL.y} r="7" fill="#10B981" />
+              <circle cx={cBL.x} cy={cBL.y} r="7" fill="#FFD23F" />
             </g>
           </svg>
 
-          {/* Lente d'ingrandimento circolare (Loupe 2.5x con mirino a croce) */}
+          {/* Lente d'ingrandimento 2.4x durante il drag */}
           {activeDraggingHandle && (
             <div
               className={`absolute z-40 flex flex-col items-center gap-1 pointer-events-none transition-all duration-75 ${
                 isLoupeOnTop ? 'top-3' : 'bottom-3'
               } ${isLoupeOnLeft ? 'left-3' : 'right-3'}`}
             >
-              <div className="relative w-28 h-28 rounded-full border-3 border-white shadow-[0_0_24px_rgba(0,0,0,0.85)] overflow-hidden bg-black flex items-center justify-center">
+              <div className="relative w-28 h-28 rounded-full border-2 border-white shadow-[0_0_24px_rgba(0,0,0,0.9)] overflow-hidden bg-black flex items-center justify-center">
                 <canvas ref={loupeCanvasRef} className="w-full h-full object-cover" />
-                <span className="absolute bottom-1 bg-black/85 text-[9px] font-black text-emerald-400 px-1.5 py-0.5 rounded-full border border-emerald-400/30">
+                <span className="absolute bottom-1 bg-black/85 text-[9px] font-black text-[#FFD23F] px-1.5 py-0.5 rounded-full border border-white/30">
                   2.4x
                 </span>
               </div>
@@ -1727,80 +1071,113 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             </div>
           )}
 
-          {/* Scansione laser animata durante il rilevamento AI */}
-          {isAiDetecting && (
+          {/* Raggio laser durante il rilevamento */}
+          {isDetecting && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-25">
-              <div className="absolute left-0 right-0 h-1 bg-emerald-400 shadow-[0_0_16px_#10B981] animate-laser-scan pointer-events-none" />
+              <div className="absolute left-0 right-0 h-1 bg-[#FFD23F] shadow-[0_0_16px_#FFD23F] animate-laser-scan pointer-events-none" />
             </div>
           )}
 
-          {/* Badge di stato Ritaglio CamScanner */}
-          {aiStatusMessage && (
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-35 bg-black/95 border border-white px-3 py-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs font-bold text-white animate-fade-in pointer-events-none whitespace-nowrap">
-              {isAiDetecting ? (
-                <Loader2 size={13} className="animate-spin text-white" />
+          {statusMessage && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-35 bg-black/90 border-2 border-white px-3.5 py-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs font-bold text-white pointer-events-none whitespace-nowrap">
+              {isDetecting ? (
+                <Loader2 size={13} className="animate-spin text-[#FFD23F]" />
               ) : (
-                <CheckCheck size={13} className="text-emerald-400" />
+                <CheckCheck size={13} className="text-[#FFD23F]" />
               )}
-              <span>{aiStatusMessage}</span>
+              <span>{statusMessage}</span>
             </div>
           )}
         </div>
 
-        {/* ANTEPRIMA DOCUMENTO RADDRIZZATO E PULITO (Sempre montato nel DOM con canvas persistente) */}
+        {/* MODALITÀ ANTEPRIMA DOCUMENTO PULITO */}
         <div
-          className={`relative max-w-full max-h-[64vh] sm:max-h-[70vh] shadow-2xl rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 items-center justify-center p-2 ${
+          className={`relative max-w-full max-h-[62vh] sm:max-h-[68vh] shadow-2xl rounded-2xl overflow-hidden bg-transparent border-2 border-white items-center justify-center p-2 ${
             !showCropMode ? 'flex' : 'hidden'
           }`}
         >
           <canvas
             ref={previewCanvasRef}
-            className="max-h-[60vh] sm:max-h-[66vh] max-w-full object-contain shadow-2xl rounded-lg"
+            className="max-h-[58vh] sm:max-h-[64vh] max-w-full object-contain rounded-lg"
           />
 
-          {/* Badge di stato Ritaglio & Pulizia Automatica */}
-          {aiStatusMessage && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-black/95 border border-white px-3 py-1 rounded-full shadow-2xl flex items-center gap-1.5 text-xs font-bold text-white animate-fade-in pointer-events-none whitespace-nowrap">
-              {isAiDetecting ? (
-                <Loader2 size={13} className="animate-spin text-white" />
-              ) : (
-                <CheckCheck size={13} className="text-emerald-400" />
-              )}
-              <span>{aiStatusMessage}</span>
-            </div>
-          )}
-
-          {/* Pulsante rapido per regolare il ritaglio se necessario */}
           <button
             type="button"
             onClick={() => setShowCropMode(true)}
-            className="absolute bottom-3 right-3 z-30 bg-black/80 hover:bg-black text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/30 backdrop-blur-md flex items-center gap-1.5 shadow-lg active:scale-95 transition-all cursor-pointer"
-            title="Modifica manualmente gli 8 punti di ritaglio"
+            className="absolute bottom-3 right-3 z-30 bg-transparent border-2 border-white hover:bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 shadow-lg active:scale-95 transition-all cursor-pointer"
+            title="Modifica manualmente i 4 angoli di ritaglio"
           >
-            <Crop size={13} className="text-white" />
+            <Crop size={13} className="text-[#FFD23F]" />
             <span>Regola ritaglio</span>
           </button>
         </div>
       </main>
 
-      {/* 4. Footer con controlli CamScanner */}
-      <footer className="bg-[#1E8C86] border-t border-[#1E8C86]/50 px-1.5 sm:px-4 py-2 pb-5 sm:pb-3 shrink-0 z-20 shadow-2xl">
-        <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1">
-          {/* 1. Rifai scatto */}
+      {/* 4. STRISCIA ANTEPRIME FILTRI CAMSCANNER (Magic Color default, Originale, Scala grigi, B/N) */}
+      <section className="bg-black/90 border-t border-white/20 px-2.5 py-2 shrink-0 z-20 overflow-x-auto scrollbar-thin">
+        <div className="flex items-center gap-2 max-w-md mx-auto justify-center">
+          {filterOptions.map((f) => {
+            const Icon = f.icon;
+            const isSelected = selectedFilter === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => {
+                  setSelectedFilter(f.id);
+                  // Passa ad anteprima pulita per mostrare il risultato del filtro
+                  setShowCropMode(false);
+                }}
+                className={`flex-1 flex flex-col items-center justify-center p-1.5 rounded-xl transition-all cursor-pointer text-center relative ${
+                  isSelected
+                    ? 'bg-[#FFD23F] text-slate-950 font-black shadow-accent-glow scale-102'
+                    : 'bg-transparent border border-white/30 text-white hover:border-white'
+                }`}
+              >
+                {f.badge && (
+                  <span
+                    className={`absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-tighter ${
+                      isSelected
+                        ? 'bg-slate-950 text-[#FFD23F]'
+                        : 'bg-[#FFD23F] text-slate-950'
+                    }`}
+                  >
+                    {f.badge}
+                  </span>
+                )}
+                <Icon size={16} className={isSelected ? 'text-slate-950' : 'text-[#FFD23F]'} />
+                <span className="text-[11px] font-bold truncate leading-tight mt-0.5">
+                  {f.label}
+                </span>
+                <span className={`text-[9px] truncate ${isSelected ? 'text-slate-800' : 'text-white/60'}`}>
+                  {f.sublabel}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 5. FOOTER CON CONTROLLI: Ripeti, Ruota Sx, Ruota Dx, + Pagina, Continua */}
+      <footer className="bg-black border-t border-white/20 px-2 sm:px-4 py-2 pb-5 sm:pb-3 shrink-0 z-20">
+        <div className="flex items-center justify-between max-w-lg mx-auto w-full gap-1.5">
+          {/* 1. Ripeti (Rifai scatto o ricarica) */}
           <button
             type="button"
             onClick={onRetake}
             className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
-            title="Scatta di nuovo questa pagina"
-            aria-label="Rifai"
+            title="Scatta o carica di nuovo questa pagina"
+            aria-label="Ripeti"
           >
-            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2] border border-white/25 flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-white flex items-center justify-center text-white">
               <RefreshCw size={18} className="text-white" />
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Rifai</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">
+              Ripeti
+            </span>
           </button>
 
-          {/* 2. Ruota 90° Antiorario */}
+          {/* 2. Ruota Sx (90° Antiorario) */}
           <button
             type="button"
             onClick={() => handleRotate('ccw')}
@@ -1808,13 +1185,15 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Ruota 90° a sinistra"
             aria-label="Ruota Sx"
           >
-            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2] border border-white/25 flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-white flex items-center justify-center text-white">
               <RotateCcw size={18} className="text-white" />
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ruota Sx</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">
+              Ruota Sx
+            </span>
           </button>
 
-          {/* 3. Ruota 90° Orario */}
+          {/* 3. Ruota Dx (90° Orario) */}
           <button
             type="button"
             onClick={() => handleRotate('cw')}
@@ -1822,86 +1201,50 @@ export const CamScannerEditor: React.FC<CamScannerEditorProps> = ({
             title="Ruota 90° a destra"
             aria-label="Ruota Dx"
           >
-            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2] border border-white/25 flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-white flex items-center justify-center text-white">
               <RotateCw size={18} className="text-white" />
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Ruota Dx</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">
+              Ruota Dx
+            </span>
           </button>
 
-          {/* 4. Filtro Pulizia Carta CamScanner (Magic Color) */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedFilter('magic_color');
-              setShowCropMode(false);
-            }}
-            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
-            title="Filtro Magic Color (Sbiancamento carta)"
-            aria-label="Magic Color"
-          >
-            <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
-                selectedFilter === 'magic_color' && !showCropMode
-                  ? 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] shadow-accent-glow font-black'
-                  : 'bg-[#2BA8A2] border border-white/25'
-              }`}
-            >
-              <Wand2 size={18} className={selectedFilter === 'magic_color' && !showCropMode ? 'text-slate-950' : 'text-white'} />
-            </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">Magic Color</span>
-          </button>
-
-          {/* 5. Filtro B/N */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedFilter('bw');
-              setShowCropMode(false);
-            }}
-            className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0"
-            title="Filtro bianco e nero ad alto contrasto"
-            aria-label="B/N"
-          >
-            <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-all ${
-                selectedFilter === 'bw' && !showCropMode
-                  ? 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] shadow-accent-glow font-black'
-                  : 'bg-[#2BA8A2] border border-white/25'
-              }`}
-            >
-              <Contrast size={18} className={selectedFilter === 'bw' && !showCropMode ? 'text-slate-950' : 'text-white'} />
-            </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-white tracking-tight truncate">B/N</span>
-          </button>
-
-          {/* 6. Aggiungi pagina (Scatti Multipli) */}
+          {/* 4. Aggiungi pagina (Scatto Multiplo) */}
           <button
             type="button"
             onClick={handleAddPage}
             disabled={isProcessing}
             className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0 disabled:opacity-50"
-            title="Aggiungi questa pagina ed esegui un altro scatto (Scatti Multipli)"
+            title="Aggiungi questa pagina ed esegui un altro scatto (Scatto Multiplo)"
             aria-label="+ Pagina"
           >
-            <div className="w-10 h-10 rounded-2xl bg-[#2BA8A2]/60 border-2 border-dashed border-[#FFD23F] flex items-center justify-center text-[#FFD23F] hover:bg-[#2BA8A2] transition-colors">
+            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-dashed border-[#FFD23F] flex items-center justify-center text-[#FFD23F]">
               <Plus size={19} className="text-[#FFD23F] stroke-[2.5]" />
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold text-[#FFD23F] tracking-tight truncate">+ Pagina</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-[#FFD23F] tracking-tight truncate">
+              + Pagina
+            </span>
           </button>
 
-          {/* 7. Prossimo / Salva PDF (Spunta) */}
+          {/* 5. Continua (Crea PDF senza OCR) */}
           <button
             type="button"
             onClick={handleContinueSavePdf}
             disabled={isProcessing}
             className="flex flex-col items-center justify-center gap-1 p-1 rounded-2xl text-white hover:bg-white/10 active:scale-95 transition-all flex-1 min-w-0 disabled:opacity-50"
-            title="Raddrizza prospettiva e salva documento nella libreria in PDF"
+            title="Crea PDF con le sole immagini già ritagliate e pulite, senza OCR"
             aria-label="Continua"
           >
-            <div className="w-10 h-10 rounded-2xl bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] flex items-center justify-center shadow-accent-glow hover:bg-[#FFE47A] transition-colors">
-              <Check size={20} className="text-slate-950 stroke-[3]" />
+            <div className="w-10 h-10 rounded-2xl bg-[#FFD23F] text-slate-950 flex items-center justify-center shadow-accent-glow hover:bg-[#FFE47A] transition-colors">
+              {isProcessing ? (
+                <Loader2 size={20} className="animate-spin text-slate-950" />
+              ) : (
+                <Check size={22} className="text-slate-950 stroke-[3]" />
+              )}
             </div>
-            <span className="text-[10px] sm:text-[11px] font-black text-white tracking-tight truncate">Fatto</span>
+            <span className="text-[10px] sm:text-[11px] font-black text-white tracking-tight truncate">
+              Continua
+            </span>
           </button>
         </div>
       </footer>

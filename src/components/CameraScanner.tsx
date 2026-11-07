@@ -445,39 +445,12 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       message: `Creazione libro PDF in corso (${pagesToSave.length} ${pagesToSave.length === 1 ? 'pagina' : 'pagine'})...`,
     });
 
-    const extractedPages: string[] = [];
-    const imageUrls: string[] = [];
+    const extractedPages: string[] = pagesToSave.map(
+      (_, i) => `Pagina ${i + 1} del documento PDF scansionato`
+    );
+    const imageUrls: string[] = pagesToSave.map((p) => p.url);
 
     try {
-      for (let i = 0; i < pagesToSave.length; i++) {
-        const item = pagesToSave[i];
-        imageUrls.push(item.url);
-
-        const progressPercent = 0.2 + ((i + 1) / pagesToSave.length) * 0.7;
-        setOcrProgress({
-          status: 'recognizing',
-          progress: progressPercent,
-          message: `Elaborazione OCR pagina ${i + 1} di ${pagesToSave.length}...`,
-        });
-
-        try {
-          // Timeout per pagina per evitare qualsiasi blocco o attesa prolungata
-          const ocrPromise = tesseractOcr.recognize(item.file, {
-            engine: ocrEngine,
-            language: ocrLanguage,
-            enhanceContrast: true,
-            autoOptimizeAi: true,
-          });
-          const timeoutPromise = new Promise<null>((res) => setTimeout(() => res(null), 4500));
-          const result = await Promise.race([ocrPromise, timeoutPromise]);
-          const text = result && 'text' in result ? result.text?.trim() : '';
-          extractedPages.push(text || `Pagina ${i + 1} del documento PDF scansionato`);
-        } catch (pageErr) {
-          console.warn(`Errore OCR pagina ${i + 1}:`, pageErr);
-          extractedPages.push(`Pagina ${i + 1} del documento PDF scansionato`);
-        }
-      }
-
       setOcrProgress({
         status: 'completed',
         progress: 1,
@@ -619,7 +592,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     <div className="flex flex-col gap-3 w-full animate-fade-in select-none">
       {/* Loading state with ScanProgressCircle */}
       {ocrLoading && (
-        <div className="bg-black border border-white/20 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center min-h-[380px]">
+        <div className="bg-black border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center min-h-[380px]">
           <ScanProgressCircle
             progress={ocrProgress.progress}
             status={ocrProgress.status}
@@ -636,14 +609,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       {!ocrLoading && (
         <div className="flex flex-col gap-3">
           {/* Selettore Modalità: Scatto Singolo / Scatti Multipli (Libro PDF) */}
-          <div className="flex items-center justify-center p-1 bg-transparent border-2 border-white/30 rounded-2xl max-w-sm mx-auto w-full shadow-none">
+          <div className="flex items-center justify-center p-1 bg-black/40 rounded-2xl max-w-sm mx-auto w-full shadow-none border border-zinc-800">
             <button
               type="button"
               onClick={() => setMultiShotMode(false)}
               className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 !multiShotMode
-                  ? 'bg-transparent border-2 border-white text-white'
-                  : 'border-2 border-transparent text-white/80 hover:text-white'
+                  ? 'bg-transparent border border-white text-white shadow-sm'
+                  : 'text-white/80 hover:text-white'
               }`}
             >
               <Camera size={14} className="text-white" />
@@ -654,14 +627,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               onClick={() => setMultiShotMode(true)}
               className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 multiShotMode
-                  ? 'bg-transparent border-2 border-white text-white'
-                  : 'border-2 border-transparent text-white/80 hover:text-white'
+                  ? 'bg-transparent border border-white text-white shadow-sm'
+                  : 'text-white/80 hover:text-white'
               }`}
             >
               <FileText size={14} className="text-white" />
               <span>Scatti Multipli (PDF)</span>
               {scannedPagesList.length > 0 && (
-                <span className="bg-transparent border border-white text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
                   {scannedPagesList.length}
                 </span>
               )}
@@ -669,7 +642,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
           </div>
 
           {/* Viewfinder Container */}
-          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border-2 border-white/30 shadow-2xl flex items-center justify-center group">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl flex items-center justify-center group">
             {/* Live Video Feed */}
             <video
               ref={videoRef}
@@ -685,22 +658,22 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
             {cameraActive && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
                 {/* Document Viewfinder Target Frame */}
-                <div className="relative w-full h-full max-w-sm max-h-72 border-2 border-white/30 rounded-2xl">
+                <div className="relative w-full h-full max-w-sm max-h-72 border border-[#2BA8A2]/30 rounded-2xl">
                   {/* Top-Left Corner */}
-                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-lg" />
+                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-[#2BA8A2] rounded-tl-lg" />
                   {/* Top-Right Corner */}
-                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-lg" />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-[#2BA8A2] rounded-tr-lg" />
                   {/* Bottom-Left Corner */}
-                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-lg" />
+                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-[#2BA8A2] rounded-bl-lg" />
                   {/* Bottom-Right Corner */}
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-lg" />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-[#2BA8A2] rounded-br-lg" />
 
                   {/* Animated Laser Scanning Line */}
-                  <div className="absolute left-2 right-2 h-0.5 bg-white/80 shadow-[0_0_8px_#FFFFFF] animate-pulse top-1/2 -translate-y-1/2" />
+                  <div className="absolute left-2 right-2 h-0.5 bg-[#2BA8A2] shadow-[0_0_8px_#2BA8A2] animate-pulse top-1/2 -translate-y-1/2" />
 
                   {/* Center hint badge */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full border border-white/25 text-[11px] font-bold text-white whitespace-nowrap shadow-md flex items-center gap-1.5">
-                    <Sparkles size={12} className="text-white" />
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-white whitespace-nowrap shadow-md flex items-center gap-1.5">
+                    <Sparkles size={12} className="text-[#FFD23F]" />
                     <span>Inquadra il foglio: ritaglio e pulizia automatici</span>
                   </div>
                 </div>
@@ -710,15 +683,15 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
             {/* Top Bar inside Viewfinder */}
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-auto z-10">
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-md">
-                  <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#2BA8A2] animate-ping" />
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
                     <Camera size={13} className="text-white" />
                     {cameraActive ? 'Fotocamera Live' : 'Fotocamera Pronta'}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-[11px] font-bold text-white shadow-md">
-                  <Sparkles size={12} className="text-white" />
+                <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2.5 py-1.5 rounded-full text-[11px] font-bold text-white shadow-md">
+                  <Sparkles size={12} className="text-[#FFD23F]" />
                   <span>Ritaglio & Pulizia attivi</span>
                 </div>
               </div>
@@ -732,8 +705,8 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                     aria-label="Attiva o disattiva torcia"
                     className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       torchOn
-                        ? 'bg-transparent text-white border-2 border-white shadow-lg shadow-white/30'
-                        : 'bg-black/60 text-white border border-white/20 hover:bg-black/80'
+                        ? 'bg-[#FFD23F] text-slate-900 shadow-md'
+                        : 'bg-black/60 text-white hover:bg-black/80'
                     }`}
                   >
                     {torchOn ? <Zap size={16} /> : <ZapOff size={16} />}
@@ -746,7 +719,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                     type="button"
                     onClick={toggleCameraFacing}
                     aria-label="Cambia fotocamera"
-                    className="w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center transition-all active:scale-95"
+                    className="w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all active:scale-95"
                     title="Cambia fotocamera"
                   >
                     <SwitchCamera size={16} />
@@ -759,7 +732,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                     type="button"
                     onClick={() => startCamera(facingMode)}
                     aria-label="Riavvia fotocamera"
-                    className="w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center transition-all"
+                    className="w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all"
                     title="Riavvia fotocamera"
                   >
                     <RefreshCw size={16} />
@@ -771,7 +744,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
             {/* Error or Inactive Camera Fallback message */}
             {!cameraActive && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-black/90 backdrop-blur-sm z-20">
-                <div className="w-16 h-16 rounded-2xl bg-transparent text-white border-2 border-white flex items-center justify-center mb-3">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 text-white flex items-center justify-center mb-3">
                   <Camera size={32} className="text-white" />
                 </div>
                 <h3 className="text-base font-bold text-white mb-1">
@@ -784,7 +757,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 <button
                   type="button"
                   onClick={() => nativeCameraInputRef.current?.click()}
-                  className="min-h-[46px] px-6 bg-transparent hover:bg-white/10 active:scale-95 text-white font-black text-sm rounded-2xl border-2 border-white transition-all flex items-center gap-2 shadow-none cursor-pointer"
+                  className="min-h-[46px] px-6 bg-transparent hover:bg-white/10 active:scale-95 text-white border-2 border-white font-black text-sm rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <Camera size={18} className="text-white" />
                   <span>Apri Fotocamera di Sistema</span>
@@ -807,10 +780,10 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowDocGrid(true)}
-                  className="px-3.5 py-1.5 bg-transparent text-white hover:bg-white/10 active:scale-95 text-xs font-black rounded-xl border-2 border-white flex items-center gap-1.5 shadow-none transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 bg-[#FFD23F] text-slate-900 hover:bg-[#FFE47A] active:scale-95 text-xs font-black rounded-xl border-none flex items-center gap-1.5 shadow-accent-glow transition-all cursor-pointer"
                   title="Visualizza e disponi le pagine nel documento"
                 >
-                  <Check size={14} className="text-white stroke-[3]" />
+                  <Check size={14} className="text-slate-900 stroke-[3]" />
                   <span>Continua ({scannedPagesList.length}) → Documento</span>
                 </button>
               </div>
@@ -846,7 +819,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
                 <button
                   type="button"
                   onClick={captureFromVideo}
-                  className="shrink-0 w-16 h-20 rounded-xl border-2 border-dashed border-zinc-700 hover:border-white flex flex-col items-center justify-center gap-1 text-white bg-white/5 active:scale-95 transition-all"
+                  className="shrink-0 w-16 h-20 rounded-xl border border-dashed border-zinc-700 hover:border-zinc-500 flex flex-col items-center justify-center gap-1 text-white bg-white/5 active:scale-95 transition-all"
                   title="Scatta la prossima pagina"
                 >
                   <Plus size={18} className="text-white" />
@@ -866,7 +839,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Scegli dalla galleria"
               aria-label="Galleria"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
                 <ImageIcon size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Galleria</span>
@@ -881,11 +854,10 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Scatta foto"
               className="flex flex-col items-center justify-center gap-1 active:scale-90 transition-all group cursor-pointer"
             >
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/20 p-1.5 border-4 border-white flex items-center justify-center hover:scale-105 transition-all shadow-xl shadow-white/20 relative">
+              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/20 p-1.5 flex items-center justify-center hover:scale-105 transition-all shadow-xl relative">
                 <div className="w-full h-full rounded-full bg-white group-hover:bg-zinc-200 flex items-center justify-center transition-colors shadow-inner">
                   <Camera size={26} className="text-black drop-shadow-sm" />
                 </div>
-                <span className="absolute inset-0 rounded-full border-2 border-white/50 animate-ping pointer-events-none" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Scatta</span>
             </button>
@@ -898,7 +870,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Fotocamera di sistema"
               aria-label="Fotocamera"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
                 <SwitchCamera size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">Fotocamera</span>
@@ -912,7 +884,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
               title="Carica PDF scansionato"
               aria-label="PDF OCR"
             >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-transparent border border-white flex items-center justify-center text-white">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
                 <FileText size={22} className="text-white" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight">PDF OCR</span>
@@ -994,60 +966,40 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
             }
           }}
           onContinueSavePdf={(processedFile, processedUrl) => {
-            if (editingPageIndex !== null) {
-              setScannedPagesList((prev) => {
-                const updated = [...prev];
-                updated[editingPageIndex] = {
-                  file: processedFile,
-                  url: processedUrl,
-                  pageNumber: editingPageIndex + 1,
-                };
-                return updated;
-              });
-              setEditingPageIndex(null);
-              setRawImageForEditing(null);
-              setShowDocGrid(true);
-            } else {
-              const allPages = [
-                ...scannedPagesList,
-                {
-                  file: processedFile,
-                  url: processedUrl,
-                  pageNumber: scannedPagesList.length + 1,
-                },
-              ];
-              setScannedPagesList(allPages);
-              setRawImageForEditing(null);
-              setShowDocGrid(true);
-            }
+            const allPages =
+              editingPageIndex !== null
+                ? scannedPagesList.map((p, idx) =>
+                    idx === editingPageIndex
+                      ? { file: processedFile, url: processedUrl, pageNumber: idx + 1 }
+                      : p
+                  )
+                : [
+                    ...scannedPagesList,
+                    {
+                      file: processedFile,
+                      url: processedUrl,
+                      pageNumber: scannedPagesList.length + 1,
+                    },
+                  ];
+            handleFinalizePdfBook(allPages, customDocTitle);
           }}
           onConfirm={(processedFile, processedUrl) => {
-            if (editingPageIndex !== null) {
-              setScannedPagesList((prev) => {
-                const updated = [...prev];
-                updated[editingPageIndex] = {
-                  file: processedFile,
-                  url: processedUrl,
-                  pageNumber: editingPageIndex + 1,
-                };
-                return updated;
-              });
-              setEditingPageIndex(null);
-              setRawImageForEditing(null);
-              setShowDocGrid(true);
-            } else {
-              const allPages = [
-                ...scannedPagesList,
-                {
-                  file: processedFile,
-                  url: processedUrl,
-                  pageNumber: scannedPagesList.length + 1,
-                },
-              ];
-              setScannedPagesList(allPages);
-              setRawImageForEditing(null);
-              setShowDocGrid(true);
-            }
+            const allPages =
+              editingPageIndex !== null
+                ? scannedPagesList.map((p, idx) =>
+                    idx === editingPageIndex
+                      ? { file: processedFile, url: processedUrl, pageNumber: idx + 1 }
+                      : p
+                  )
+                : [
+                    ...scannedPagesList,
+                    {
+                      file: processedFile,
+                      url: processedUrl,
+                      pageNumber: scannedPagesList.length + 1,
+                    },
+                  ];
+            handleFinalizePdfBook(allPages, customDocTitle);
           }}
           onRetake={() => {
             setRawImageForEditing(null);

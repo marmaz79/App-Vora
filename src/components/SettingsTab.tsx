@@ -62,10 +62,10 @@ const CONTRAST_THEME_OPTIONS: ContrastOption[] = [
     description: 'Sfondo nero puro (#000000) e testo bianco brillante (#FFFFFF). Contrasto massimo per l\'accessibilità.',
     swatchBg: 'bg-black',
     swatchText: 'text-white',
-    swatchBorder: 'border-white',
+    swatchBorder: 'border-zinc-700',
     previewBg: 'bg-black',
     previewText: 'text-white',
-    previewBorder: 'border-white/40',
+    previewBorder: 'border-zinc-800',
     previewAccent: 'text-white',
   },
   {
@@ -161,13 +161,13 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   return (
     <section className="flex flex-col bg-transparent text-slate-800 dark:text-slate-100 select-none pb-32 animate-fade-in font-sans" aria-label="Impostazioni applicazione">
       {/* 1. TOP HEADER (Flip7 Style) */}
-      <div className="pt-2 pb-3 px-1 sm:px-2 flex items-center gap-3 border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-white/20 mb-3">
+      <div className="pt-2 pb-3 px-1 sm:px-2 flex items-center gap-3 border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-none mb-3">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
             aria-label="Torna indietro"
-            className="w-10 h-10 rounded-full border-2 border-white bg-transparent hover:bg-white/10 active:scale-95 flex items-center justify-center text-white transition-all shrink-0 shadow-xs cursor-pointer"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition-all shrink-0 shadow-xs cursor-pointer border-none"
             title="Torna indietro"
           >
             <ArrowLeft size={19} className="stroke-[2.5] text-white" />
@@ -185,7 +185,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       {/* 2. LISTA IMPOSTAZIONI */}
-      <div className="bg-white dark:bg-transparent rounded-3xl p-3 sm:p-5 border-2 border-[#2BA8A2]/20 dark:border-white shadow-card flex flex-col divide-y divide-[#2BA8A2]/10 dark:divide-white/20">
+      <div className="bg-white dark:bg-transparent rounded-3xl p-3 sm:p-5 border-2 border-[#2BA8A2]/20 dark:border-none shadow-card flex flex-col divide-y divide-[#2BA8A2]/10 dark:divide-transparent">
         {/* ROW 1: TEMA DI CONTRASTO */}
         <div
           role="button"
@@ -204,8 +204,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Configura il tema monocromatico per il massimo comfort visivo ed eliminazione dei riflessi.
             </p>
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
-              <span className={`w-2.5 h-2.5 rounded-full ${activeThemeOption.swatchBg} border border-white`} />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+              <span className={`w-2.5 h-2.5 rounded-full ${activeThemeOption.swatchBg} border border-transparent`} />
               <span>{activeThemeOption.title}</span>
             </div>
           </div>
@@ -230,7 +230,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Seleziona la voce italiana per la narrazione. Include voci AI Gemini e voci di sistema del dispositivo.
             </p>
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-none text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
               {isCurrentVoiceAi ? (
                 <>
                   <Sparkles size={13} className="text-[#FFD23F] dark:text-white fill-current" />
@@ -265,7 +265,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Modifica la cadenza e il ritmo di lettura per adattarla al tuo ritmo di comprensione o ascolto rapido.
             </p>
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
               <Gauge size={13} className="text-[#2BA8A2] dark:text-white" />
               <span>{settings.rate.toFixed(1)}x {settings.rate === 1.0 ? '(Normale)' : settings.rate < 1.0 ? '(Lenta)' : '(Veloce)'}</span>
             </div>
@@ -291,7 +291,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Regola l'ingrandimento dei caratteri nella vista documento per agevolare la lettura visiva.
             </p>
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
               <Type size={13} className="text-[#2BA8A2] dark:text-white" />
               <span>{getFontSizeLabel()}</span>
             </div>
@@ -309,11 +309,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Passa automaticamente alla pagina successiva del libro quando la voce raggiunge la fine del testo.
             </p>
             {settings.autoAdvance ? (
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#2BA8A2] dark:bg-transparent dark:border dark:border-white text-white text-[11px] font-black shadow-xs">
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#2BA8A2] dark:bg-transparent dark:border-none text-white text-[11px] font-black shadow-xs">
                 Attivo
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-slate-100 dark:bg-transparent border border-slate-300 dark:border-white/40 text-slate-500 dark:text-white/60 text-[11px] font-bold">
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-slate-100 dark:bg-transparent border border-slate-300 dark:border-none text-slate-500 dark:text-white/60 text-[11px] font-bold">
                 Disattivato
               </span>
             )}
@@ -327,8 +327,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             onClick={() => onUpdateSettings({ ...settings, autoAdvance: !settings.autoAdvance })}
             className={`w-13 h-7 rounded-full p-0.5 transition-colors relative shrink-0 focus-visible:outline-none cursor-pointer border-2 ${
               settings.autoAdvance
-                ? 'bg-[#2BA8A2] dark:bg-transparent border-[#1E8C86] dark:border-white'
-                : 'bg-slate-200 dark:bg-transparent border-slate-300 dark:border-white/40'
+                ? 'bg-[#2BA8A2] dark:bg-transparent border-[#1E8C86] dark:border-none'
+                : 'bg-slate-200 dark:bg-transparent border-slate-300 dark:border-none'
             }`}
             aria-label="Attiva o disattiva l'avanzamento automatico della pagina"
           >
@@ -360,7 +360,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               Regola l'altezza tonale (grave o acuta) per le voci del sintetizzatore vocale.
             </p>
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
               <Music size={13} className="text-[#2BA8A2] dark:text-white" />
               <span>{settings.pitch.toFixed(1)} {settings.pitch === 1.0 ? '(Standard)' : settings.pitch > 1.0 ? '(Acuta)' : '(Grave)'}</span>
             </div>
@@ -388,7 +388,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                 : 'Accedi con Google per sincronizzare la libreria e proteggere i tuoi documenti scansionati.'}
             </p>
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none text-xs font-black text-[#1E8C86] dark:text-white shadow-xs">
               <UserIcon size={13} className="text-[#1E8C86] dark:text-white" />
               <span>{user?.auth_provider === 'google' ? 'Google Account Attivo' : 'Ospite Locale'}</span>
             </div>
@@ -408,10 +408,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-xl bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card text-slate-800 dark:text-white"
+            className="w-full max-w-xl bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="flex items-center gap-2">
                 <Palette size={20} className="text-[#1E8C86] dark:text-white" />
                 <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Scegli tema di contrasto</h3>
@@ -419,7 +419,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
                 <X size={17} className="text-white" />
               </button>
@@ -441,8 +441,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     }}
                     className={`w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center justify-between gap-3 cursor-pointer ${
                       isSelected
-                        ? 'border-[#2BA8A2] dark:border-white bg-[#E8F6F5] dark:bg-white/20 shadow-xs text-white'
-                        : 'border-[#2BA8A2]/20 dark:border-white/40 bg-white dark:bg-transparent hover:bg-[#FFF8E7] dark:hover:bg-white/10 text-white'
+                        ? 'border-[#2BA8A2] dark:border-none bg-[#E8F6F5] dark:bg-white/20 shadow-xs text-white'
+                        : 'border-[#2BA8A2]/20 dark:border-none bg-white dark:bg-transparent hover:bg-[#FFF8E7] dark:hover:bg-white/10 text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -472,7 +472,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
 
             {/* Anteprima Live */}
-            <div className="pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20">
+            <div className="pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-none">
               <span className="text-xs font-black text-[#1E8C86] dark:text-white block mb-2 uppercase tracking-wider">
                 Anteprima stile selezionato:
               </span>
@@ -493,10 +493,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-xl bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card text-slate-800 dark:text-white"
+            className="w-full max-w-xl bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="flex items-center gap-2">
                 <Volume2 size={20} className="text-[#1E8C86] dark:text-white" />
                 <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Scegli voce di lettura</h3>
@@ -508,20 +508,20 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   setPreviewingUri(null);
                   setActiveModal(null);
                 }}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
                 <X size={17} className="text-white" />
               </button>
             </div>
 
             {/* Tabs AI vs Sistema */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#E8F6F5] dark:bg-transparent rounded-2xl border border-[#2BA8A2]/20 dark:border-white/40">
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#E8F6F5] dark:bg-transparent rounded-2xl border border-[#2BA8A2]/20 dark:border-none">
               <button
                 type="button"
                 onClick={() => setVoiceTab('ai')}
                 className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 ${
                   voiceTab === 'ai'
-                    ? 'bg-white dark:bg-white/20 text-[#1E8C86] dark:text-white border-transparent dark:border-white font-black shadow-xs'
+                    ? 'bg-white dark:bg-white/20 text-[#1E8C86] dark:text-white border-transparent dark:border-none font-black shadow-xs'
                     : 'text-slate-600 dark:text-white/80 border-transparent hover:text-[#1E8C86] dark:hover:text-white'
                 }`}
               >
@@ -533,7 +533,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                 onClick={() => setVoiceTab('system')}
                 className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 ${
                   voiceTab === 'system'
-                    ? 'bg-white dark:bg-white/20 text-[#1E8C86] dark:text-white border-transparent dark:border-white font-black shadow-xs'
+                    ? 'bg-white dark:bg-white/20 text-[#1E8C86] dark:text-white border-transparent dark:border-none font-black shadow-xs'
                     : 'text-slate-600 dark:text-white/80 border-transparent hover:text-[#1E8C86] dark:hover:text-white'
                 }`}
               >
@@ -554,14 +554,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     onClick={() => handleSelectVoice(v)}
                     className={`p-3 rounded-2xl border-2 flex items-center justify-between gap-3 cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-[#2BA8A2] dark:border-white bg-[#E8F6F5] dark:bg-white/20 shadow-xs'
-                        : 'border-[#2BA8A2]/15 dark:border-white/40 bg-white dark:bg-transparent hover:bg-[#FFF8E7] dark:hover:bg-white/10'
+                        ? 'border-[#2BA8A2] dark:border-none bg-[#E8F6F5] dark:bg-white/20 shadow-xs'
+                        : 'border-[#2BA8A2]/15 dark:border-none bg-white dark:bg-transparent hover:bg-[#FFF8E7] dark:hover:bg-white/10'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                          isSelected ? 'bg-[#2BA8A2] dark:bg-white text-white dark:text-black' : 'border-2 border-slate-300 dark:border-white/40'
+                          isSelected ? 'bg-[#2BA8A2] dark:bg-white text-white dark:text-black' : 'border-2 border-slate-300 dark:border-none'
                         }`}
                       >
                         {isSelected && <Check size={12} className="stroke-[3]" />}
@@ -581,8 +581,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       onClick={(e) => handleTestSpecificVoice(v, e)}
                       className={`px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
                         isPlayingThis
-                          ? 'bg-[#EF6C4A] dark:bg-white text-white dark:text-black border-[#EF6C4A] dark:border-white animate-pulse shadow-coral-glow'
-                          : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border-[#2BA8A2]/30 dark:border-white hover:bg-[#E8F6F5] dark:hover:bg-white/10'
+                          ? 'bg-[#EF6C4A] dark:bg-white text-white dark:text-black border-[#EF6C4A] dark:border-none animate-pulse shadow-coral-glow'
+                          : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border-[#2BA8A2]/30 dark:border-none hover:bg-[#E8F6F5] dark:hover:bg-white/10'
                       }`}
                     >
                       {isPlayingThis ? <Square size={12} /> : <Play size={12} />}
@@ -603,10 +603,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="flex items-center gap-2">
                 <Gauge size={20} className="text-[#1E8C86] dark:text-white" />
                 <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Velocità di riproduzione</h3>
@@ -614,7 +614,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
                 <X size={17} className="text-white" />
               </button>
@@ -654,8 +654,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     onClick={() => handleRatePreset(preset.value)}
                     className={`py-2 rounded-xl text-xs font-black border-2 transition-all active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-[#2BA8A2] dark:border-white shadow-teal-glow dark:shadow-none'
-                        : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border-[#2BA8A2]/30 dark:border-white/40 hover:bg-[#E8F6F5] dark:hover:bg-white/10'
+                        ? 'bg-[#2BA8A2] dark:bg-white/20 text-white border-[#2BA8A2] dark:border-none shadow-teal-glow dark:shadow-none'
+                        : 'bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border-[#2BA8A2]/30 dark:border-none hover:bg-[#E8F6F5] dark:hover:bg-white/10'
                     }`}
                   >
                     {preset.label}
@@ -674,10 +674,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="flex items-center gap-2">
                 <Type size={20} className="text-[#1E8C86] dark:text-white" />
                 <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Dimensione del testo</h3>
@@ -685,7 +685,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
                 <X size={17} className="text-white" />
               </button>
@@ -708,8 +708,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     }}
                     className={`p-3.5 rounded-2xl border-2 text-left flex items-center justify-between transition-all active:scale-95 cursor-pointer ${
                       isSelected
-                        ? 'bg-[#E8F6F5] dark:bg-white/20 text-[#1E8C86] dark:text-white border-[#2BA8A2] dark:border-white shadow-xs'
-                        : 'bg-white dark:bg-transparent text-slate-800 dark:text-white border-[#2BA8A2]/20 dark:border-white/40 hover:bg-[#FFF8E7] dark:hover:bg-white/10'
+                        ? 'bg-[#E8F6F5] dark:bg-white/20 text-[#1E8C86] dark:text-white border-[#2BA8A2] dark:border-none shadow-xs'
+                        : 'bg-white dark:bg-transparent text-slate-800 dark:text-white border-[#2BA8A2]/20 dark:border-none hover:bg-[#FFF8E7] dark:hover:bg-white/10'
                     }`}
                   >
                     <div>
@@ -738,10 +738,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="flex items-center gap-2">
                 <Music size={20} className="text-[#1E8C86] dark:text-white" />
                 <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Tonalità della voce (Pitch)</h3>
@@ -749,7 +749,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
                 <X size={17} className="text-white" />
               </button>
@@ -784,10 +784,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           onClick={() => setActiveModal(null)}
         >
           <div
-            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
+            className="w-full max-w-md bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 flex flex-col gap-4 shadow-card text-slate-800 dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/20 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="flex items-center gap-2">
                 <UserIcon size={20} className="text-[#1E8C86] dark:text-white" />
                 <h3 className="text-base font-black text-[#1E8C86] dark:text-white">Profilo e Accesso</h3>
@@ -795,7 +795,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-white hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/30 dark:border-none hover:bg-[#2BA8A2]/20 dark:hover:bg-white/10 active:scale-95 flex items-center justify-center text-[#1E8C86] dark:text-white transition-all cursor-pointer"
               >
                 <X size={17} className="text-white" />
               </button>
@@ -803,8 +803,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
             {user ? (
               <div className="flex flex-col gap-3 py-2">
-                <div className="flex items-center gap-3 p-3 bg-[#E8F6F5] dark:bg-transparent rounded-2xl border border-[#2BA8A2]/30 dark:border-white">
-                  <div className="w-12 h-12 rounded-full bg-[#2BA8A2] dark:bg-transparent text-white border-2 border-[#FFD23F] dark:border-white font-black flex items-center justify-center text-lg shrink-0 shadow-xs">
+                <div className="flex items-center gap-3 p-3 bg-[#E8F6F5] dark:bg-transparent rounded-2xl border border-[#2BA8A2]/30 dark:border-none">
+                  <div className="w-12 h-12 rounded-full bg-[#2BA8A2] dark:bg-transparent text-white border-2 border-[#FFD23F] dark:border-none font-black flex items-center justify-center text-lg shrink-0 shadow-xs">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -821,7 +821,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         setActiveModal(null);
                         onOpenProfile();
                       }}
-                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
+                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-none active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
                     >
                       Dettagli profilo e statistiche
                     </button>
@@ -833,7 +833,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         setActiveModal(null);
                         onLogout();
                       }}
-                      className="w-full py-2.5 rounded-full bg-white dark:bg-transparent text-[#EF6C4A] dark:text-white border-2 border-[#EF6C4A]/30 dark:border-white font-black text-xs hover:bg-[#EF6C4A]/10 dark:hover:bg-white/10 active:scale-95 transition-colors cursor-pointer"
+                      className="w-full py-2.5 rounded-full bg-white dark:bg-transparent text-[#EF6C4A] dark:text-white border-2 border-[#EF6C4A]/30 dark:border-none font-black text-xs hover:bg-[#EF6C4A]/10 dark:hover:bg-white/10 active:scale-95 transition-colors cursor-pointer"
                     >
                       Disconnetti Google
                     </button>
@@ -845,7 +845,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         setActiveModal(null);
                         onOpenLogin();
                       }}
-                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
+                      className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-none active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
                     >
                       Accedi o Registrati
                     </button>
@@ -862,7 +862,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       setActiveModal(null);
                       onOpenLogin();
                     }}
-                    className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-2 dark:border-white active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
+                    className="w-full py-3 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 dark:border-none active:scale-95 text-slate-900 dark:text-white font-black text-xs transition-all shadow-accent-glow dark:shadow-none cursor-pointer"
                   >
                     Accedi
                   </button>

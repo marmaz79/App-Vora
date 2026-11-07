@@ -341,7 +341,7 @@ export function App() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-transparent text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm animate-bounce flex items-center gap-2 select-none backdrop-blur-md"
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] bg-slate-900/90 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-none text-sm animate-bounce flex items-center gap-2 select-none backdrop-blur-md"
         >
           <span>{toastMessage}</span>
         </div>
@@ -370,7 +370,7 @@ export function App() {
               className="fixed inset-0 z-50 bg-[#EFF8F7]/95 dark:bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none animate-fade-in"
             >
               <div className="relative flex items-center justify-center mb-4">
-                <div className="w-14 h-14 rounded-full border-4 border-[#2BA8A2]/25 dark:border-white/20 border-t-[#2BA8A2] dark:border-t-white animate-spin" />
+                <div className="w-14 h-14 rounded-full border-4 border-[#2BA8A2]/25 dark:border-teal-900 border-t-[#2BA8A2] dark:border-t-[#FFD23F] animate-spin" />
               </div>
               <p className="text-base font-black text-[#1E8C86] dark:text-white tracking-wide">
                 Caricamento in corso...

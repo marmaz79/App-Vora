@@ -21,6 +21,7 @@ import { OcrProgress } from '../services/tesseractOcr';
 import { pdfOcrService } from '../services/pdfOcrService';
 import { audioTranscribeService } from '../services/audioTranscribeService';
 import { GoogleDriveModal } from './GoogleDriveModal';
+import { CamScannerEditor } from './CamScannerEditor';
 
 export type UploadModalMode = 'all' | 'scanned_pdf' | 'audio';
 
@@ -44,6 +45,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [loadingFileName, setLoadingFileName] = useState<string>('');
   const [isOcrLoading, setIsOcrLoading] = useState<boolean>(false);
+  const [camScannerImage, setCamScannerImage] = useState<File | null>(null);
   const [uploadMode, setUploadMode] = useState<UploadModalMode>(initialMode);
   const [audioLanguage, setAudioLanguage] = useState<string>('ita');
   const [audioFormat, setAudioFormat] = useState<'narrative' | 'dialogue' | 'summary'>('narrative');
@@ -129,35 +131,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       }
     }
 
-    // 1. If an image is uploaded directly, perform OCR and open Scan Results
+    // 1. If an image is uploaded directly, open CamScanner Editor for auto cleanup & perspective crop
     if (imageType) {
-      setIsOcrLoading(true);
-      try {
-        const parsed = await fileParser.parseFile(file, (prog) => {
-          setOcrProgress(prog);
-        });
-
-        if (onScanResultsReady) {
-          onScanResultsReady({
-            bookId: `scan-${Date.now()}`,
-            title: parsed.title,
-            pages: parsed.pages,
-            rawPages: parsed.pages,
-            imageUrls: [URL.createObjectURL(file)],
-            engine: parsed.ocr_engine || 'Gemini AI Vision',
-            confidence: 98,
-            isAiOptimized: true,
-            currentPageIndex: 0,
-          });
-          onClose();
-          return;
-        }
-      } catch (err: any) {
-        setError(err?.message || 'Errore durante la scansione OCR dell\'immagine.');
-        setLoading(false);
-        setIsOcrLoading(false);
-        return;
-      }
+      setLoading(false);
+      setIsOcrLoading(false);
+      setCamScannerImage(file);
+      return;
     }
 
     // 2. If a PDF is uploaded, check if it is a SCANNED PDF (contains images / no digital text)
@@ -385,11 +364,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       aria-labelledby="upload-modal-title"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3.5 sm:p-5 animate-fade-in select-none font-sans"
     >
-      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-white max-h-[92vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-card flex flex-col gap-4 text-slate-800 dark:text-white max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-transparent border-2 border-white flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white shadow-xs">
               {uploadMode === 'audio' ? (
                 <Headphones size={20} className="text-white" />
               ) : uploadMode === 'scanned_pdf' ? (
@@ -417,7 +396,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-transparent border-2 border-white text-white hover:bg-white/10 active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 flex items-center justify-center transition-all shrink-0 cursor-pointer"
             aria-label="Chiudi"
           >
             <X size={18} className="text-white" />
@@ -451,10 +430,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         ) : (
           <div className="flex flex-col gap-4">
             {/* Google Drive Upload Option */}
-            <div className="bg-transparent dark:bg-transparent border-2 border-white/30 rounded-2xl p-4 flex flex-col gap-3 shadow-xs">
+            <div className="bg-white/5 dark:bg-white/5 rounded-2xl p-4 flex flex-col gap-3 shadow-xs">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-transparent dark:bg-transparent border border-white/30 flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-xs">
                     <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
                       <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#2BA8A2"/>
                       <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#3CC4BD"/>
@@ -467,7 +446,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                   <div>
                     <h3 className="text-sm font-black text-white flex items-center gap-1.5">
                       <span>Carica da Google Drive</span>
-                      <span className="text-[10px] bg-white/20 border border-white/40 text-white font-black px-2 py-0.5 rounded-full uppercase">
+                      <span className="text-[10px] bg-white/20 text-white font-black px-2 py-0.5 rounded-full uppercase">
                         Drive
                       </span>
                     </h3>
@@ -479,7 +458,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsDriveOpen(true)}
-                  className="px-3.5 py-2 rounded-full bg-transparent hover:bg-white/10 border-2 border-white active:scale-95 text-xs font-black text-white transition-all shrink-0 flex items-center gap-1.5 shadow-none cursor-pointer"
+                  className="px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-xs font-black text-white transition-all shrink-0 flex items-center gap-1.5 shadow-none cursor-pointer"
                 >
                   <Cloud size={14} className="text-white" />
                   <span>Scegli da Drive</span>
@@ -488,14 +467,14 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             </div>
 
             {/* Modalità Upload File Locale: Tab Bar */}
-            <div className="flex items-center gap-1.5 p-1.5 bg-transparent dark:bg-transparent border border-white/20 rounded-2xl overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1.5 p-1.5 bg-black/30 rounded-2xl overflow-x-auto scrollbar-none">
               <button
                 type="button"
                 onClick={() => setUploadMode('all')}
                 className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
                   uploadMode === 'all'
-                    ? 'bg-transparent border-2 border-white text-white'
-                    : 'border-2 border-transparent text-slate-300 hover:text-white'
+                    ? 'bg-[#2BA8A2] text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <BookOpen size={14} className={uploadMode === 'all' ? 'text-white' : 'text-slate-300'} />
@@ -507,8 +486,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 onClick={() => setUploadMode('scanned_pdf')}
                 className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
                   uploadMode === 'scanned_pdf'
-                    ? 'bg-transparent border-2 border-white text-white'
-                    : 'border-2 border-transparent text-slate-300 hover:text-white'
+                    ? 'bg-[#2BA8A2] text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Camera size={14} className={uploadMode === 'scanned_pdf' ? 'text-white' : 'text-slate-300'} />
@@ -520,8 +499,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 onClick={() => setUploadMode('audio')}
                 className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
                   uploadMode === 'audio'
-                    ? 'bg-transparent border-2 border-white text-white'
-                    : 'border-2 border-transparent text-slate-300 hover:text-white'
+                    ? 'bg-[#2BA8A2] text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Headphones size={14} className={uploadMode === 'audio' ? 'text-white' : 'text-slate-300'} />
@@ -535,7 +514,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     onOpenVideoTranscribe();
                   }
                 }}
-                className="flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 text-white hover:bg-white/10 border border-white/30 bg-transparent"
+                className="flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 text-white hover:bg-white/10 bg-transparent"
                 title="Trascrivi e riassumi video da YouTube, Instagram Reel, TikTok, X, Facebook"
               >
                 <Video size={14} className="text-white" />
@@ -545,13 +524,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
             {/* Specific Audio Settings when in Audio Mode */}
             {uploadMode === 'audio' && (
-              <div className="bg-transparent dark:bg-transparent border-2 border-white/40 rounded-2xl p-3.5 flex flex-col gap-3 shadow-xs">
+              <div className="bg-white/5 dark:bg-white/5 rounded-2xl p-3.5 flex flex-col gap-3 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-white flex items-center gap-1.5">
                     <Sparkles size={14} className="text-white fill-white" />
                     <span>Impostazioni Trascrizione AI</span>
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-white bg-white/20 border border-white/40 px-2 py-0.5 rounded-full shadow-xs">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white bg-white/20 px-2 py-0.5 rounded-full shadow-xs">
                     Gemini 3.5 Transcribe
                   </span>
                 </div>
@@ -566,7 +545,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     <select
                       value={audioLanguage}
                       onChange={(e) => setAudioLanguage(e.target.value)}
-                      className="bg-transparent dark:bg-[#122220] border-2 border-white/60 focus:border-white rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none"
+                      className="bg-black/40 dark:bg-[#122220] rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-white/40"
                     >
                       <option value="ita" className="bg-[#122220] text-white">Italiano (consigliato)</option>
                       <option value="auto" className="bg-[#122220] text-white">Rilevamento automatico</option>
@@ -586,7 +565,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     <select
                       value={audioFormat}
                       onChange={(e) => setAudioFormat(e.target.value as any)}
-                      className="bg-transparent dark:bg-[#122220] border-2 border-white/60 focus:border-white rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none"
+                      className="bg-black/40 dark:bg-[#122220] rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-white/40"
                     >
                       <option value="narrative" className="bg-[#122220] text-white">Narrativa (paragrafi fluidi)</option>
                       <option value="dialogue" className="bg-[#122220] text-white">Dialoghi / Fedele</option>
@@ -600,7 +579,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 </p>
 
                 {/* Banner di reindirizzamento rapido a Video & Social */}
-                <div className="pt-2.5 border-t border-white/20 flex items-center justify-between gap-2 flex-wrap">
+                <div className="pt-2.5 border-t border-[#2BA8A2]/20 dark:border-none flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-[11px] font-bold text-slate-300">
                     Vuoi invece trascrivere e riassumere un video o Reel?
                   </span>
@@ -609,7 +588,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     onClick={() => {
                       if (onOpenVideoTranscribe) onOpenVideoTranscribe();
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-transparent hover:bg-white/10 text-white border-2 border-white text-[11px] font-black active:scale-95 transition-all shadow-none flex items-center gap-1.5 shrink-0 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[11px] font-black active:scale-95 transition-all shadow-none flex items-center gap-1.5 shrink-0 cursor-pointer"
                   >
                     <Video size={13} className="text-white" />
                     <span>Trascrivi e riassumi link video/social</span>
@@ -631,7 +610,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               }}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
-              className="border-2 border-dashed border-white/50 hover:border-white rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-transparent dark:bg-transparent hover:bg-white/5 dark:hover:bg-white/5 text-center group"
+              className="border-2 border-dashed border-[#2BA8A2]/40 hover:border-[#2BA8A2] rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-white/5 dark:bg-transparent hover:bg-white/10 dark:hover:bg-white/5 text-center group"
             >
               {/* Inputs nascosti */}
               <input
@@ -662,7 +641,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 className="hidden"
               />
 
-              <div className="w-16 h-16 rounded-2xl bg-transparent dark:bg-transparent border-2 border-white flex items-center justify-center text-white dark:text-white group-hover:scale-105 group-hover:bg-white/10 transition-all shadow-xs">
+              <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white group-hover:scale-105 group-hover:bg-white/20 transition-all shadow-xs">
                 {uploadMode === 'audio' ? (
                   <Headphones size={32} className="text-white" />
                 ) : uploadMode === 'scanned_pdf' ? (
@@ -687,8 +666,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 </p>
               </div>
 
-              <div className="mt-1 bg-transparent hover:bg-white/10 text-white border-2 border-white font-black px-6 py-2.5 rounded-full active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-none cursor-pointer">
-                <span className="text-white">
+              <div className="mt-1 bg-[#FFD23F] hover:bg-[#FFE47A] text-slate-900 font-black px-6 py-2.5 rounded-full active:scale-95 transition-all text-xs min-h-[42px] flex items-center justify-center shadow-accent-glow cursor-pointer">
+                <span className="text-slate-900 font-black">
                   {uploadMode === 'audio'
                     ? 'Scegli audio dal dispositivo'
                     : 'Scegli file dal dispositivo'}
@@ -705,6 +684,78 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         onClose={() => setIsDriveOpen(false)}
         onFileDownloaded={handleDriveImport}
       />
+
+      {/* CamScanner Editor per ritaglio e pulizia automatica immagini caricate */}
+      {camScannerImage && (
+        <CamScannerEditor
+          imageFile={camScannerImage}
+          pageIndex={0}
+          totalPages={1}
+          onContinueSavePdf={(processedFile, processedUrl) => {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT');
+            const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const rawTitle = camScannerImage.name.replace(/\.[^/.]+$/, '');
+            const title = rawTitle || `Scansione ${dateStr} ${timeStr}`;
+
+            const newBook: Book = {
+              book_id: `upload-clean-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+              owner_id: 'local-user',
+              title,
+              author: 'Scansione CamScanner',
+              file_type: 'pdf',
+              size: processedFile.size || 150000,
+              pages: [`Pagina 1 del documento: ${title}`],
+              imageUrls: [processedUrl],
+              source: 'upload',
+              created_at: now.toISOString(),
+              coverColor: '#FFFFFF',
+              currentPage: 0,
+              ocr_engine: 'CamScanner Ottimizzato (Senza OCR)',
+            };
+
+            onBookAdded(newBook);
+            setCamScannerImage(null);
+            onClose();
+          }}
+          onConfirm={(processedFile, processedUrl) => {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT');
+            const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const rawTitle = camScannerImage.name.replace(/\.[^/.]+$/, '');
+            const title = rawTitle || `Scansione ${dateStr} ${timeStr}`;
+
+            const newBook: Book = {
+              book_id: `upload-clean-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+              owner_id: 'local-user',
+              title,
+              author: 'Scansione CamScanner',
+              file_type: 'pdf',
+              size: processedFile.size || 150000,
+              pages: [`Pagina 1 del documento: ${title}`],
+              imageUrls: [processedUrl],
+              source: 'upload',
+              created_at: now.toISOString(),
+              coverColor: '#FFFFFF',
+              currentPage: 0,
+              ocr_engine: 'CamScanner Ottimizzato (Senza OCR)',
+            };
+
+            onBookAdded(newBook);
+            setCamScannerImage(null);
+            onClose();
+          }}
+          onRetake={() => {
+            setCamScannerImage(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.click();
+            }
+          }}
+          onCancel={() => {
+            setCamScannerImage(null);
+          }}
+        />
+      )}
     </div>
   );
 };

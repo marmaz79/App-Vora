@@ -666,7 +666,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     'black-white': {
       bg: 'bg-black text-white',
       card: 'bg-black border-zinc-800 text-white shadow-md',
-      pageItemActive: 'border-white bg-zinc-900 shadow-xl ring-2 ring-white text-white',
+      pageItemActive: 'bg-zinc-900 shadow-xl text-white border-zinc-700',
       pageItemInactive: 'border-zinc-850 bg-black hover:border-zinc-700 text-zinc-300',
       header: 'bg-black/95 border-zinc-850 text-white shadow-md backdrop-blur-md',
       player: 'bg-black border-zinc-850 text-white shadow-xl',
@@ -674,9 +674,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       accentText: 'text-white',
       titleText: 'text-white',
       metaText: 'text-zinc-400',
-      playBtn: 'bg-white text-black border-4 border-white hover:bg-zinc-200',
-      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-white text-white shadow-xs',
-      highlight: 'bg-white/20 border-l-4 border-white pl-3 py-1 my-2 rounded-r text-white',
+      playBtn: 'bg-[#FFD23F] text-slate-900 hover:bg-[#FFE47A] shadow-accent-glow',
+      btnSecondary: 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 text-white shadow-xs',
+      highlight: 'bg-white/20 border-l-4 border-[#FFD23F] pl-3 py-1 my-2 rounded-r text-white',
     },
     dark: {
       bg: 'bg-[#121212] text-white',
@@ -690,7 +690,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       titleText: 'text-white',
       metaText: 'text-zinc-400',
       playBtn: 'bg-[#FFD23F] text-slate-950 border-2 border-[#E6B800] hover:bg-[#FFE47A] shadow-accent-glow',
-      btnSecondary: 'bg-zinc-900 border-zinc-700 hover:border-white text-white',
+      btnSecondary: 'bg-zinc-900 border-zinc-700 hover:border-zinc-600 text-white',
       highlight: 'bg-white/20 border-l-4 border-[#3CC4BD] pl-3 py-1 my-2 rounded-r text-white',
     },
     'black-yellow': {
@@ -870,7 +870,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             ttsService.stop();
             onBack();
           }}
-          className="min-h-[44px] px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-white hover:text-black text-white flex items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shrink-0 active:scale-95"
+          className="min-h-[44px] px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white flex items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2] shrink-0 active:scale-95"
           aria-label="Torna alla libreria"
           title="Torna alla libreria"
         >
@@ -910,10 +910,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         <button
           type="button"
           onClick={() => handleToggleBookmark(currentPage)}
-          className={`min-h-[44px] px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white shrink-0 active:scale-95 ${
+          className={`min-h-[44px] px-2.5 sm:px-3 rounded-xl border flex items-center gap-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2] shrink-0 active:scale-95 ${
             isCurrentPageBookmarked
-              ? 'bg-white text-black border-white font-bold shadow-xs'
-              : 'bg-black text-white border-white/20 hover:border-white hover:bg-zinc-900'
+              ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] font-bold shadow-xs'
+              : 'bg-zinc-900 text-white border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800'
           }`}
           aria-label={
             isCurrentPageBookmarked
@@ -928,7 +928,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         >
           <BookmarkIcon
             size={18}
-            className={`shrink-0 ${isCurrentPageBookmarked ? 'fill-black text-black' : 'text-white'}`}
+            className={`shrink-0 ${isCurrentPageBookmarked ? 'fill-slate-900 text-slate-900' : 'text-white'}`}
           />
           <span className="hidden sm:inline text-xs font-bold">
             {isCurrentPageBookmarked ? 'Salvata' : 'Segnalibro'}
@@ -946,7 +946,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 ttsService.stop();
                 onSwitchToPdf(book);
               }}
-              className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2]"
               aria-label="Passa alla visualizzazione PDF"
               title="Apri in PDF"
             >
@@ -960,7 +960,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           <button
             type="button"
             onClick={() => setViewMode((prev) => (prev === 'full' ? 'page' : 'full'))}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2]"
             aria-label={viewMode === 'full' ? 'Passa alla visualizzazione per pagina singola' : 'Mostra tutto il contenuto continuo del libro'}
             title={viewMode === 'full' ? 'Visualizzazione: Tutto il contenuto (tocca per pagina singola)' : 'Visualizzazione: Pagina singola (tocca per tutto il testo)'}
           >
@@ -973,7 +973,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           <button
             type="button"
             onClick={() => setShowTocModal(true)}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2]"
             aria-label="Indice e navigazione pagine del libro"
             title="Indice Pagine"
           >
@@ -987,10 +987,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           <button
             type="button"
             onClick={() => setShowBookmarksModal(true)}
-            className={`flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+            className={`flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2] ${
               bookmarks.length > 0
-                ? 'border-white/40 bg-zinc-950 hover:bg-zinc-900 text-white'
-                : 'border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white'
+                ? 'border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-white'
+                : 'border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white'
             }`}
             aria-label={`Lista rapida segnalibri. ${bookmarks.length} salvati.`}
             title="Lista Segnalibri"
@@ -999,11 +999,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               <BookmarkCheck
                 size={17}
                 className={`text-white shrink-0 group-hover:scale-105 transition-transform ${
-                  isCurrentPageBookmarked ? 'fill-white' : ''
+                  isCurrentPageBookmarked ? 'fill-[#FFD23F] text-[#FFD23F]' : ''
                 }`}
               />
               {bookmarks.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-white text-black font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-black shadow-xs">
+                <span className="absolute -top-1.5 -right-2 bg-[#FFD23F] text-slate-900 font-black text-[9px] min-w-[15px] h-3.5 px-0.5 rounded-full flex items-center justify-center border-none shadow-xs">
                   {bookmarks.length}
                 </span>
               )}
@@ -1016,7 +1016,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           <button
             type="button"
             onClick={() => setShowVoiceModal(true)}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2]"
             aria-label={`Voce AI attiva: ${settings.voiceName || 'Kore AI'}. Tocca per impostazioni voce e velocità.`}
             title="Voce e Velocità Audio"
           >
@@ -1029,7 +1029,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           <button
             type="button"
             onClick={() => setShowDisplayModal(true)}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2]"
             aria-label="Impostazioni di visualizzazione testo e caratteri stile Kindle (Aa)"
             title="Caratteri e Tema (Aa)"
           >
@@ -1046,7 +1046,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               setPasteModalNotice(null);
               setShowPasteModal(true);
             }}
-            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-white/20 hover:border-white bg-black hover:bg-zinc-900 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex-1 min-w-[62px] sm:min-w-0 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 py-2 px-2 sm:px-3 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2]"
             aria-label="Incolla un testo copiato nel lettore"
             title="Incolla Testo Copiato"
           >
@@ -1063,7 +1063,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         <div
           role="status"
           aria-live="polite"
-          className="bg-black border-b border-white text-white text-xs font-bold py-1.5 px-4 text-center shrink-0"
+          className="bg-black border-b border-zinc-800 text-white text-xs font-bold py-1.5 px-4 text-center shrink-0"
         >
           {enhanceNotice}
         </div>
@@ -1121,7 +1121,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                             In ascolto
                           </span>
                         ) : isThisPage ? (
-                          <span className="bg-zinc-900 border border-white/30 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-zinc-900 border border-zinc-750 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
                             Pagina attiva
                           </span>
                         ) : (
@@ -1138,8 +1138,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           }}
                           className={`min-h-[28px] px-2.5 py-0.5 rounded-full border text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
                             bookmarks.some((b) => b.pageIndex === pIdx)
-                              ? 'bg-white text-black border-white shadow-xs'
-                              : 'border-white/20 hover:border-white text-zinc-300 hover:text-white bg-black/60'
+                              ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] shadow-xs'
+                              : 'border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white bg-zinc-900'
                           }`}
                           aria-label={
                             bookmarks.some((b) => b.pageIndex === pIdx)
@@ -1182,7 +1182,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 className={`absolute left-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-start pl-2 sm:pl-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-l-2xl text-gray-800 hover:bg-black/5 cursor-pointer`}
                 aria-label="Pagina precedente"
               >
-                <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
+                <div className="w-8 h-8 rounded-full bg-black/80 border border-zinc-700 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
                   <ArrowLeft size={16} className="text-white" />
                 </div>
               </button>
@@ -1193,7 +1193,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 className={`absolute right-0 top-0 bottom-0 w-12 sm:w-16 flex items-center justify-end pr-2 sm:pr-3 opacity-0 group-hover/pagecard:opacity-100 disabled:opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none rounded-r-2xl text-white hover:bg-black/5 cursor-pointer`}
                 aria-label="Pagina successiva"
               >
-                <div className="w-8 h-8 rounded-full bg-black/80 border border-white/20 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
+                <div className="w-8 h-8 rounded-full bg-black/80 border border-zinc-700 shadow-md flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform backdrop-blur-sm">
                   <ArrowRight size={16} className="text-white" />
                 </div>
               </button>
@@ -1210,8 +1210,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => handleToggleBookmark(currentPage)}
                     className={`min-h-[28px] px-2.5 py-0.5 rounded-full border text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 ${
                       isCurrentPageBookmarked
-                        ? 'bg-white text-black border-white shadow-xs'
-                        : 'border-white/20 hover:border-white text-zinc-300 hover:text-white bg-black/60'
+                        ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] shadow-xs'
+                        : 'border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white bg-zinc-900'
                     }`}
                     title={
                       isCurrentPageBookmarked
@@ -1404,9 +1404,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                       changePage(idx, isPlaying);
                       setShowTocModal(false);
                     }}
-                    className={`p-3.5 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 min-h-[64px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 min-h-[64px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2] ${
                       isCurrent
-                        ? 'border-white bg-zinc-900 shadow-xs'
+                        ? 'border-[#2BA8A2] bg-zinc-900 shadow-xs'
                         : 'border-zinc-850 bg-black hover:border-zinc-600 hover:bg-zinc-950'
                     }`}
                   >
@@ -1535,7 +1535,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     }}
                     className={`min-h-[44px] rounded-xl border font-bold text-xs transition-colors ${
                       fontSize === fs.id
-                        ? 'bg-white text-black border-white shadow-xs'
+                        ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] shadow-xs'
                         : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
@@ -1561,7 +1561,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => setLineHeight(lh.id)}
                     className={`min-h-[44px] rounded-xl border font-bold text-xs transition-colors ${
                       lineHeight === lh.id
-                        ? 'bg-white text-black border-white shadow-xs'
+                        ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] shadow-xs'
                         : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
@@ -1612,7 +1612,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => handleSpeedChange(rate)}
                     className={`min-h-[50px] rounded-xl border font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 ${
                       isSelected
-                        ? 'bg-white text-black border-white shadow-xs'
+                        ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] shadow-xs'
                         : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
@@ -1644,7 +1644,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               </div>
               <button
                 onClick={() => setShowSleepModal(false)}
-                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2] transition-colors"
                 aria-label="Chiudi timer"
               >
                 <X size={20} />
@@ -1670,7 +1670,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                     onClick={() => setSleepTimer(opt.id)}
                     className={`min-h-[48px] px-4 rounded-xl border font-bold text-xs flex items-center justify-between transition-all ${
                       isSelected
-                        ? 'bg-white text-black border-white shadow-xs'
+                        ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] shadow-xs'
                         : 'bg-zinc-950 text-white border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900'
                     }`}
                   >
@@ -1735,15 +1735,15 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           handleVoiceSelect(v.uri, v.name);
                         }
                       }}
-                      className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                      className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2BA8A2] ${
                         isSelected
-                          ? 'border-white bg-zinc-900 shadow-xs'
+                          ? 'border-[#2BA8A2] bg-zinc-900 shadow-xs'
                           : 'border-zinc-850 bg-black hover:border-zinc-600 hover:bg-zinc-950'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {isSelected ? (
-                          <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-[#FFD23F] text-slate-900 flex items-center justify-center font-black text-xs shrink-0">
                             <Check size={13} className="stroke-[3]" />
                           </span>
                         ) : (
@@ -1780,7 +1780,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                         }}
                         className={`min-h-[38px] px-3 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
                           isPlayingThis
-                            ? 'bg-white text-black border-white animate-pulse'
+                            ? 'bg-[#FFD23F] text-slate-900 border-[#FFD23F] animate-pulse'
                             : 'bg-zinc-900 text-white border-zinc-700 hover:bg-zinc-800'
                         }`}
                         aria-label={`Ascolta anteprima ${v.name}`}
@@ -1811,13 +1811,13 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                           tabIndex={0}
                           className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
                             isSelected
-                              ? 'border-white bg-zinc-900 shadow-xs'
+                              ? 'border-[#2BA8A2] bg-zinc-900 shadow-xs'
                               : 'border-zinc-850 bg-black hover:border-zinc-600 hover:bg-zinc-950'
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {isSelected ? (
-                              <span className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0">
+                              <span className="w-5 h-5 rounded-full bg-[#FFD23F] text-slate-900 flex items-center justify-center font-black text-xs shrink-0">
                                 <Check size={13} className="stroke-[3]" />
                               </span>
                             ) : (
@@ -1846,11 +1846,11 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           aria-labelledby="reader-paste-title"
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in select-none"
         >
-          <div className="bg-black border border-white/20 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white max-h-[90vh] overflow-hidden">
+          <div className="bg-black border border-zinc-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-white max-h-[90vh] overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-black border border-white/20 text-white flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center shrink-0">
                   <ClipboardPaste size={20} />
                 </div>
                 <div>
@@ -1865,7 +1865,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPasteModal(false)}
-                className="w-9 h-9 rounded-xl bg-black border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition-colors shrink-0"
+                className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center hover:bg-zinc-800 hover:text-white transition-colors shrink-0"
               >
                 <X size={18} />
               </button>
@@ -1873,7 +1873,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
             {/* Notice */}
             {pasteModalNotice && (
-              <div className="bg-black border border-white p-3 rounded-xl flex items-center gap-2 text-xs font-bold text-white shrink-0 animate-fade-in">
+              <div className="bg-zinc-900 border border-zinc-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold text-white shrink-0 animate-fade-in">
                 <Check size={16} />
                 <span>{pasteModalNotice}</span>
               </div>
@@ -1902,7 +1902,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                       setTimeout(() => setPasteModalNotice(null), 3500);
                     }
                   }}
-                  className="py-2 px-3.5 rounded-xl bg-white text-black font-black text-xs hover:bg-zinc-200 active:scale-95 transition-all shadow-md flex items-center gap-1.5"
+                  className="py-2 px-3.5 rounded-xl bg-[#FFD23F] text-slate-900 font-black text-xs hover:bg-[#FFE47A] active:scale-95 transition-all shadow-md flex items-center gap-1.5"
                 >
                   <ClipboardPaste size={14} />
                   <span>Incolla dagli appunti</span>
@@ -1923,7 +1923,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 value={pasteInputText}
                 onChange={(e) => setPasteInputText(e.target.value)}
                 placeholder="Incolla qui il testo copiato..."
-                className="w-full flex-1 min-h-[160px] bg-black border border-white/20 focus:border-white rounded-2xl p-3.5 text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none resize-none leading-relaxed"
+                className="w-full flex-1 min-h-[160px] bg-zinc-950 border border-zinc-800 focus:border-[#2BA8A2] rounded-2xl p-3.5 text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none resize-none leading-relaxed"
               />
 
               <div className="text-[11px] text-zinc-400 flex items-center justify-between px-1 shrink-0">
@@ -1947,7 +1947,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   setEnhanceNotice('Testo della pagina aggiornato!');
                   setTimeout(() => setEnhanceNotice(null), 3500);
                 }}
-                className="w-full sm:flex-1 py-2.5 rounded-xl bg-white text-black font-black text-xs hover:bg-zinc-200 active:scale-95 transition-all shadow-md disabled:opacity-40"
+                className="w-full sm:flex-1 py-2.5 rounded-xl bg-[#FFD23F] text-slate-900 font-black text-xs hover:bg-[#FFE47A] active:scale-95 transition-all shadow-md disabled:opacity-40"
               >
                 Sostituisci Pagina Attuale
               </button>
@@ -1967,7 +1967,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   setEnhanceNotice('Aggiunta nuova pagina con il testo incollato!');
                   setTimeout(() => setEnhanceNotice(null), 3500);
                 }}
-                className="w-full sm:flex-1 py-2.5 rounded-xl bg-black border border-white/30 text-white font-bold text-xs hover:bg-zinc-900 active:scale-95 transition-all disabled:opacity-40"
+                className="w-full sm:flex-1 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white font-bold text-xs hover:bg-zinc-800 active:scale-95 transition-all disabled:opacity-40"
               >
                 Aggiungi come Nuova Pagina
               </button>

@@ -47,13 +47,13 @@ export const Header: React.FC<HeaderProps> = ({
   }, [searchQuery]);
 
   return (
-    <header className="sticky top-0 z-30 bg-[#1E8C86] dark:bg-black/95 text-white border-b-2 border-[#166E69] dark:border-white px-4 py-3 select-none shadow-teal-glow dark:shadow-none transition-colors">
+    <header className="sticky top-0 z-30 bg-[#1E8C86] dark:bg-black/95 text-white border-b-2 border-[#166E69] dark:border-none px-4 py-3 select-none shadow-teal-glow dark:shadow-none transition-colors">
       <div className="max-w-2xl mx-auto flex flex-col gap-2.5">
         {/* Top bar: Flip7 Vintage Vora Logo on left, Search / Bell / User on right */}
         <div className="flex items-center justify-between">
           {/* Logo e Titolo dell'Applicazione Vora (Flip7 Style) */}
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-transparent border border-white flex items-center justify-center shadow-sm">
               <VoraLogo
                 size={26}
                 variant="flip7"
@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label={isSearchOpen ? 'Chiudi ricerca' : 'Cerca nei file'}
               className={`w-9 h-9 rounded-full transition-all flex items-center justify-center active:scale-95 shadow-sm ${
                 isDarkMode
-                  ? 'bg-transparent border-2 border-white text-white hover:bg-white/10'
+                  ? 'bg-white/10 text-white hover:bg-white/20'
                   : 'bg-[#2BA8A2]/60 hover:bg-[#2BA8A2] text-white hover:text-[#FFE47A]'
               }`}
             >
@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title={isDarkMode ? 'Passa alla modalità chiara' : 'Passa alla modalità scura (Dark Mode)'}
                 className={`w-9 h-9 rounded-full transition-all flex items-center justify-center active:scale-95 shadow-sm ${
                   isDarkMode
-                    ? 'bg-transparent border-2 border-white text-white hover:bg-white/10'
+                    ? 'bg-white/10 text-white hover:bg-white/20'
                     : 'bg-[#2BA8A2]/60 hover:bg-[#2BA8A2] text-white hover:text-[#FFD23F]'
                 }`}
               >
@@ -115,7 +115,7 @@ export const Header: React.FC<HeaderProps> = ({
               }
               className={`w-9 h-9 rounded-full transition-all flex items-center justify-center active:scale-95 relative shadow-sm ${
                 isDarkMode
-                  ? 'bg-transparent border-2 border-white text-white hover:bg-white/10'
+                  ? 'bg-white/10 text-white hover:bg-white/20'
                   : 'bg-[#2BA8A2]/60 hover:bg-[#2BA8A2] text-white hover:text-[#FFD23F]'
               }`}
             >
@@ -132,10 +132,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenProfile}
               aria-label="Profilo utente mariano"
-              className={`w-9 h-9 rounded-full border-2 transition-all overflow-hidden active:scale-95 flex items-center justify-center ${
+              className={`w-9 h-9 rounded-full transition-all overflow-hidden active:scale-95 flex items-center justify-center ${
                 isDarkMode
-                  ? 'border-white bg-transparent text-white hover:bg-white/10'
-                  : 'border-[#FFD23F] bg-[#2BA8A2] text-white hover:bg-[#3CC4BD] shadow-accent-glow'
+                  ? 'bg-white/10 text-white hover:bg-white/20'
+                  : 'border-2 border-[#FFD23F] bg-[#2BA8A2] text-white hover:bg-[#3CC4BD] shadow-accent-glow'
               }`}
             >
               <UserIcon size={18} className="text-white" />
@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Expandable Search Input (Transparent with White Borders) */}
+        {/* Expandable Search Input (Transparent with No Borders) */}
         {isSearchOpen && (
           <div className="relative animate-fade-in pt-1">
             <Search
@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Cerca per titolo o autore..."
-              className="w-full bg-transparent border-2 border-white focus:border-white text-white font-bold placeholder-white/75 rounded-full pl-10 pr-10 py-2.5 text-sm outline-none transition-all shadow-sm focus:ring-2 focus:ring-white/30"
+              className="w-full bg-white/10 text-white font-bold placeholder-white/70 rounded-full pl-10 pr-10 py-2.5 text-sm outline-none transition-all shadow-sm border-none"
             />
             {searchQuery && (
               <button

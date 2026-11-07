@@ -23,8 +23,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isDarkM
       role="navigation"
       aria-label="Navigazione principale"
       className={`fixed bottom-0 left-0 right-0 z-40 ${
-        isDarkMode ? 'bg-black/95 border-white shadow-none' : 'bg-[#1E8C86] border-[#166E69] shadow-teal-glow'
-      } border-t-2 pb-safe select-none transition-colors`}
+        isDarkMode ? 'bg-black/95 border-none shadow-none' : 'bg-[#1E8C86] border-[#166E69] border-t-2 shadow-teal-glow'
+      } pb-safe select-none transition-colors`}
     >
       <div className="max-w-2xl mx-auto flex items-center justify-around h-20 px-2">
         {tabs.map((tab) => {
@@ -46,10 +46,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onSelectTab, isDarkM
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                     isActive
                       ? isDarkMode
-                        ? 'bg-transparent text-white border-2 border-white shadow-xs -translate-y-2'
-                        : 'bg-[#FFD23F] text-[#1E8C86] shadow-accent-glow -translate-y-2 border-2 border-white'
+                        ? 'bg-white/20 text-white shadow-xs -translate-y-2'
+                        : 'bg-[#FFD23F] text-[#1E8C86] shadow-accent-glow -translate-y-2'
                       : isDarkMode
-                      ? 'bg-transparent text-white border-2 border-white/60 hover:border-white shadow-sm -translate-y-1'
+                      ? 'bg-white/10 text-white hover:bg-white/15 shadow-sm -translate-y-1'
                       : 'bg-[#2BA8A2] text-white hover:bg-[#3CC4BD] shadow-sm -translate-y-1'
                   }`}
                 >

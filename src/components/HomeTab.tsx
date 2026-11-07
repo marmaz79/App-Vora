@@ -161,7 +161,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       )}
 
       {/* MESSAGGIO DI BENVENUTO CENTRATO CON MARGINI AUMENTATI */}
-      <div className="py-6 px-4 mt-2 mb-4 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-white/20 bg-white/40 dark:bg-transparent rounded-3xl backdrop-blur-xs">
+      <div className="py-6 px-4 mt-2 mb-4 flex flex-col items-center justify-center text-center border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-none bg-white/40 dark:bg-transparent rounded-3xl backdrop-blur-xs">
         <h1 className="text-3xl sm:text-4xl font-black text-[#1E8C86] dark:text-white tracking-tight flex items-center justify-center gap-2">
           <span>Ciao, {userName}!</span>
           <span className="inline-block animate-bounce text-2xl">👋</span>
@@ -174,8 +174,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       {/* ELENCO DEI LIBRI */}
       <div className="flex flex-col gap-2.5">
         {filteredBooks.length === 0 ? (
-          <div className="p-10 text-center flex flex-col items-center justify-center gap-2 bg-white dark:bg-[#162322] rounded-3xl border-2 border-dashed border-[#2BA8A2]/30 shadow-card my-2 text-slate-900 dark:text-white">
-            <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] dark:bg-[#1E3634] border-2 border-[#2BA8A2]/30 text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center mb-1">
+          <div className="p-10 text-center flex flex-col items-center justify-center gap-2 bg-white dark:bg-[#162322] rounded-3xl border-2 border-dashed border-[#2BA8A2]/30 dark:border-none shadow-card my-2 text-slate-900 dark:text-white">
+            <div className="w-14 h-14 rounded-2xl bg-[#E8F6F5] dark:bg-[#1E3634] border-2 border-[#2BA8A2]/30 dark:border-none text-[#1E8C86] dark:text-[#3CC4BD] flex items-center justify-center mb-1">
               <FileText size={28} />
             </div>
             <p className="text-base font-black text-slate-900 dark:text-white">Nessun file trovato</p>
@@ -187,7 +187,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 setUploadInitialMode('all');
                 setIsUploadOpen(true);
               }}
-              className="mt-2 px-5 py-2 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 text-[#1E8C86] dark:text-white font-black text-xs shadow-accent-glow dark:shadow-none border-2 border-transparent dark:border-white active:scale-95 transition-all cursor-pointer"
+              className="mt-2 px-5 py-2 rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] dark:bg-transparent dark:hover:bg-white/10 text-[#1E8C86] dark:text-white font-black text-xs shadow-accent-glow dark:shadow-none border-2 border-transparent dark:border-none active:scale-95 transition-all cursor-pointer"
             >
               Carica ora
             </button>
@@ -212,8 +212,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           onClick={() => setIsQuickActionsOpen((prev) => !prev)}
           aria-label={isQuickActionsOpen ? "Chiudi menu azioni" : "Apri tutte le azioni rapide"}
           aria-expanded={isQuickActionsOpen}
-          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-[#FFD23F] dark:bg-transparent hover:bg-[#FFE47A] dark:hover:bg-white/10 text-[#1E8C86] dark:text-white flex items-center justify-center shadow-accent-glow dark:shadow-none border-2 border-[#E6B800] dark:border-white active:scale-95 transition-all duration-300 cursor-pointer ${
-            isQuickActionsOpen ? 'rotate-45 z-50 bg-[#EF6C4A] dark:bg-transparent text-white border-white' : ''
+          className={`fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-[#FFD23F] dark:bg-transparent hover:bg-[#FFE47A] dark:hover:bg-white/10 text-[#1E8C86] dark:text-white flex items-center justify-center shadow-accent-glow dark:shadow-none border-2 border-[#E6B800] dark:border-none active:scale-95 transition-all duration-300 cursor-pointer ${
+            isQuickActionsOpen ? 'rotate-45 z-50 bg-[#EF6C4A] dark:bg-transparent text-white dark:border-none' : ''
           }`}
           title={isQuickActionsOpen ? "Chiudi" : "Tutte le azioni rapide"}
         >
@@ -232,12 +232,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto animate-slide-up"
+            className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white mb-20 sm:mb-0 max-h-[85vh] overflow-y-auto animate-slide-up"
           >
             {/* Header del modale Azioni Rapide */}
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 pb-3.5">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/40 dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-11 h-11 rounded-2xl bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/40 dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center shrink-0 shadow-xs">
                   <Sparkles size={22} className="text-[#FFD23F] dark:text-white fill-[#FFD23F] dark:fill-white" />
                 </div>
                 <div>
@@ -251,7 +251,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               </div>
               <button
                 onClick={() => setIsQuickActionsOpen(false)}
-                className="w-9 h-9 rounded-full bg-[#EFF8F7] dark:bg-transparent text-slate-600 dark:text-white border dark:border-white hover:bg-[#EF6C4A] hover:text-white dark:hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95 shadow-xs cursor-pointer"
+                className="w-9 h-9 rounded-full bg-[#EFF8F7] dark:bg-transparent text-slate-600 dark:text-white border dark:border-none hover:bg-[#EF6C4A] hover:text-white dark:hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95 shadow-xs cursor-pointer"
                 aria-label="Chiudi azioni"
               >
                 <X size={18} strokeWidth={2.5} />
@@ -268,9 +268,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FFE47A]/30 dark:hover:bg-white/10 border-2 border-[#FFD23F] dark:border-white text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FFE47A]/30 dark:hover:bg-white/10 border-2 border-[#FFD23F] dark:border-none text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-white dark:bg-transparent border border-[#FFD23F] dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-white dark:bg-transparent border border-[#FFD23F] dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Upload size={22} strokeWidth={2.4} className="text-current" />
                 </div>
                 <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
@@ -289,9 +289,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('audio');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#5DADE2]/20 dark:hover:bg-white/10 border-2 border-[#5DADE2] dark:border-white text-[#2980B9] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#5DADE2]/20 dark:hover:bg-white/10 border-2 border-[#5DADE2] dark:border-none text-[#2980B9] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#5DADE2] dark:bg-transparent dark:border dark:border-white text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-[#5DADE2] dark:bg-transparent dark:border-none text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Headphones size={22} strokeWidth={2.4} className="text-white" />
                 </div>
                 <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
@@ -313,9 +313,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     setIsScanOpen(true);
                   }
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FF8A6A]/20 dark:hover:bg-white/10 border-2 border-[#EF6C4A] dark:border-white text-[#D45233] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FF8A6A]/20 dark:hover:bg-white/10 border-2 border-[#EF6C4A] dark:border-none text-[#D45233] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] dark:bg-transparent dark:border dark:border-white text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] dark:bg-transparent dark:border-none text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Camera size={22} strokeWidth={2.4} className="text-white" />
                 </div>
                 <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
@@ -333,9 +333,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsPasteAudioOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#E8F6F5] dark:hover:bg-white/10 border-2 border-[#2BA8A2] dark:border-white text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#E8F6F5] dark:hover:bg-white/10 border-2 border-[#2BA8A2] dark:border-none text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] dark:bg-transparent dark:border dark:border-white text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] dark:bg-transparent dark:border-none text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Volume2 size={22} strokeWidth={2.4} className="text-white" />
                 </div>
                 <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
@@ -354,9 +354,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setUploadInitialMode('all');
                   setIsUploadOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FFE47A]/30 dark:hover:bg-white/10 border-2 border-[#FFD23F] dark:border-white text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FFE47A]/30 dark:hover:bg-white/10 border-2 border-[#FFD23F] dark:border-none text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-white dark:bg-transparent border border-[#FFD23F] dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-white dark:bg-transparent border border-[#FFD23F] dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Layers size={22} strokeWidth={2.4} className="text-current" />
                 </div>
                 <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
@@ -374,9 +374,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsVideoTranscribeOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FF8A6A]/20 dark:hover:bg-white/10 border-2 border-[#EF6C4A] dark:border-white text-[#D45233] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#FF8A6A]/20 dark:hover:bg-white/10 border-2 border-[#EF6C4A] dark:border-none text-[#D45233] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] dark:bg-transparent dark:border dark:border-white text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-[#EF6C4A] dark:bg-transparent dark:border-none text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <Video size={22} strokeWidth={2.4} className="text-white" />
                 </div>
                 <span className="text-xs font-black leading-tight text-slate-900 dark:text-white">
@@ -394,9 +394,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   setIsQuickActionsOpen(false);
                   setIsDriveOpen(true);
                 }}
-                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#E8F6F5] dark:hover:bg-white/10 border-2 border-[#2BA8A2] dark:border-white text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#FFF8E7] dark:bg-transparent hover:bg-[#E8F6F5] dark:hover:bg-white/10 border-2 border-[#2BA8A2] dark:border-none text-[#1E8C86] dark:text-white transition-all active:scale-95 group text-center shadow-card dark:shadow-none cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] dark:bg-transparent dark:border dark:border-white text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-[#2BA8A2] dark:bg-transparent dark:border-none text-white flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
                   <svg className="w-5 h-5 text-white" viewBox="0 0 87.3 78" fill="none">
                     <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#FFFFFF"/>
                     <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#FFFFFF"/>

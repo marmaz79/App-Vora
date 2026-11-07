@@ -54,7 +54,7 @@ const CustomLineTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) =>
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-[#142322] border-2 border-white rounded-2xl px-3.5 py-2.5 shadow-2xl text-xs select-none text-white">
+      <div className="bg-[#142322] border border-[#2BA8A2]/30 rounded-2xl px-3.5 py-2.5 shadow-2xl text-xs select-none text-white">
         <div className="font-extrabold text-[#3CC4BD] flex items-center justify-between gap-3 mb-1">
           <span>{data.dayLabel} ({data.fullDate})</span>
         </div>
@@ -208,13 +208,13 @@ export const StatsTab: React.FC<StatsTabProps> = ({
   return (
     <section className="flex flex-col gap-4 select-none pb-28 animate-fade-in text-slate-800 dark:text-slate-100" aria-label="Statistiche di lettura">
       {/* Header */}
-      <div className="pt-2 px-1 flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/30 pb-3">
+      <div className="pt-2 px-1 flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/30 dark:border-none pb-3">
         <div className="flex items-center gap-2.5">
           {onBack && (
             <button
               onClick={onBack}
               aria-label="Torna indietro"
-              className="w-9 h-9 rounded-full bg-white dark:bg-[#162322] text-slate-600 dark:text-slate-200 hover:text-[#1E8C86] dark:hover:text-[#3CC4BD] hover:bg-[#E8F6F5] dark:hover:bg-[#1E3634] flex items-center justify-center transition-all active:scale-95 shadow-xs border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40"
+              className="w-9 h-9 rounded-full bg-white dark:bg-[#162322] text-slate-600 dark:text-slate-200 hover:text-[#1E8C86] dark:hover:text-[#3CC4BD] hover:bg-[#E8F6F5] dark:hover:bg-[#1E3634] flex items-center justify-center transition-all active:scale-95 shadow-xs border border-[#2BA8A2]/20 dark:border-none"
             >
               <ArrowLeft size={18} />
             </button>
@@ -230,12 +230,11 @@ export const StatsTab: React.FC<StatsTabProps> = ({
           </div>
         </div>
 
-        {/* Copy Summary Button - Transparent with White Borders */}
         <button
           type="button"
           onClick={handleCopySummary}
           aria-label="Copia riepilogo statistiche"
-          className="px-4 py-2 rounded-full bg-transparent hover:bg-white/10 border-2 border-white text-xs font-black text-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+          className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-xs font-black text-white flex items-center gap-1.5 transition-all active:scale-95 shrink-0 border-none"
         >
           {copiedSummary ? (
             <>
@@ -252,13 +251,13 @@ export const StatsTab: React.FC<StatsTabProps> = ({
         </button>
       </div>
 
-      {/* 1. Global KPI Metrics Cards (Transparent with White Borders in Dark Mode) */}
+      {/* 1. Global KPI Metrics Cards (Transparent without Borders in Dark Mode) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {/* Pagine Lette */}
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-white shadow-card flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-none shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 dark:text-white/80">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#1E8C86] dark:text-white">Pagine lette</span>
-            <div className="w-7 h-7 rounded-lg bg-[#E8F6F5] dark:bg-transparent dark:border dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-[#E8F6F5] dark:bg-transparent dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center">
               <BookOpen size={15} />
             </div>
           </div>
@@ -274,10 +273,10 @@ export const StatsTab: React.FC<StatsTabProps> = ({
         </div>
 
         {/* Tempo Dedicato */}
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-white shadow-card flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-none shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 dark:text-white/80">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#1E8C86] dark:text-white">Tempo dedicato</span>
-            <div className="w-7 h-7 rounded-lg bg-[#FFF8E7] dark:bg-transparent dark:border dark:border-white text-[#1E8C86] dark:text-white flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-[#FFF8E7] dark:bg-transparent dark:border-none text-[#1E8C86] dark:text-white flex items-center justify-center">
               <Clock size={15} />
             </div>
           </div>
@@ -292,10 +291,10 @@ export const StatsTab: React.FC<StatsTabProps> = ({
         </div>
 
         {/* Tempo Rimanente */}
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-white shadow-card flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-none shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 dark:text-white/80">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#2980B9] dark:text-white">Tempo rimanente</span>
-            <div className="w-7 h-7 rounded-lg bg-[#5DADE2]/15 dark:bg-transparent dark:border dark:border-white text-[#5DADE2] dark:text-white flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-[#5DADE2]/15 dark:bg-transparent dark:border-none text-[#5DADE2] dark:text-white flex items-center justify-center">
               <Hourglass size={15} />
             </div>
           </div>
@@ -310,10 +309,10 @@ export const StatsTab: React.FC<StatsTabProps> = ({
         </div>
 
         {/* Libri Completati / In corso */}
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-white shadow-card flex flex-col justify-between">
+        <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-none shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 dark:text-white/80">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#27AE60] dark:text-white">Stato libri</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-transparent dark:border dark:border-white text-[#27AE60] dark:text-white flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-transparent dark:border-none text-[#27AE60] dark:text-white flex items-center justify-center">
               <CheckCircle2 size={15} />
             </div>
           </div>
@@ -330,8 +329,8 @@ export const StatsTab: React.FC<StatsTabProps> = ({
       </div>
 
       {/* 2. RECHARTS LINE CHART: Pagine lette nell'ultima settimana */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#0E1716] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white shadow-card flex flex-col gap-3 text-white">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#0E1716] dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none shadow-card flex flex-col gap-3 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#2BA8A2]/20 dark:border-none pb-3">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[#1E3634] text-white border border-[#2BA8A2]/40 flex items-center justify-center">
@@ -415,7 +414,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
         </div>
 
         {/* Weekly Chart Footnote */}
-        <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-white/10">
+        <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-[#2BA8A2]/20 dark:border-none">
           <span>Media giornaliera: <strong className="text-white font-extrabold">{dailyAverage} pagine/giorno</strong></span>
           <div className="flex items-center gap-3 text-xs">
             <span className="flex items-center gap-1.5">
@@ -452,7 +451,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortOption)}
                 aria-label="Ordina statistiche libri"
-                className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-xs font-black text-[#1E8C86] dark:text-white rounded-full py-1.5 pl-3.5 pr-8 appearance-none focus:outline-none cursor-pointer shadow-xs"
+                className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-xs font-black text-[#1E8C86] dark:text-white rounded-full py-1.5 pl-3.5 pr-8 appearance-none focus:outline-none cursor-pointer shadow-xs"
               >
                 <option value="progress" className="dark:bg-slate-900 dark:text-white">Avanzamento %</option>
                 <option value="time" className="dark:bg-slate-900 dark:text-white">Tempo dedicato</option>
@@ -474,7 +473,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
               placeholder="Cerca libro o autore..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-[#FFF8E7] dark:bg-transparent border-2 border-[#2BA8A2]/25 dark:border-white rounded-full text-xs text-slate-900 dark:text-white font-bold placeholder-[#1E8C86]/60 dark:placeholder-white/60 focus:outline-none shadow-xs"
+              className="w-full pl-9 pr-3 py-2 bg-[#FFF8E7] dark:bg-transparent border-2 border-[#2BA8A2]/25 dark:border-none rounded-full text-xs text-slate-900 dark:text-white font-bold placeholder-[#1E8C86]/60 dark:placeholder-white/60 focus:outline-none shadow-xs"
             />
           </div>
 
@@ -484,8 +483,8 @@ export const StatsTab: React.FC<StatsTabProps> = ({
               onClick={() => setFilter('all')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 cursor-pointer ${
                 filter === 'all'
-                  ? 'bg-[#1E8C86] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow'
-                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-slate-600 dark:text-white hover:text-[#1E8C86]'
+                  ? 'bg-[#1E8C86] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-teal-glow'
+                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-slate-600 dark:text-white hover:text-[#1E8C86]'
               }`}
             >
               Tutti ({bookStats.length})
@@ -494,8 +493,8 @@ export const StatsTab: React.FC<StatsTabProps> = ({
               onClick={() => setFilter('in_progress')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 cursor-pointer ${
                 filter === 'in_progress'
-                  ? 'bg-[#FFD23F] dark:bg-white/20 text-[#1E8C86] dark:text-white border-2 border-transparent dark:border-white shadow-accent-glow'
-                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-slate-600 dark:text-white hover:text-[#1E8C86]'
+                  ? 'bg-[#FFD23F] dark:bg-white/20 text-[#1E8C86] dark:text-white border-2 border-transparent dark:border-none shadow-accent-glow'
+                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-slate-600 dark:text-white hover:text-[#1E8C86]'
               }`}
             >
               In lettura ({summary.inProgressBooks})
@@ -504,8 +503,8 @@ export const StatsTab: React.FC<StatsTabProps> = ({
               onClick={() => setFilter('completed')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 cursor-pointer ${
                 filter === 'completed'
-                  ? 'bg-[#27AE60] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-sm'
-                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-slate-600 dark:text-white hover:text-[#1E8C86]'
+                  ? 'bg-[#27AE60] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-sm'
+                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-slate-600 dark:text-white hover:text-[#1E8C86]'
               }`}
             >
               Completati ({summary.completedBooks})
@@ -514,8 +513,8 @@ export const StatsTab: React.FC<StatsTabProps> = ({
               onClick={() => setFilter('not_started')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all shrink-0 cursor-pointer ${
                 filter === 'not_started'
-                  ? 'bg-[#1E8C86] dark:bg-white/20 text-white border-2 border-transparent dark:border-white shadow-teal-glow'
-                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-white text-slate-600 dark:text-white hover:text-[#1E8C86]'
+                  ? 'bg-[#1E8C86] dark:bg-white/20 text-white border-2 border-transparent dark:border-none shadow-teal-glow'
+                  : 'bg-white dark:bg-transparent border-2 border-[#2BA8A2]/30 dark:border-none text-slate-600 dark:text-white hover:text-[#1E8C86]'
               }`}
             >
               Da iniziare ({summary.notStartedBooks})
@@ -525,7 +524,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
 
         {/* Book Stats List */}
         {filteredBookStats.length === 0 ? (
-          <div className="text-center py-12 px-4 rounded-3xl bg-white dark:bg-transparent border-2 border-dashed border-[#2BA8A2]/30 dark:border-white shadow-card">
+          <div className="text-center py-12 px-4 rounded-3xl bg-white dark:bg-transparent border-2 border-dashed border-[#2BA8A2]/30 dark:border-none shadow-card">
             <BookOpen size={36} className="mx-auto text-[#2BA8A2] dark:text-white mb-2 opacity-60" />
             <p className="text-sm font-black text-slate-900 dark:text-white">Nessun libro trovato</p>
             <p className="text-xs text-slate-500 dark:text-white/80 mt-1">
@@ -541,17 +540,17 @@ export const StatsTab: React.FC<StatsTabProps> = ({
               return (
                 <div
                   key={stat.bookId}
-                  className={`p-4 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-white shadow-card hover:shadow-card-hover transition-all flex flex-col gap-3.5`}
+                  className={`p-4 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/15 dark:border-none shadow-card hover:shadow-card-hover transition-all flex flex-col gap-3.5`}
                 >
                   {/* Top row: Format badge, Title, Author & Open Action */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white">
+                        <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none">
                           {stat.fileType.toUpperCase()}
                         </span>
                           {isFinished && (
-                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#27AE60] dark:bg-transparent text-white border dark:border-white flex items-center gap-1 shadow-xs">
+                            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#27AE60] dark:bg-transparent text-white border dark:border-none flex items-center gap-1 shadow-xs">
                               <CheckCircle2 size={10} className="text-white" /> Completato
                             </span>
                           )}
@@ -569,7 +568,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
                         type="button"
                         onClick={() => onOpenBook(originalBook)}
                         aria-label={`Leggi ${stat.title}`}
-                        className="px-4 py-2 rounded-full bg-transparent hover:bg-white/10 text-white border-2 border-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 cursor-pointer"
+                        className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 shrink-0 cursor-pointer border-none"
                       >
                         <span>Leggi</span>
                         <ArrowRight size={13} strokeWidth={2.5} className="text-white" />
@@ -578,7 +577,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
                   </div>
 
                   {/* Quantitative Stats Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white/40">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-none">
                     {/* Pagine lette */}
                     <div className="flex flex-col">
                       <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-white/80 flex items-center gap-1">
@@ -620,7 +619,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
                       <span>Avanzamento lettura</span>
                       <span className="font-black text-[#1E8C86] dark:text-white">{stat.percentComplete}%</span>
                     </div>
-                    <div className="w-full bg-[#E8F6F5] dark:bg-white/10 h-2.5 rounded-full overflow-hidden border border-[#2BA8A2]/20 dark:border-white/30">
+                    <div className="w-full bg-[#E8F6F5] dark:bg-white/10 h-2.5 rounded-full overflow-hidden border border-[#2BA8A2]/20 dark:border-none">
                       <div
                         className="bg-[#2BA8A2] dark:bg-white h-full rounded-full transition-all duration-300"
                         style={{ width: `${stat.percentComplete}%` }}
@@ -635,7 +634,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
       </div>
 
       {/* Speed & Calculation Note */}
-      <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-white text-xs text-slate-600 dark:text-white font-medium flex items-center gap-2 shadow-xs">
+      <div className="p-3.5 rounded-2xl bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none text-xs text-slate-600 dark:text-white font-medium flex items-center gap-2 shadow-xs">
         <Sparkles size={16} className="text-[#FFD23F] shrink-0" />
         <span>
           Velocità di lettura stimata: ~180 parole al minuto con sintesi vocale naturale italiana. Il tempo viene aggiornato ad ogni pagina letta.

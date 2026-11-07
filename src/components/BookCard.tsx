@@ -90,7 +90,7 @@ export const BookCard: React.FC<BookCardProps> = ({
             onOpen(book);
           }
         }}
-        className={`bg-white dark:bg-transparent hover:bg-[#F9FDFC] dark:hover:bg-white/10 active:scale-[0.99] rounded-2xl mb-2.5 p-3.5 sm:p-4 flex items-center justify-between gap-3.5 transition-all cursor-pointer group select-none shadow-card hover:shadow-card-hover border-2 border-[#2BA8A2]/10 dark:border-white`}
+        className={`bg-white dark:bg-transparent hover:bg-[#F9FDFC] dark:hover:bg-white/10 active:scale-[0.99] rounded-2xl mb-2.5 p-3.5 sm:p-4 flex items-center justify-between gap-3.5 transition-all cursor-pointer group select-none shadow-card hover:shadow-card-hover border-2 border-[#2BA8A2]/10 dark:border-none`}
         aria-labelledby={`book-title-${book.book_id}`}
       >
         {/* Book Info Column */}
@@ -136,7 +136,7 @@ export const BookCard: React.FC<BookCardProps> = ({
             {book.currentPage !== undefined && book.currentPage > 0 && (
               <>
                 <span className="text-slate-400 dark:text-white/60">·</span>
-                <span className="text-[#1E8C86] dark:text-white font-bold bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-white px-2 py-0.5 rounded-full text-[10px] shadow-xs">
+                <span className="text-[#1E8C86] dark:text-white font-bold bg-[#FFF8E7] dark:bg-transparent border border-[#FFD23F] dark:border-none px-2 py-0.5 rounded-full text-[10px] shadow-xs">
                   Pag. {book.currentPage + 1}/{book.pages.length}
                 </span>
               </>
@@ -147,7 +147,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               <>
                 <span className="text-slate-400 dark:text-white/60">·</span>
                 <span
-                  className="text-[#1E8C86] dark:text-white font-bold inline-flex items-center gap-1 bg-[#E8F6F5] dark:bg-transparent border dark:border-white px-2 py-0.5 rounded-full text-[10px]"
+                  className="text-[#1E8C86] dark:text-white font-bold inline-flex items-center gap-1 bg-[#E8F6F5] dark:bg-transparent border dark:border-none px-2 py-0.5 rounded-full text-[10px]"
                   title={`${book.bookmarks.length} segnalibri salvati`}
                 >
                   <BookmarkIcon size={10} className="fill-[#1E8C86] dark:fill-white text-white" />
@@ -177,7 +177,7 @@ export const BookCard: React.FC<BookCardProps> = ({
 
       {/* Toast Feedback */}
       {toastMsg && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-60 bg-transparent text-white font-extrabold px-4 py-2 rounded-full border-2 border-white shadow-none backdrop-blur-md text-xs animate-fade-in flex items-center gap-2">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-60 bg-slate-900/90 text-white font-extrabold px-4 py-2 rounded-full border-none shadow-lg backdrop-blur-md text-xs animate-fade-in flex items-center gap-2">
           <Check size={16} className="text-white" />
           <span>{toastMsg}</span>
         </div>
@@ -197,10 +197,10 @@ export const BookCard: React.FC<BookCardProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl flex flex-col gap-3 text-slate-900 dark:text-white mb-20 sm:mb-0 animate-slide-up"
+            className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-sm w-full p-4 sm:p-5 shadow-2xl flex flex-col gap-3 text-slate-900 dark:text-white mb-20 sm:mb-0 animate-slide-up"
           >
             {/* Intestazione opzioni */}
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 pb-3">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3">
               <div className="min-w-0 flex-1">
                 <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                   {book.title}
@@ -215,7 +215,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   setShowOptions(false);
                   setConfirmDelete(false);
                 }}
-                className="w-8 h-8 rounded-full bg-[#EFF8F7] dark:bg-transparent text-slate-600 dark:text-white border dark:border-white hover:bg-[#EF6C4A] hover:text-white dark:hover:bg-white/10 flex items-center justify-center transition-colors shrink-0 active:scale-95 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#EFF8F7] dark:bg-transparent text-slate-600 dark:text-white border dark:border-none hover:bg-[#EF6C4A] hover:text-white dark:hover:bg-white/10 flex items-center justify-center transition-colors shrink-0 active:scale-95 cursor-pointer"
                 aria-label="Chiudi opzioni"
               >
                 <X size={16} />
@@ -246,7 +246,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-2.5 bg-white dark:bg-[#1A3330] hover:bg-slate-100 dark:hover:bg-[#234542] border border-slate-300 dark:border-white/20 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-full transition-all cursor-pointer"
+                    className="flex-1 py-2.5 bg-white dark:bg-[#1A3330] hover:bg-slate-100 dark:hover:bg-[#234542] border border-slate-300 dark:border-none active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-full transition-all cursor-pointer"
                   >
                     Annulla
                   </button>
@@ -264,7 +264,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                     }}
                     className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-xl transition-colors group cursor-pointer"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <FileText size={18} className="text-current" />
                     </div>
                     <div className="flex flex-col">
@@ -286,7 +286,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                     }}
                     className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-xl transition-colors group cursor-pointer"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-[#1E8C86] dark:bg-transparent text-[#FFD23F] dark:text-white border dark:border-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                    <div className="w-9 h-9 rounded-xl bg-[#1E8C86] dark:bg-transparent text-[#FFD23F] dark:text-white border dark:border-none flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       <Moon size={18} className="text-current" />
                     </div>
                     <div className="flex flex-col">
@@ -308,7 +308,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                     }}
                     className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-xl transition-colors group cursor-pointer"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-[#FFF8E7] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#FFD23F] dark:border-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                    <div className="w-9 h-9 rounded-xl bg-[#FFF8E7] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#FFD23F] dark:border-none flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                       <BookOpen size={18} className="text-[#1E8C86] dark:text-white" />
                     </div>
                     <div className="flex flex-col">
@@ -329,7 +329,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   }}
                   className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#E8F6F5] dark:hover:bg-white/10 rounded-xl transition-colors group cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 rounded-xl bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     <Info size={18} className="text-current" />
                   </div>
                   <div className="flex flex-col">
@@ -346,7 +346,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   onClick={() => setConfirmDelete(true)}
                   className="w-full flex items-center gap-3.5 py-3 px-2 text-left hover:bg-[#FF8A6A]/15 dark:hover:bg-white/10 rounded-xl transition-colors group text-[#EF6C4A] dark:text-white cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-[#FF8A6A]/15 dark:bg-transparent text-[#EF6C4A] dark:text-white border border-[#EF6C4A]/30 dark:border-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-9 h-9 rounded-xl bg-[#FF8A6A]/15 dark:bg-transparent text-[#EF6C4A] dark:text-white border border-[#EF6C4A]/30 dark:border-none flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     <Trash2 size={18} className="text-current" />
                   </div>
                   <div className="flex flex-col">
@@ -373,12 +373,12 @@ export const BookCard: React.FC<BookCardProps> = ({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-black/95 border-2 border-[#2BA8A2]/30 dark:border-none rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto"
           >
             {/* Header Dettagli */}
-            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-white/30 pb-3.5">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-[#2BA8A2]/20 dark:border-none pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/40 dark:border-white flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-[#E8F6F5] dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/40 dark:border-none flex items-center justify-center shrink-0">
                   <Info size={20} className="text-current" />
                 </div>
                 <div>
@@ -391,7 +391,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               <button
                 type="button"
                 onClick={() => setShowDetailsModal(false)}
-                className="w-8 h-8 rounded-full bg-[#EFF8F7] dark:bg-transparent text-slate-600 dark:text-white border dark:border-white hover:bg-[#EF6C4A] hover:text-white dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#EFF8F7] dark:bg-transparent text-slate-600 dark:text-white border dark:border-none hover:bg-[#EF6C4A] hover:text-white dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
                 aria-label="Chiudi dettagli"
               >
                 <X size={16} />
@@ -401,7 +401,7 @@ export const BookCard: React.FC<BookCardProps> = ({
             {/* Schede con Metadati */}
             <div className="flex flex-col gap-3">
               {/* Box Titolo */}
-              <div className="bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white rounded-2xl p-3.5">
+              <div className="bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3.5">
                 <span className="block text-[10px] font-extrabold text-[#1E8C86] dark:text-white uppercase tracking-wider mb-1">
                   Titolo documento
                 </span>
@@ -417,16 +417,16 @@ export const BookCard: React.FC<BookCardProps> = ({
 
               {/* Formato, Pagine e Dimensione - Box Grid */}
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-white rounded-2xl p-3 text-center shadow-xs">
+                <div className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3 text-center shadow-xs">
                   <span className="block text-[10px] font-extrabold text-slate-500 dark:text-white/80 uppercase tracking-wider mb-1">
                     Formato
                   </span>
-                  <span className="inline-block text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/40 dark:border-white text-[#1E8C86] dark:text-white">
+                  <span className="inline-block text-xs font-black px-2.5 py-0.5 rounded-full bg-[#E8F6F5] dark:bg-transparent border border-[#2BA8A2]/40 dark:border-none text-[#1E8C86] dark:text-white">
                     {getFileTypeLabel()}
                   </span>
                 </div>
 
-                <div className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-white rounded-2xl p-3 text-center shadow-xs">
+                <div className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3 text-center shadow-xs">
                   <span className="block text-[10px] font-extrabold text-slate-500 dark:text-white/80 uppercase tracking-wider mb-1">
                     Pagine
                   </span>
@@ -435,7 +435,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   </span>
                 </div>
 
-                <div className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-white rounded-2xl p-3 text-center shadow-xs">
+                <div className="bg-white dark:bg-transparent border-2 border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3 text-center shadow-xs">
                   <span className="block text-[10px] font-extrabold text-slate-500 dark:text-white/80 uppercase tracking-wider mb-1">
                     Dimensione
                   </span>
@@ -446,7 +446,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               </div>
 
               {/* Posizione del file */}
-              <div className="bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+              <div className="bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
                 <div>
                   <span className="block text-[10px] font-extrabold text-[#1E8C86] dark:text-white uppercase tracking-wider">
                     Posizione archiviazione
@@ -455,14 +455,14 @@ export const BookCard: React.FC<BookCardProps> = ({
                     I miei file · Google Drive & Locale
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none flex items-center justify-center shrink-0">
                   <FileText size={16} className="text-current" />
                 </div>
               </div>
 
               {/* Motore OCR / Elaborazione */}
               {book.ocr_engine && (
-                <div className="bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-white rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
+                <div className="bg-[#EFF8F7] dark:bg-transparent border border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
                   <div>
                     <span className="block text-[10px] font-extrabold text-[#1E8C86] dark:text-white uppercase tracking-wider">
                       Motore di Elaborazione
@@ -471,14 +471,14 @@ export const BookCard: React.FC<BookCardProps> = ({
                       {book.ocr_engine}
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-white flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white dark:bg-transparent text-[#1E8C86] dark:text-white border border-[#2BA8A2]/30 dark:border-none flex items-center justify-center shrink-0">
                     <Cpu size={16} className="text-current" />
                   </div>
                 </div>
               )}
 
               {/* Data di Aggiunta */}
-              <div className="bg-[#EFF8F7] dark:bg-[#1B2F2D] border border-[#2BA8A2]/20 dark:border-[#2BA8A2]/40 rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-xs">
+              <div className="bg-[#EFF8F7] dark:bg-[#1B2F2D] border border-[#2BA8A2]/20 dark:border-none rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-xs">
                 <span className="font-extrabold text-slate-500 dark:text-white/70">Data documento</span>
                 <span className="font-extrabold text-slate-900 dark:text-white">
                   {formatDate(book.created_at)}
@@ -487,11 +487,11 @@ export const BookCard: React.FC<BookCardProps> = ({
             </div>
 
             {/* Azioni Flip7 Pill Buttons */}
-            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t-2 border-dashed border-[#2BA8A2]/20">
+            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t-2 border-dashed border-[#2BA8A2]/20 dark:border-none">
               <button
                 type="button"
                 onClick={() => setShowDetailsModal(false)}
-                className="min-h-[46px] rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#1B2F2D] hover:bg-slate-50 dark:hover:bg-[#233C3A] text-slate-700 dark:text-white text-xs font-extrabold transition-all active:scale-95 shadow-sm"
+                className="min-h-[46px] rounded-full border border-slate-300 dark:border-none bg-white dark:bg-[#1B2F2D] hover:bg-slate-50 dark:hover:bg-[#233C3A] text-slate-700 dark:text-white text-xs font-extrabold transition-all active:scale-95 shadow-sm"
               >
                 Chiudi
               </button>
@@ -502,7 +502,7 @@ export const BookCard: React.FC<BookCardProps> = ({
                   setShowDetailsModal(false);
                   onOpen(book);
                 }}
-                className="min-h-[46px] rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-accent-glow border-2 border-[#E6B800]"
+                className="min-h-[46px] rounded-full bg-[#FFD23F] hover:bg-[#FFE47A] text-[#1E8C86] text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-accent-glow border-2 border-[#E6B800] dark:border-none"
               >
                 <BookOpen size={16} />
                 <span>Apri Documento</span>
